@@ -1603,12 +1603,17 @@ function updateCasesMap() {
   const notice = document.getElementById('populationNotice');
   const centroidLookup = boundaryCentroidLookup();
   const rows = caseRowsForMap().map(r => {
-    const b = centroidLookup.byId.get(String(r.zone_id)) || centroidLookup.byName.get(normalizedString(r.zone_name));
+    const hasDirectCoords = Number.isFinite(toNumber(r.lat)) && Number.isFinite(toNumber(r.lon)) && toNumber(r.lat) !== 0 && toNumber(r.lon) !== 0;
+    const boundaryById = r.zone_id ? centroidLookup.byId.get(String(r.zone_id)) : null;
+    const boundaryByName = !boundaryById && r.zone_name ? centroidLookup.byName.get(normalizedString(r.zone_name)) : null;
+    const sameProvinceNameMatch = boundaryByName && r.province && boundaryByName.province && normalizedString(boundaryByName.province) === normalizedString(r.province);
+    const safeFallback = boundaryById || sameProvinceNameMatch ? (boundaryById || boundaryByName) : null;
     return {
       ...r,
-      lat: Number.isFinite(toNumber(r.lat)) && toNumber(r.lat) !== 0 ? toNumber(r.lat) : toNumber(b?.lat),
-      lon: Number.isFinite(toNumber(r.lon)) && toNumber(r.lon) !== 0 ? toNumber(r.lon) : toNumber(b?.lon),
-      province: r.province || b?.province || ''
+      lat: hasDirectCoords ? toNumber(r.lat) : toNumber(safeFallback?.lat),
+      lon: hasDirectCoords ? toNumber(r.lon) : toNumber(safeFallback?.lon),
+      province: r.province || safeFallback?.province || '',
+      map_location_known: hasDirectCoords || !!safeFallback
     };
   });
   const mappedRows = rows.filter(r => Number.isFinite(r.lat) && Number.isFinite(r.lon) && toNumber(r.cases) > 0);
@@ -1620,7 +1625,8 @@ function updateCasesMap() {
   document.getElementById('rankingDescription').textContent = caseDisplayMode === 'recent' ? 'Recent increase in confirmed cases by health zone.' : 'Cumulative confirmed cases and deaths by health zone from the selected SitRep.';
   notice.style.display = 'block';
   notice.className = 'population-notice';
-  notice.innerHTML = `Case layer: bubble size represents ${caseDisplayMode === 'recent' ? 'recent increase in confirmed cases' : 'cumulative confirmed cases'} by health zone for ${caseDisplayLabel()}. Unventilated / unknown-health-zone cases are not shown because they cannot be assigned to a specific health zone.`;
+  const hiddenUnmapped = rows.filter(r => toNumber(r.cases) > 0 && !r.map_location_known).reduce((sum, r) => sum + toNumber(r.cases), 0);
+  notice.innerHTML = `Case layer: bubble size represents ${caseDisplayMode === 'recent' ? 'recent increase in confirmed cases' : 'cumulative confirmed cases'} by health zone for ${caseDisplayLabel()}. Unventilated / unknown-health-zone cases are not shown because they cannot be assigned to a specific health zone.${hiddenUnmapped > 0 ? ` An additional ${fmt.format(Math.round(hiddenUnmapped))} case${hiddenUnmapped === 1 ? '' : 's'} from mapped health-zone records are retained in the totals but hidden on the map because no reliable geographic match is available.` : ''}`;
 
   // Do not draw health-zone polygon outlines in the Cases layer.
   // The proportional case bubbles are the primary visual encoding here;
