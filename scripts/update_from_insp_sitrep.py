@@ -238,31 +238,190 @@ def existing_max_report() -> tuple[int, str | None]:
     return max_no, max_date
 
 
-def html_pdf_candidates(article_url: str) -> tuple[str, list[str]]:
+def _unique_urls(urls: Iterable[str]) -> list[str]:
+    out: list[str] = []
+    seen: set[str] = set()
+    for u in urls:
+        if not u:
+            continue
+        u = norm_text(str(u)).strip().strip('"').strip("'")
+        if not u or u.lower().startswith(("javascript:", "mailto:", "tel:")):
+            continue
+        if u not in seen:
+            seen.add(u)
+            out.append(u)
+    return out
+
+
+def _urls_from_text(text: str, base_url: str) -> list[str]:
+    """Find direct and encoded PDF/viewer URLs in HTML, scripts and REST-rendered content."""
+    urls: list[str] = []
+    txt = text or ""
+    # Direct absolute URLs.
+    urls.extend(re.findall(r"https?://[^\"'<>\s)]+(?:\.pdf|/download/)[^\"'<>\s)]*", txt, flags=re.I))
+    # Relative PDF URLs.
+    urls.extend(urljoin(base_url, u) for u in re.findall(r"(?:(?:/wp-content/|wp-content/|/download/|download/)[^\"'<>\s)]+\.pdf[^\"'<>\s)]*)", txt, flags=re.I))
+    # Query params / encoded values in PDF.js, dFlip, WonderPlugin, etc.
+    for val in re.findall(r"(?:file|src|pdf|source|url|href)\s*[:=]\s*[\"']([^\"']+)[\"']", txt, flags=re.I):
+        decoded = unquote(val)
+        if ".pdf" in decoded.lower() or "/download/" in decoded.lower():
+            urls.append(urljoin(base_url, decoded))
+    # data-source, data-pdf, data-file attributes are common in WP PDF viewers.
+    for val in re.findall(r"data-[a-z0-9_-]*\s*=\s*[\"']([^\"']+)[\"']", txt, flags=re.I):
+        decoded = unquote(val)
+        if ".pdf" in decoded.lower() or "/download/" in decoded.lower():
+            urls.append(urljoin(base_url, decoded))
+    return _unique_urls(urls)
+
+
+def guessed_wp_upload_pdf_candidates(article: SitRepArticle | None, article_url: str) -> list[str]:
+    """Try common WordPress upload filenames used by INSP SitRep posts.
+
+    This is a deterministic fallback only. Each candidate is still validated by
+    download_url(), so false guesses are harmless.
+    """
+    no = article.report_no if article else report_number_from_text(article_url)
+    date_iso = article.reporting_date if article else (parse_fr_date(article_url.replace("_", "/").replace("-", "/")) or "")
+    if no is None or not date_iso:
+        return []
+    yyyy, mm, dd = date_iso.split("-")
+    dmy_us = f"{dd}_{mm}_{yyyy}"
+    dmy_dash = f"{dd}-{mm}-{yyyy}"
+    yy = yyyy[-2:]
+    # Include the exact naming pattern seen in manually uploaded N26 PDFs plus common variants.
+    names = [
+        f"SitRep_MVE_RDC_N°{no}_{dmy_us}_Final.pdf",
+        f"SitRep_MVE_RDC_N°{no}_{dmy_us}-Final.pdf",
+        f"SitRep_MVE_RDC_N°{no}_{dmy_us}.pdf",
+        f"SitRep_MVE_RDC_N{no}_{dmy_us}_Final.pdf",
+        f"SitRep_MVE_RDC_N{no}_{dmy_us}.pdf",
+        f"SitRep-MVE-RDC-N°{no}-{dmy_dash}-Final.pdf",
+        f"SitRep-MVE-RDC-N{no}-{dmy_dash}-Final.pdf",
+        f"SitRep-MVE-RDC-N{no}-{dmy_dash}.pdf",
+        f"SitRep_N°{no}_MVB_{dmy_us}.pdf",
+        f"SitRep_N{no}_MVB_{dmy_us}.pdf",
+        f"SitRep-N{no}-MVB_{dmy_us}.pdf",
+        f"SitRep-N°{no}-MVB_{dmy_us}.pdf",
+        f"SitRep-MVE-RDC-N{no:03d}-{dmy_dash}.pdf",
+        f"SitRep_MVE_RDC_N{no:03d}_{dmy_us}.pdf",
+        f"SitRep-MVE-RDC-N{no}_{dd}_{mm}_{yy}.pdf",
+        f"SitRep_MVE_RDC_N°{no}_{dd}_{mm}_{yy}.pdf",
+    ]
+    bases = [
+        f"https://insp.cd/wp-content/uploads/{yyyy}/{mm}/",
+        f"https://insp.cd/wp-content/uploads/{yyyy}/{int(mm)}/",
+        f"https://insp.cd/wp-content/uploads/{yyyy}/",
+    ]
+    urls = []
+    for base in bases:
+        for name in names:
+            urls.append(urljoin(base, quote(name)))
+            urls.append(urljoin(base, name))
+    return _unique_urls(urls)
+
+
+def wp_rest_pdf_candidates(article_url: str, article: SitRepArticle | None = None) -> list[str]:
+    """Search WordPress REST content and attachment metadata for PDF candidates."""
+    parsed = urlparse(article_url)
+    root = f"{parsed.scheme}://{parsed.netloc}"
+    slug = parsed.path.strip("/").split("/")[-1]
+    urls: list[str] = []
+    try:
+        r = SESSION.get(f"{root}/wp-json/wp/v2/posts", params={"slug": slug, "_embed": "1"}, timeout=TIMEOUT)
+        if r.ok:
+            posts = r.json()
+            if isinstance(posts, list) and posts:
+                post = posts[0]
+                post_id = post.get("id")
+                for key in ("content", "excerpt", "title"):
+                    val = post.get(key)
+                    if isinstance(val, dict):
+                        urls.extend(_urls_from_text(str(val.get("rendered", "")), article_url))
+                    elif val:
+                        urls.extend(_urls_from_text(str(val), article_url))
+                # Embedded media / attachments.
+                embedded = post.get("_embedded") or {}
+                for group in embedded.values():
+                    if isinstance(group, list):
+                        for item in group:
+                            if isinstance(item, dict):
+                                for k in ("source_url", "link"):
+                                    if item.get(k):
+                                        urls.append(str(item[k]))
+                    elif isinstance(group, dict):
+                        for k in ("source_url", "link"):
+                            if group.get(k):
+                                urls.append(str(group[k]))
+                if post_id:
+                    mr = SESSION.get(f"{root}/wp-json/wp/v2/media", params={"parent": post_id, "per_page": 100}, timeout=TIMEOUT)
+                    if mr.ok:
+                        for item in mr.json():
+                            if not isinstance(item, dict):
+                                continue
+                            mime = str(item.get("mime_type", "")).lower()
+                            for k in ("source_url", "link"):
+                                if item.get(k):
+                                    u = str(item[k])
+                                    if "pdf" in mime or ".pdf" in u.lower():
+                                        urls.append(u)
+                # Search media by report number and slug; useful when parent is not set.
+                searches = [slug]
+                if article and article.report_no:
+                    searches.extend([f"n{article.report_no}", f"sitrep n{article.report_no}", f"mvb {article.report_no}"])
+                for q in searches:
+                    mr = SESSION.get(f"{root}/wp-json/wp/v2/media", params={"search": q, "per_page": 100}, timeout=TIMEOUT)
+                    if mr.ok:
+                        for item in mr.json():
+                            if not isinstance(item, dict):
+                                continue
+                            mime = str(item.get("mime_type", "")).lower()
+                            u = str(item.get("source_url", "") or item.get("link", ""))
+                            title = json.dumps(item.get("title", ""), ensure_ascii=False)
+                            if ("pdf" in mime or ".pdf" in u.lower() or ".pdf" in title.lower()):
+                                urls.append(u)
+    except Exception:
+        pass
+    return _unique_urls([u for u in urls if ".pdf" in u.lower() or "/download/" in u.lower() or "application/pdf" in u.lower()])
+
+
+def html_pdf_candidates(article_url: str, article: SitRepArticle | None = None) -> tuple[str, list[str]]:
     html = SESSION.get(article_url, timeout=TIMEOUT).text
     soup = BeautifulSoup(html, "html.parser")
     urls: list[str] = []
-    for tag in soup.find_all(["a", "iframe", "embed", "object", "source"], href=True):
-        urls.append(urljoin(article_url, tag.get("href")))
-    for tag in soup.find_all(["iframe", "embed", "object", "source"]):
-        src = tag.get("src") or tag.get("data")
-        if src:
-            urls.append(urljoin(article_url, src))
-    urls.extend(re.findall(r"https?://[^\"'<>\s]+\.pdf(?:\?[^\"'<>\s]+)?", html, flags=re.I))
-    # PDF.js/ViewerJS file= or #../file.pdf patterns
+
+    # Direct tags and all attributes, because many WP PDF viewers hide the file URL
+    # in data-* attributes rather than normal href/src.
+    for tag in soup.find_all(True):
+        for attr, val in tag.attrs.items():
+            vals = val if isinstance(val, list) else [val]
+            for v in vals:
+                if not isinstance(v, str):
+                    continue
+                if ".pdf" in v.lower() or "/download/" in v.lower() or "viewer" in v.lower():
+                    urls.append(urljoin(article_url, unquote(v)))
+
+    urls.extend(_urls_from_text(html, article_url))
+
+    # PDF.js/ViewerJS file= or #../file.pdf patterns from discovered viewer URLs.
     more: list[str] = []
     for u in list(urls):
         parsed = urlparse(u)
         qs = parse_qs(parsed.query)
-        for key in ("file", "src"):
+        for key in ("file", "src", "pdf", "source"):
             for val in qs.get(key, []):
-                if ".pdf" in val.lower():
+                if ".pdf" in val.lower() or "/download/" in val.lower():
                     more.append(urljoin(article_url, unquote(val)))
-        if "#" in u and ".pdf" in parsed.fragment.lower():
+        if parsed.fragment and (".pdf" in parsed.fragment.lower() or "/download/" in parsed.fragment.lower()):
             more.append(urljoin(article_url, unquote(parsed.fragment)))
     urls.extend(more)
-    urls = [u for u in dict.fromkeys(urls) if ".pdf" in u.lower() or "application/pdf" in u.lower()]
+
+    # WordPress REST and common uploads filename guesses.
+    urls.extend(wp_rest_pdf_candidates(article_url, article))
+    urls.extend(guessed_wp_upload_pdf_candidates(article, article_url))
+
+    urls = [u for u in _unique_urls(urls) if ".pdf" in u.lower() or "application/pdf" in u.lower() or "/download/" in u.lower()]
     return html, urls
+
 
 
 def download_url(url: str, dest: Path) -> bool:
@@ -284,20 +443,29 @@ def download_pdf_with_playwright(article_url: str, dest: Path) -> bool:
     try:
         with sync_playwright() as p:
             browser = p.chromium.launch(headless=True)
-            context = browser.new_context(accept_downloads=True)
+            context = browser.new_context(accept_downloads=True, viewport={"width": 1440, "height": 1600})
             page = context.new_page()
 
             def on_response(resp):
                 try:
                     ct = resp.headers.get("content-type", "").lower()
-                    if "application/pdf" in ct or resp.url.lower().split("?")[0].endswith(".pdf"):
-                        pdf_urls.append(resp.url)
+                    u = resp.url
+                    if "application/pdf" in ct or u.lower().split("?")[0].endswith(".pdf") or "/download/" in u.lower():
+                        pdf_urls.append(u)
                 except Exception:
                     pass
 
             page.on("response", on_response)
-            page.goto(article_url, wait_until="networkidle", timeout=90000)
-            page.wait_for_timeout(3000)
+            page.goto(article_url, wait_until="domcontentloaded", timeout=90000)
+            page.wait_for_timeout(2500)
+            # Some viewers lazy-load only after scrolling into view.
+            try:
+                page.mouse.wheel(0, 1800)
+                page.wait_for_timeout(2500)
+                page.mouse.wheel(0, -1200)
+                page.wait_for_timeout(1000)
+            except Exception:
+                pass
 
             # PDF URL discovered in network traffic.
             for u in list(dict.fromkeys(pdf_urls)):
@@ -305,61 +473,113 @@ def download_pdf_with_playwright(article_url: str, dest: Path) -> bool:
                     browser.close()
                     return True
 
-            # Inspect iframe/embed sources after dynamic rendering.
-            sources = page.evaluate("""
-                () => Array.from(document.querySelectorAll('iframe,embed,object')).map(e => e.src || e.data || '').filter(Boolean)
-            """)
+            # Inspect DOM and frames after dynamic rendering.
+            try:
+                html = page.content()
+                for u in _urls_from_text(html, article_url):
+                    if download_url(u, dest):
+                        browser.close()
+                        return True
+            except Exception:
+                pass
+
+            try:
+                sources = page.evaluate("""
+                    () => Array.from(document.querySelectorAll('*')).flatMap(e => {
+                        const vals = [];
+                        for (const a of e.getAttributeNames ? e.getAttributeNames() : []) {
+                            const v = e.getAttribute(a) || '';
+                            if (v) vals.push(v);
+                        }
+                        return vals;
+                    }).filter(Boolean)
+                """)
+            except Exception:
+                sources = []
             for src in sources:
-                if ".pdf" in src.lower():
-                    # extract PDF.js file param if present
-                    parsed = urlparse(src)
+                if ".pdf" in str(src).lower() or "/download/" in str(src).lower() or "viewer" in str(src).lower():
+                    parsed = urlparse(urljoin(article_url, str(src)))
                     qs = parse_qs(parsed.query)
                     possible = []
-                    for key in ("file", "src"):
+                    for key in ("file", "src", "pdf", "source"):
                         possible.extend(qs.get(key, []))
-                    if parsed.fragment and ".pdf" in parsed.fragment.lower():
+                    if parsed.fragment and (".pdf" in parsed.fragment.lower() or "/download/" in parsed.fragment.lower()):
                         possible.append(parsed.fragment)
-                    possible.append(src)
+                    possible.append(urljoin(article_url, str(src)))
                     for u in possible:
                         u = urljoin(article_url, unquote(u))
                         if download_url(u, dest):
                             browser.close()
                             return True
 
-            # Last resort: click download buttons in the page and its frames.
+            # Last resort: click visible or hidden PDF viewer download buttons.
             selectors = [
-                "#download", "button#download", "[id*='download' i]", "[class*='download' i]",
+                "#download", "#secondaryDownload", "#downloadButton",
+                "button#download", "a#download",
+                "[id*='download' i]", "[class*='download' i]",
                 "[title*='Download' i]", "[aria-label*='Download' i]",
                 "[title*='Télécharger' i]", "[aria-label*='Télécharger' i]",
                 "[title*='download' i]", "[aria-label*='download' i]",
+                "a[download]", "button[download]"
             ]
-            frames = [page] + list(page.frames)
-            for frame in frames:
+
+            def try_click_in(frame) -> bool:
+                # Try selectors first.
                 for sel in selectors:
                     try:
                         loc = frame.locator(sel).first
                         if loc.count() == 0:
                             continue
-                        with page.expect_download(timeout=8000) as dl_info:
-                            loc.click(timeout=5000)
+                        try:
+                            loc.scroll_into_view_if_needed(timeout=3000)
+                        except Exception:
+                            pass
+                        with page.expect_download(timeout=10000) as dl_info:
+                            loc.click(timeout=5000, force=True)
                         dl = dl_info.value
                         dl.save_as(str(dest))
                         if dest.exists() and dest.stat().st_size > 1000:
-                            browser.close()
                             return True
                     except Exception:
                         continue
+                # Try a JS click on matching elements; some PDF viewer buttons are not
+                # considered visible by Playwright.
+                try:
+                    handles = frame.locator("button,a,div[role='button']").element_handles()
+                    for h in handles:
+                        try:
+                            txt = (h.get_attribute("id") or "") + " " + (h.get_attribute("title") or "") + " " + (h.get_attribute("aria-label") or "") + " " + (h.get_attribute("class") or "")
+                            if not re.search(r"download|t[ée]l[ée]charger", txt, re.I):
+                                continue
+                            with page.expect_download(timeout=10000) as dl_info:
+                                h.evaluate("(el) => el.click()")
+                            dl = dl_info.value
+                            dl.save_as(str(dest))
+                            if dest.exists() and dest.stat().st_size > 1000:
+                                return True
+                        except Exception:
+                            continue
+                except Exception:
+                    pass
+                return False
+
+            for frame in [page] + list(page.frames):
+                if try_click_in(frame):
+                    browser.close()
+                    return True
+
             browser.close()
     except Exception:
         return False
     return False
 
 
+
 def download_latest_pdf(article: SitRepArticle) -> Path:
     RAW.mkdir(parents=True, exist_ok=True)
     no = article.report_no or 0
     pdf_path = RAW / f"sitrep_N{no:03d}.pdf"
-    html, urls = html_pdf_candidates(article.url)
+    html, urls = html_pdf_candidates(article.url, article)
     for u in urls:
         if download_url(u, pdf_path):
             return pdf_path

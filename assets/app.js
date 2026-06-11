@@ -1548,6 +1548,21 @@ function caseRowsForMap() {
 }
 
 
+function plausibleCaseMapCoordinate(lat, lon) {
+  const la = toNumber(lat);
+  const lo = toNumber(lon);
+  // Case bubbles are for DRC health zones. Keep a broad DRC bounding box to
+  // prevent unmatched/unknown rows from being plotted at accidental ocean or
+  // default coordinates.
+  return Number.isFinite(la) && Number.isFinite(lo) && la >= -14 && la <= 6 && lo >= 11 && lo <= 32;
+}
+
+function isUnknownCaseLocation(row) {
+  const txt = normalizedString(`${row.health_zone || row.zone_name || ''} ${row.zone_id || ''}`);
+  return !txt || txt.includes('unventilated') || txt.includes('unknown') || txt.includes('autres zs') || txt.includes('non ventile') || txt.includes('non ventil') || txt.includes('sans fiche') || txt.includes('non identifie');
+}
+
+
 function featureCentroidLatLon(feature) {
   try {
     if (typeof turf !== 'undefined' && turf.centroid) {
@@ -1603,20 +1618,27 @@ function updateCasesMap() {
   const notice = document.getElementById('populationNotice');
   const centroidLookup = boundaryCentroidLookup();
   const rows = caseRowsForMap().map(r => {
-    const hasDirectCoords = Number.isFinite(toNumber(r.lat)) && Number.isFinite(toNumber(r.lon)) && toNumber(r.lat) !== 0 && toNumber(r.lon) !== 0;
-    const boundaryById = r.zone_id ? centroidLookup.byId.get(String(r.zone_id)) : null;
-    const boundaryByName = !boundaryById && r.zone_name ? centroidLookup.byName.get(normalizedString(r.zone_name)) : null;
+    const unknownLocation = isUnknownCaseLocation(r);
+    const hasDirectCoords = !unknownLocation && plausibleCaseMapCoordinate(r.lat, r.lon);
+    // Use boundary fallback only by exact zone_id, or by name when province also
+    // matches. This prevents unknown or ambiguous names from being assigned to
+    // unrelated polygons and plotted offshore.
+    const boundaryById = !unknownLocation && r.zone_id ? centroidLookup.byId.get(String(r.zone_id)) : null;
+    const boundaryByName = !unknownLocation && !boundaryById && r.zone_name ? centroidLookup.byName.get(normalizedString(r.zone_name)) : null;
     const sameProvinceNameMatch = boundaryByName && r.province && boundaryByName.province && normalizedString(boundaryByName.province) === normalizedString(r.province);
     const safeFallback = boundaryById || sameProvinceNameMatch ? (boundaryById || boundaryByName) : null;
+    const lat = hasDirectCoords ? toNumber(r.lat) : toNumber(safeFallback?.lat);
+    const lon = hasDirectCoords ? toNumber(r.lon) : toNumber(safeFallback?.lon);
+    const mapKnown = !unknownLocation && plausibleCaseMapCoordinate(lat, lon);
     return {
       ...r,
-      lat: hasDirectCoords ? toNumber(r.lat) : toNumber(safeFallback?.lat),
-      lon: hasDirectCoords ? toNumber(r.lon) : toNumber(safeFallback?.lon),
+      lat: mapKnown ? lat : NaN,
+      lon: mapKnown ? lon : NaN,
       province: r.province || safeFallback?.province || '',
-      map_location_known: hasDirectCoords || !!safeFallback
+      map_location_known: mapKnown
     };
   });
-  const mappedRows = rows.filter(r => Number.isFinite(r.lat) && Number.isFinite(r.lon) && toNumber(r.cases) > 0);
+  const mappedRows = rows.filter(r => r.map_location_known && toNumber(r.cases) > 0);
   const maxCases = Math.max(...rows.map(r => toNumber(r.cases)), 1);
 
   document.getElementById('mapTitle').textContent = 'Confirmed Ebola cases by health zone';
@@ -3370,7 +3392,7 @@ async function main() {
   const rwiMsg = healthZoneRwi.length ? `RWI ${healthZoneRwi.length} zones` : 'RWI未読込';
   const responseMsg = responseIndicators.length ? `response指標 ${responseIndicators.length}行` : 'response指標未読込';
   const ugandaMsg = ugandaFmpFlows.length ? `Uganda DTM ${ugandaFmpFlows.length} FMP / ${ugandaDistrictFlows.length} district` : 'Uganda DTM未読込';
-  document.getElementById('lastUpdated').textContent = `INSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新は${latestReport}（報告 ${latestReporting}、公開 ${latestPublished}）。抽出値の検証に失敗した場合は自動公開せず、GitHub Issueで確認を求めます。読込データ：OD ${flows.length}行、${popMsg}、${boundaryMsg}、${caseMsg}、${rwiMsg}、${responseMsg}、${ugandaMsg}。`;
+  document.getElementById('lastUpdated').textContent = `INSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新は${latestReport}（報告 ${latestReporting}、公開 ${latestPublished}）。`;
   updateDashboard();
   setTimeout(fitMapToData, 300);
 }
