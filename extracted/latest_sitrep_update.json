@@ -1,0 +1,15 @@
+{
+  "updated_at_utc": "2026-06-11T03:18:55Z",
+  "article_url": "https://insp.cd/sitrep-n26-mvb_09-06-2026/",
+  "pdf_path": "raw/sitreps/sitrep_N026.pdf",
+  "report_no": 26,
+  "reporting_date": "2026-06-09",
+  "publication_date": "2026-06-10",
+  "total_confirmed": 635,
+  "total_deaths": 127,
+  "mapped_health_zone_count": 26,
+  "mapped_cases_sum": 541,
+  "unassigned_cases": 94,
+  "openai_fallback_used": false,
+  "openai_model": ""
+}
