@@ -3219,33 +3219,33 @@ function localTrajectoryAssessment(fc) {
   const rt = fc?.rtMedian;
   const prob = fc?.probRtAbove1;
   let level = 'uncertain';
-  let category = 'Uncertain';
+  let category = '評価困難';
   if (fc) {
     if ((rt > 1.2 && prob > 0.65) || prob > 0.80 || w.ratio > 1.25) {
       level = 'high';
-      category = 'Increasing / high concern';
+      category = '拡大傾向／高い懸念';
     } else if (rt < 0.8 && prob < 0.30 && w.ratio < 0.85) {
       level = 'low';
-      category = 'Decreasing / lower concern';
+      category = '減少傾向／低めの懸念';
     } else {
       level = 'moderate';
-      category = 'Stable or mixed / moderate concern';
+      category = '横ばいまたは混在／中程度の懸念';
     }
     if (Number.isFinite(contactGap) && contactGap >= 0.30 && level !== 'high') {
       level = 'moderate_high';
-      category = 'Moderate–high concern';
+      category = '中〜高程度の懸念';
     }
   }
-  const trendPhrase = w.recent >= w.previous ? 'recent reported cases are not clearly declining' : 'recent reported cases are lower than the previous week';
+  const trendPhrase = w.recent >= w.previous ? '直近の報告症例数は明確には減少していません' : '直近の報告症例数は前週より低下しています';
   const responsePhrase = Number.isFinite(contactGap)
-    ? `contact-tracing gap is ${pct(contactGap)}`
-    : 'response coverage data are incomplete';
+    ? `接触者追跡ギャップは${pct(contactGap)}です`
+    : '対応カバレッジのデータは不完全です';
   return {
     level, category,
     text: fc
-      ? `The local outbreak trajectory is assessed using recent SitRep incidence, Rt, and response indicators: ${trendPhrase}, estimated Rt is ${rt.toFixed(2)}, and ${responsePhrase}.`
-      : 'Insufficient observations are available to assess the local outbreak trajectory with the projection model.',
-    drivers: fc ? `Rt ${rt.toFixed(2)}; P(Rt>1) ${pct(prob)}; 7-day cases ${fmt.format(Math.round(w.recent))} vs ${fmt.format(Math.round(w.previous))}; ${responsePhrase}.` : 'Projection not available.'
+      ? `流行地の状況は、直近のSitRep症例数、推定Rt、response指標に基づき評価しています。${trendPhrase}。推定Rtは${rt.toFixed(2)}で、${responsePhrase}。`
+      : '短期予測モデルで流行地の状況を評価するには、観察データが不足しています。',
+    drivers: fc ? `Rt ${rt.toFixed(2)}、P(Rt>1) ${pct(prob)}、直近7日 ${fmt.format(Math.round(w.recent))}例 vs 前7日 ${fmt.format(Math.round(w.previous))}例、${responsePhrase}。` : '短期予測は利用できません。'
   };
 }
 
@@ -3262,17 +3262,17 @@ function capitalRiskAssessment() {
   const kin = kinRows.reduce((a, r) => a + toNumber(r.air_adjusted), 0);
   const share = total > 0 ? kin / total : 0;
   const kCases = kinshasaCaseCount();
-  let level = 'low', category = 'Low';
-  if (kCases > 0) { level = 'high'; category = 'High'; }
-  else if (share >= 0.15) { level = 'moderate_high'; category = 'Moderate–high'; }
-  else if (share >= 0.05) { level = 'moderate'; category = 'Moderate'; }
-  else if (share < 0.01) { level = 'very_low'; category = 'Very low'; }
+  let level = 'low', category = '低い';
+  if (kCases > 0) { level = 'high'; category = '高い'; }
+  else if (share >= 0.15) { level = 'moderate_high'; category = '中〜高程度'; }
+  else if (share >= 0.05) { level = 'moderate'; category = '中程度'; }
+  else if (share < 0.01) { level = 'very_low'; category = '非常に低い'; }
   return {
     level, category,
     text: kCases > 0
-      ? 'Confirmed cases are reported in the capital region; capital-region risk is therefore high and requires immediate review.'
-      : `Risk to Kinshasa is assessed from case-weighted mobility under the air-adjusted scenario. Current indicators suggest ${category.toLowerCase()} capital-region importation pressure; risk is not zero and depends on travel screening and reporting completeness.`,
-    drivers: `Kinshasa confirmed cases ${fmt.format(Math.round(kCases))}; air-adjusted share ${pct(share)}; ${kinRows.length} Kinshasa-linked destination row(s).`
+      ? '首都圏で確定例が報告されているため、首都圏への拡大リスクは高いと評価され、直ちに確認が必要です。'
+      : `首都圏へのリスクは、航空移動抑制を考慮したcase-weighted mobility指標に基づき評価しています。現在の指標では首都圏への流入圧は「${category}」と評価されますが、リスクはゼロではなく、移動時スクリーニングと報告の完全性に依存します。`,
+    drivers: `Kinshasa確定例 ${fmt.format(Math.round(kCases))}例、air-adjusted share ${pct(share)}、Kinshasa関連destination ${kinRows.length}件。`
   };
 }
 
@@ -3286,14 +3286,14 @@ function crossBorderRiskAssessment() {
   const ugRows = ugandaImportationRowsForMonth(f.month).filter(r => toNumber(r.importation_pressure) > 0);
   const poe = responseMetricValue('poe_screening_coverage');
   const ituriCases = caseRowsLatest().filter(r => normalizedString(r.province) === 'ituri').reduce((a, r) => a + toNumber(r.confirmed_cases), 0);
-  let level = 'moderate', category = 'Moderate';
-  if (share >= 0.25 || ituriCases >= 400) { level = 'moderate_high'; category = 'Moderate–high'; }
-  if (share >= 0.40 && (!Number.isFinite(poe) || poe < 0.90)) { level = 'high'; category = 'High'; }
-  if (share < 0.08 && Number.isFinite(poe) && poe >= 0.95) { level = 'low'; category = 'Low'; }
+  let level = 'moderate', category = '中程度';
+  if (share >= 0.25 || ituriCases >= 400) { level = 'moderate_high'; category = '中〜高程度'; }
+  if (share >= 0.40 && (!Number.isFinite(poe) || poe < 0.90)) { level = 'high'; category = '高い'; }
+  if (share < 0.08 && Number.isFinite(poe) && poe >= 0.95) { level = 'low'; category = '低い'; }
   return {
     level, category,
-    text: `Cross-border and international spread risk is assessed using Uganda-border importation pressure, affected eastern DRC cases, and PoE/PoC screening. Current indicators suggest ${category.toLowerCase()} risk, with continued border movement despite screening.`,
-    drivers: `Ituri cases ${fmt.format(Math.round(ituriCases))}; border-pressure share ${pct(share)}; Uganda destination rows ${ugRows.length}; PoE screening ${Number.isFinite(poe) ? pct(poe) : 'no data'}.`
+    text: `ウガンダ・周辺国への拡大リスクは、ウガンダ国境方向のimportation pressure、DRC東部の症例数、PoE/PoCスクリーニング指標に基づき評価しています。現在の指標では「${category}」のリスクが示唆され、スクリーニング下でも国境を越える移動は継続しています。`,
+    drivers: `Ituri症例 ${fmt.format(Math.round(ituriCases))}例、border-pressure share ${pct(share)}、Uganda destination ${ugRows.length}件、PoE screening ${Number.isFinite(poe) ? pct(poe) : 'データなし'}。`
   };
 }
 
@@ -3305,7 +3305,7 @@ function updateAssessmentPanel() {
   const u = document.getElementById('assessmentUpdated');
   if (u) {
     const meta = reportSummaryForDate(selectedCaseDate());
-    u.textContent = `${displayDateLabel(selectedCaseDate())}${meta?.report_no ? ' / ' + meta.report_no : ''}`;
+    u.textContent = `${displayDateLabel(selectedCaseDate())}時点の評価${meta?.report_no ? '（' + meta.report_no + '）' : ''}`;
   }
 }
 
@@ -3363,14 +3363,14 @@ async function main() {
   const firstReport = firstSummary?.report_no || 'first SitRep';
   const latestReporting = latestSummary?.reporting_date ? displayDateLabel(latestSummary.reporting_date) : 'latest reporting date';
   const latestPublished = latestSummary?.publication_date ? displayDateLabel(latestSummary.publication_date) : 'latest publication date';
-  document.getElementById('dataStatus').textContent = `Updated with SitRep ${firstReport.replace(/^N/i, 'N')}–${latestReport} (latest ${latestReport})`;
-  const popMsg = hasPopulationData() ? `; population rows: ${population.length}` : '; population file not loaded';
-  const boundaryMsg = hasBoundaries() ? `; health-zone polygons: ${healthZoneBoundaries.features.length}` : '; polygon boundaries not loaded';
-  const caseMsg = cases.length ? `; case rows: ${cases.length} across ${availableCaseDates().length} reporting dates (latest ${selectedCaseDate()})` : '; case file not loaded';
-  const rwiMsg = healthZoneRwi.length ? `; RWI zones: ${healthZoneRwi.length}` : '; RWI file not loaded';
-  const responseMsg = responseIndicators.length ? `; response rows: ${responseIndicators.length}` : '; response indicators not loaded';
-  const ugandaMsg = ugandaFmpFlows.length ? `; Uganda DTM rows: ${ugandaFmpFlows.length} FMP / ${ugandaDistrictFlows.length} district` : '; Uganda DTM files not loaded';
-  document.getElementById('lastUpdated').textContent = `Epidemiological data updated with SitRep ${firstReport}–${latestReport}; latest ${latestReport}, reporting ${latestReporting}, published ${latestPublished}. Loaded ${flows.length} OD rows through ${monthsCache[monthsCache.length - 1] || 'latest month'}${popMsg}${boundaryMsg}${caseMsg}${rwiMsg}${responseMsg}${ugandaMsg}`;
+  document.getElementById('dataStatus').textContent = `SitRep ${firstReport.replace(/^N/i, 'N')}–${latestReport}まで更新済み（最新 ${latestReport}）`;
+  const popMsg = hasPopulationData() ? `人口データ ${population.length}行` : '人口データ未読込';
+  const boundaryMsg = hasBoundaries() ? `health-zoneポリゴン ${healthZoneBoundaries.features.length}件` : 'ポリゴン境界未読込';
+  const caseMsg = cases.length ? `症例データ ${availableCaseDates().length}報告日・${cases.length}行（選択中 ${selectedCaseDate()}）` : '症例データ未読込';
+  const rwiMsg = healthZoneRwi.length ? `RWI ${healthZoneRwi.length} zones` : 'RWI未読込';
+  const responseMsg = responseIndicators.length ? `response指標 ${responseIndicators.length}行` : 'response指標未読込';
+  const ugandaMsg = ugandaFmpFlows.length ? `Uganda DTM ${ugandaFmpFlows.length} FMP / ${ugandaDistrictFlows.length} district` : 'Uganda DTM未読込';
+  document.getElementById('lastUpdated').textContent = `INSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新は${latestReport}（報告 ${latestReporting}、公開 ${latestPublished}）。抽出値の検証に失敗した場合は自動公開せず、GitHub Issueで確認を求めます。読込データ：OD ${flows.length}行、${popMsg}、${boundaryMsg}、${caseMsg}、${rwiMsg}、${responseMsg}、${ugandaMsg}。`;
   updateDashboard();
   setTimeout(fitMapToData, 300);
 }
