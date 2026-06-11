@@ -1,4 +1,4 @@
-**Epidemiological data update:** SitRep N24/MVB_07/06/2026, reporting date 07 June 2026, publication date 08 June 2026.
+**Epidemiological data update: SitRep N26/MVB_09/06/2026, reporting date 09 June 2026, publication date 10 June 2026.**
 
 # DRC–Uganda Bundibugyo Ebola dashboard data
 

@@ -14,3 +14,6 @@ date,province,contacts_under_followup,contacts_seen,followup_rate,target_rate,so
 2026-06-08,Ituri,4752,2487,0.523,0.95,SitRep N25/MVB_08/06/2026,Province-level contact follow-up rate from uploaded SitRep; dashboard uses the nearest prior available rate for dates without province-level contact data.
 2026-06-08,Nord-Kivu,703,533,0.758,0.95,SitRep N25/MVB_08/06/2026,Province-level contact follow-up rate from uploaded SitRep; dashboard uses the nearest prior available rate for dates without province-level contact data.
 2026-06-08,Sud-Kivu,226,181,0.801,0.95,SitRep N25/MVB_08/06/2026,Province-level contact follow-up rate from uploaded SitRep; dashboard uses the nearest prior available rate for dates without province-level contact data.
+2026-06-09,Ituri,4955,2860,0.577,0.95,SitRep N26/MVB_09/06/2026,Province-level contact follow-up rate from SitRep N26; dashboard uses nearest prior available rate for dates without province-level contact data.
+2026-06-09,Nord-Kivu,841,597,0.71,0.95,SitRep N26/MVB_09/06/2026,Province-level contact follow-up rate from SitRep N26; dashboard uses nearest prior available rate for dates without province-level contact data.
+2026-06-09,Sud-Kivu,226,222,0.982,0.95,SitRep N26/MVB_09/06/2026,Province-level contact follow-up rate from SitRep N26; dashboard uses nearest prior available rate for dates without province-level contact data.
