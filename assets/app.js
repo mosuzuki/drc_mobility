@@ -3350,14 +3350,21 @@ async function main() {
   buildIndexes();
   initMap();
   populateControls();
-  document.getElementById('dataStatus').textContent = 'Updated with SitRep N1–N25 (latest N25)';
+  const summaryRows = (reportSummary || []).slice().sort((a, b) => new Date(a.reporting_date) - new Date(b.reporting_date));
+  const latestSummary = summaryRows[summaryRows.length - 1] || null;
+  const firstSummary = summaryRows[0] || null;
+  const latestReport = latestSummary?.report_no || 'latest SitRep';
+  const firstReport = firstSummary?.report_no || 'first SitRep';
+  const latestReporting = latestSummary?.reporting_date ? displayDateLabel(latestSummary.reporting_date) : 'latest reporting date';
+  const latestPublished = latestSummary?.publication_date ? displayDateLabel(latestSummary.publication_date) : 'latest publication date';
+  document.getElementById('dataStatus').textContent = `Updated with SitRep ${firstReport.replace(/^N/i, 'N')}–${latestReport} (latest ${latestReport})`;
   const popMsg = hasPopulationData() ? `; population rows: ${population.length}` : '; population file not loaded';
   const boundaryMsg = hasBoundaries() ? `; health-zone polygons: ${healthZoneBoundaries.features.length}` : '; polygon boundaries not loaded';
   const caseMsg = cases.length ? `; case rows: ${cases.length} across ${availableCaseDates().length} reporting dates (latest ${selectedCaseDate()})` : '; case file not loaded';
   const rwiMsg = healthZoneRwi.length ? `; RWI zones: ${healthZoneRwi.length}` : '; RWI file not loaded';
   const responseMsg = responseIndicators.length ? `; response rows: ${responseIndicators.length}` : '; response indicators not loaded';
   const ugandaMsg = ugandaFmpFlows.length ? `; Uganda DTM rows: ${ugandaFmpFlows.length} FMP / ${ugandaDistrictFlows.length} district` : '; Uganda DTM files not loaded';
-  document.getElementById('lastUpdated').textContent = `Epidemiological data updated with SitRep N1–N25; latest SitRep N25, reporting 08 Jun 2026, published 09 Jun 2026. Loaded ${flows.length} OD rows through ${monthsCache[monthsCache.length - 1] || 'latest month'}${popMsg}${boundaryMsg}${caseMsg}${rwiMsg}${responseMsg}${ugandaMsg}`;
+  document.getElementById('lastUpdated').textContent = `Epidemiological data updated with SitRep ${firstReport}–${latestReport}; latest ${latestReport}, reporting ${latestReporting}, published ${latestPublished}. Loaded ${flows.length} OD rows through ${monthsCache[monthsCache.length - 1] || 'latest month'}${popMsg}${boundaryMsg}${caseMsg}${rwiMsg}${responseMsg}${ugandaMsg}`;
   updateDashboard();
   setTimeout(fitMapToData, 300);
 }
