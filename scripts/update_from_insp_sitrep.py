@@ -81,6 +81,10 @@ HZ_ALIASES = {
     "Échantillons sans fiche": "unventilated_unknown_health_zone",
     "ZS non identifiée": "unventilated_unknown_health_zone",
     "Autres ZS": "unventilated_unknown_health_zone",
+    # Some affected health zones are missing from population_by_hz.csv but are
+    # still valid SitRep rows. They are retained with blank geometry so they
+    # contribute to totals while not being mapped as polygons/centroids.
+    "Mangala": "Mangala",
 }
 
 # These names are used for table parsing. The current dashboard's population file is
@@ -514,12 +518,47 @@ def header_indices(table: list[list[str]]) -> tuple[int | None, int | None, int 
 
 
 def extract_health_zone_rows(pdf_path: Path, known_lookup: dict[str, dict[str, Any]], report_date: str, report_label: str) -> tuple[list[dict[str, Any]], int | None, int | None]:
+    """Extract cumulative confirmed cases/deaths by health zone.
+
+    INSP PDFs use at least two layouts: true PDF tables and vertically rendered
+    tables where every cell is extracted on a separate line. We therefore first
+    try pdfplumber tables and then fall back to a line-based parser around the
+    cumulative health-zone table.
+    """
     known_names = set(known_lookup.keys())
     tables = extract_tables(pdf_path)
     rows: dict[str, dict[str, Any]] = {}
     unassigned_cases = None
     unassigned_deaths = None
 
+    def add_row(zone: str, cval: int | None, dval: int | None, note_suffix: str = "") -> None:
+        nonlocal unassigned_cases, unassigned_deaths
+        if cval is None:
+            return
+        if zone == "unventilated_unknown_health_zone":
+            unassigned_cases = cval
+            unassigned_deaths = dval
+            return
+        # Filter out daily-new rows by preferring larger cumulative tables. If the same zone appears multiple times,
+        # keep the largest confirmed count as the cumulative value.
+        if zone not in rows or cval > int(rows[zone]["confirmed_cases"]):
+            meta = known_lookup.get(zone, {})
+            rows[zone] = {
+                "date": report_date,
+                "month": report_date[:7],
+                "province": meta.get("province", ""),
+                "health_zone": zone,
+                "zone_id": meta.get("zone_id", ""),
+                "confirmed_cases": cval,
+                "confirmed_deaths": dval if dval is not None else "",
+                "lat": meta.get("lat", ""),
+                "lon": meta.get("lon", ""),
+                "source": report_label,
+                "source_date": report_date,
+                "notes": "Automatically extracted from INSP SitRep PDF; validated against total cumulative cases." + note_suffix,
+            }
+
+    # 1) Standard PDF table extraction.
     for table in tables:
         zc, cc, dc = header_indices(table)
         if cc is None:
@@ -528,7 +567,6 @@ def extract_health_zone_rows(pdf_path: Path, known_lookup: dict[str, dict[str, A
             if not row:
                 continue
             zone = None
-            # Prefer identified zone column, but inspect all cells.
             candidate_cells = []
             if zc is not None and zc < len(row):
                 candidate_cells.append(row[zc])
@@ -541,30 +579,72 @@ def extract_health_zone_rows(pdf_path: Path, known_lookup: dict[str, dict[str, A
                 continue
             cval = to_int(row[cc]) if cc < len(row) else None
             dval = to_int(row[dc]) if dc is not None and dc < len(row) else None
-            if cval is None:
-                continue
-            if zone == "unventilated_unknown_health_zone":
-                unassigned_cases = cval
-                unassigned_deaths = dval
-                continue
-            # Filter out daily-new rows by preferring larger cumulative tables. If the same zone appears multiple times,
-            # keep the largest confirmed count as the cumulative value.
-            if zone not in rows or cval > rows[zone]["confirmed_cases"]:
-                meta = known_lookup.get(zone, {})
-                rows[zone] = {
-                    "date": report_date,
-                    "month": report_date[:7],
-                    "province": meta.get("province", ""),
-                    "health_zone": zone,
-                    "zone_id": meta.get("zone_id", ""),
-                    "confirmed_cases": cval,
-                    "confirmed_deaths": dval if dval is not None else "",
-                    "lat": meta.get("lat", ""),
-                    "lon": meta.get("lon", ""),
-                    "source": report_label,
-                    "source_date": report_date,
-                    "notes": "Automatically extracted from INSP SitRep PDF; validated against total cumulative cases.",
-                }
+            add_row(zone, cval, dval)
+
+    # 2) Fallback for vertically extracted cumulative health-zone tables.
+    #    Example sequence: Bunia / 173 / 15 / 8,7% / Rwampara / 133 / 25 ...
+    text = extract_pdf_text(pdf_path)
+    start = re.search(r"Tableau\s+1\..{0,300}?(?:zone de sant[ée]|province)", text, re.I | re.S)
+    if start:
+        # Stop before response sections or after TOTAL.
+        section = text[start.start():]
+        end_candidates = []
+        for pat in [r"\n\s*TOTAL\s*\n", r"\n\s*4\.\s*ACTIONS", r"--- PAGE\s+5", r"4\.\s*ACTIONS"]:
+            m = re.search(pat, section, re.I)
+            if m:
+                end_candidates.append(m.end())
+        if end_candidates:
+            section = section[: max(end_candidates)]
+        lines = [norm_text(x) for x in section.splitlines() if norm_text(x)]
+        i = 0
+        while i < len(lines):
+            raw_line = lines[i]
+            zone = canonical_zone_name(raw_line, known_names)
+            if zone:
+                nums: list[int] = []
+                j = i + 1
+                while j < len(lines) and len(nums) < 2:
+                    # Stop if another known zone/subtotal begins before two numbers.
+                    if canonical_zone_name(lines[j], known_names) and nums:
+                        break
+                    if re.search(r"%", lines[j]):
+                        j += 1
+                        continue
+                    val = to_int(lines[j])
+                    if val is not None:
+                        nums.append(val)
+                    j += 1
+                if nums:
+                    add_row(zone, nums[0], nums[1] if len(nums) > 1 else None, " Parsed from vertically rendered table.")
+                    i = j
+                    continue
+            # Explicit unassigned labels sometimes are longer than the alias.
+            if re.search(r"Autres\s+ZS|sans\s+fiche|non\s+ventil", raw_line, re.I):
+                nums=[]; j=i+1
+                while j < len(lines) and len(nums) < 2:
+                    if re.search(r"%", lines[j]):
+                        j += 1; continue
+                    val = to_int(lines[j])
+                    if val is not None:
+                        nums.append(val)
+                    j += 1
+                if nums:
+                    unassigned_cases = nums[0]
+                    unassigned_deaths = nums[1] if len(nums) > 1 else None
+                    i = j
+                    continue
+            i += 1
+
+    # 3) Fallback for prose summaries, e.g. "Bunia (173), Rwampara (133)".
+    #    Deaths are not available in that prose, but cases can still pass validation
+    #    together with an explicit or inferred unassigned count.
+    if not rows:
+        for name in sorted(known_names, key=len, reverse=True):
+            pat = rf"{re.escape(name)}\s*\(\s*(\d{{1,5}})\s*\)"
+            m = re.search(pat, text, re.I)
+            if m:
+                add_row(name, int(m.group(1)), None, " Parsed from prose health-zone summary.")
+
     return list(rows.values()), unassigned_cases, unassigned_deaths
 
 
