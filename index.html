@@ -1,0 +1,274 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>DRC–Uganda Bundibugyo Ebola Dashboard</title>
+  <link rel="preconnect" href="https://unpkg.com" />
+  <link rel="preconnect" href="https://cdn.plot.ly" />
+  <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+  <link rel="stylesheet" href="assets/style.css" />
+</head>
+<body>
+  <header class="topbar">
+    <div>
+      <div class="eyebrow">Epidemiological and mobility risk indicator dashboard</div>
+      <h1>DRC–Uganda Bundibugyo Ebola Dashboard</h1>
+      <p class="subtitle">Health-zone cases, population movement, and Uganda border-flow indicators for outbreak preparedness.</p>
+    </div>
+    <div class="status-card">
+      <span class="label">Data status</span>
+      <strong id="dataStatus">Updated with SitRep N1–N25</strong>
+      <span id="lastUpdated">Epidemiological data updated with SitRep N1–N25; latest reporting 08 Jun 2026, published 09 Jun 2026</span>
+    </div>
+  </header>
+
+  <main>
+    <section class="panel ai-assessment-panel" aria-label="AI-assisted situational assessment">
+      <div class="assessment-header">
+        <div>
+          <div class="eyebrow assessment-eyebrow">AI-assisted situational assessment</div>
+          <h2>Current public health assessment</h2>
+          <p>Rule-based summary generated from epidemiological, mobility, forecast, and response indicators. Expert review required; this is not an official risk assessment.</p>
+        </div>
+        <span id="assessmentUpdated" class="assessment-updated">Updated with latest selected SitRep</span>
+      </div>
+      <div class="assessment-grid">
+        <article id="assessmentLocal" class="assessment-card assessment-uncertain">
+          <span class="assessment-label">Local outbreak trajectory</span>
+          <strong class="assessment-category">Assessing</strong>
+          <p class="assessment-text">Waiting for data.</p>
+          <small class="assessment-drivers">—</small>
+        </article>
+        <article id="assessmentCapital" class="assessment-card assessment-uncertain">
+          <span class="assessment-label">Capital-region spread risk</span>
+          <strong class="assessment-category">Assessing</strong>
+          <p class="assessment-text">Waiting for data.</p>
+          <small class="assessment-drivers">—</small>
+        </article>
+        <article id="assessmentCrossBorder" class="assessment-card assessment-uncertain">
+          <span class="assessment-label">Cross-border / international spread risk</span>
+          <strong class="assessment-category">Assessing</strong>
+          <p class="assessment-text">Waiting for data.</p>
+          <small class="assessment-drivers">—</small>
+        </article>
+      </div>
+    </section>
+
+    <section class="kpi-grid epi-kpi-grid">
+      <article class="kpi-card"><span>DRC confirmed cases</span><strong id="kpiTotal">598</strong><small>SitRep N25, reporting 08 Jun 2026</small></article>
+      <article class="kpi-card"><span>DRC confirmed deaths</span><strong id="kpiKinshasa">115</strong><small id="kpiKinshasaShare">19.2% CFR among confirmed; N25</small></article>
+      <article class="kpi-card"><span>Uganda confirmed cases</span><strong id="kpiBorder">7</strong><small id="kpiBorderShare">Latest available in IOM DTM EVD snapshot, 25 May 2026</small></article>
+      <article class="kpi-card"><span>Uganda confirmed deaths</span><strong id="kpiUganda">1</strong><small id="kpiScenario">Latest available in IOM DTM EVD snapshot, 25 May 2026</small></article>
+    </section>
+
+    <section class="grid-two">
+      <article class="panel map-panel">
+        <div class="panel-head">
+          <div>
+            <h2 id="mapTitle">Confirmed Ebola cases by health zone</h2>
+            <p id="mapDescription">Confirmed cases are shown as proportional bubbles at health-zone centroids. Use the reporting-date slider to change the cumulative time point or show the recent 1-week increase.</p>
+          </div>
+          <button id="fitMap" class="ghost">Fit map</button>
+        </div>
+
+        <div id="map"></div>
+
+        <div class="map-layer-toolbar" aria-label="Map layer controls">
+          <div>
+            <span class="toolbar-label">Map layer</span>
+            <strong id="activeLayerLabel">Cases</strong>
+          </div>
+          <div class="toggle-group map-toggle-group" role="group" aria-label="Map layer">
+            <button id="modeCases" type="button" class="toggle layer-toggle active">Cases</button>
+            <button id="modeRisk" type="button" class="toggle layer-toggle">Spread risk</button>
+            <button id="modeWeighted" type="button" class="toggle layer-toggle">Weighted risk</button>
+            <button id="modeContact" type="button" class="toggle layer-toggle">Contact-adjusted risk</button>
+            <button id="modeAir" type="button" class="toggle layer-toggle">Air-adjusted risk</button>
+            <button id="modeUganda" type="button" class="toggle layer-toggle">Uganda projection</button>
+            <button id="modeUgandaBorder" type="button" class="toggle layer-toggle">Uganda border flow</button>
+            <button id="modeUgandaImport" type="button" class="toggle layer-toggle">Uganda importation pressure</button>
+            <button id="modePopulation" type="button" class="toggle layer-toggle">Population</button>
+            <button id="modeDensity" type="button" class="toggle layer-toggle">Density</button>
+            <button id="modeRwi" type="button" class="toggle layer-toggle">Relative wealth percentile</button>
+            <button id="modeContactGap" type="button" class="toggle layer-toggle">Contact gap</button>
+            <button id="modeResponseIntensity" type="button" class="toggle layer-toggle">Response intensity</button>
+            <button id="modeMovement" type="button" class="toggle layer-toggle">Movement</button>
+          </div>
+        </div>
+
+        <section class="controls panel map-controls">
+          <div class="control">
+            <label for="originSelect">Origin set</label>
+            <select id="originSelect"></select>
+          </div>
+          <div id="customOriginContainer" class="control custom-origin-control" style="display:none">
+            <label for="customOriginSelect">Custom origins</label>
+            <select id="customOriginSelect" multiple size="5"></select>
+            <small>Hold Ctrl/Cmd to select multiple health zones.</small>
+          </div>
+          <div class="control">
+            <label for="monthSelect">Month</label>
+            <select id="monthSelect"></select>
+          </div>
+          <div class="control">
+            <label for="scenarioSelect">Uganda cross-border scenario</label>
+            <select id="scenarioSelect"></select>
+          </div>
+        </section>
+
+        <div class="timeline-controls-title">
+          <strong>SitRep time point</strong>
+          <span>Use this slider to update case bubbles and case-weighted risk layers by reporting date.</span>
+        </div>
+        <div class="report-date-slider" aria-label="SitRep reporting date controls">
+          <div class="slider-head report-slider-head">
+            <div>
+              <strong>Reporting date shown on map</strong>
+              <span id="reportDateSliderLabel">Latest</span>
+              <small id="caseModeLabel">Cumulative cases</small>
+            </div>
+            <div class="report-date-actions">
+              <select id="reportDateSelect" aria-label="Reporting date"></select>
+              <div class="toggle-group case-mode-toggle" role="group" aria-label="Case display mode">
+                <button id="modeCumulativeCases" type="button" class="toggle active">Cumulative</button>
+                <button id="modeRecentIncrease" type="button" class="toggle">Recent 1-week increase</button>
+              </div>
+            </div>
+          </div>
+          <input id="reportDateSlider" type="range" min="0" max="0" step="1" value="0" list="reportDateTicks" />
+          <datalist id="reportDateTicks"></datalist>
+          <div class="slider-months"><span id="reportDateStartLabel">—</span><span id="reportDateEndLabel">—</span></div>
+        </div>
+        <div id="populationNotice" class="population-notice" style="display:none"></div>
+        <div class="map-legend" aria-label="Map legend">
+          <span><i class="legend-dot outbreak"></i>Current outbreak health zone</span>
+          <span><i class="legend-dot cases"></i>Confirmed cases</span>
+          <span><i class="legend-dot risk"></i>Spread / weighted risk</span>
+          <span><i class="legend-dot kinshasa"></i>Kinshasa destination</span>
+          <span><i class="legend-dot border"></i>Uganda-border proxy zone</span>
+          <span><i class="legend-dot air"></i>Air-adjusted risk</span>
+          <span><i class="legend-dot uganda"></i>Projected Uganda destination</span>
+          <span><i class="legend-dot population"></i>Population / density</span>
+          <span><i class="legend-dot rwi"></i>Relative wealth percentile</span>
+          <span><i class="legend-dot response"></i>Response indicators</span>
+          <span><i class="legend-line"></i>Movement direction</span>
+        </div>
+      </article>
+
+      <article class="panel right-analysis-panel">
+        <div class="timeline-chart-block">
+          <h2>Reported cumulative cases</h2>
+          <p>DRC confirmed cases by SitRep reporting date. The selected slider date is highlighted.</p>
+          <div id="epiTimelineChart" class="chart compact-chart"></div>
+        </div>
+        <div class="forecast-chart-block">
+          <div class="chart-block-head">
+            <div>
+              <h2>Short-term projection</h2>
+              <p>Renewal / branching-process projection based on recent reported confirmed cases. The projection starts from the selected SitRep date.</p>
+            </div>
+            <div class="forecast-control-stack">
+              <select id="forecastHorizonSelect" aria-label="Forecast horizon">
+                <option value="7" selected>7 days</option>
+                <option value="14">14 days</option>
+              </select>
+              <select id="forecastSiSelect" aria-label="Generation interval assumption">
+                <option value="9">Short GI mean 9d</option>
+                <option value="12" selected>Baseline GI mean 12d</option>
+                <option value="15">Long GI mean 15d</option>
+              </select>
+            </div>
+          </div>
+          <div id="forecastChart" class="chart compact-chart forecast-chart"></div>
+          <div id="forecastStats" class="chart-note"></div>
+        </div>
+
+        <div class="response-chart-block">
+          <div class="chart-block-head">
+            <div>
+              <h2>Response timeline</h2>
+              <p>Selected response indicators extracted from SitReps. Values may be national, province-level, or operational-site summaries depending on what was reported.</p>
+            </div>
+            <div class="response-control-stack">
+              <select id="responseMetricSelect" aria-label="Response metric">
+                <option value="contact_followup_rate" selected>Contact follow-up rate</option>
+                <option value="contact_gap">Contact tracing gap</option>
+                <option value="alert_investigation_rate">Alert investigation coverage</option>
+                <option value="poe_screening_coverage">PoE/PoC screening coverage</option>
+                <option value="samples_analysed">Samples analysed</option>
+                <option value="travellers_screened">Travellers screened</option>
+              </select>
+            </div>
+          </div>
+          <div id="responseTimelineChart" class="chart compact-chart response-timeline-chart"></div>
+          <div id="responseStats" class="chart-note"></div>
+        </div>
+        <div class="rwi-chart-block">
+          <div class="chart-block-head">
+            <div>
+              <h2>RWI vs Ebola cases</h2>
+              <p>Health-zone ecological comparison. RWI is shown as a within-DRC percentile; selected reporting date and case mode are used.</p>
+            </div>
+            <div class="rwi-control-stack">
+              <select id="rwiOutcomeSelect" aria-label="RWI chart outcome">
+                <option value="per100k" selected>Cases per 100,000</option>
+                <option value="cases">Confirmed cases</option>
+              </select>
+              <select id="rwiDisplaySelect" aria-label="RWI chart display mode">
+                <option value="affected" selected>Affected only</option>
+                <option value="all">All health zones</option>
+                <option value="top25">Top 25 affected</option>
+              </select>
+              <select id="rwiScaleSelect" aria-label="RWI chart y-axis scale">
+                <option value="linear" selected>Linear scale</option>
+                <option value="log1p">log1p scale</option>
+              </select>
+            </div>
+          </div>
+          <div id="rwiScatterChart" class="chart compact-chart rwi-scatter-chart"></div>
+          <div id="rwiStats" class="chart-note"></div>
+        </div>
+        <div class="ranking-chart-block">
+          <h2 id="rankingTitle">Destination ranking</h2>
+          <p id="rankingDescription">Top destination health zones by estimated monthly movement.</p>
+          <div id="barChart" class="chart compact-chart"></div>
+          <div class="control ranking-count-control">
+            <label for="topN">Top ranked areas shown</label>
+            <input id="topN" type="range" min="5" max="20" step="1" value="12" />
+            <span id="topNValue">12</span>
+          </div>
+        </div>
+      </article>
+    </section>
+
+    <section class="panel scenario-panel">
+      <h2>Scenario interpretation</h2>
+      <div id="scenarioText" class="note"></div>
+    </section>
+
+    <section class="panel sources">
+      <h2>Data sources to connect</h2>
+      <div class="source-grid">
+        <a href="https://data.humdata.org/dataset/democratic-republic-of-congo-population-and-relocation-estimates" target="_blank" rel="noreferrer">Flowminder / HDX population and mobility estimates</a>
+        <a href="https://data.humdata.org/dataset/drc-health-data" target="_blank" rel="noreferrer">HDX DRC health-zone boundaries</a>
+        <a href="https://grid3.org/geospatial-data-drc" target="_blank" rel="noreferrer">GRID3 DRC geospatial data</a>
+        <a href="https://dtm.iom.int/democratic-republic-congo" target="_blank" rel="noreferrer">IOM DTM DRC</a>
+        <a href="https://data.unhcr.org/en/country/uga" target="_blank" rel="noreferrer">UNHCR Uganda Operational Data Portal</a>
+        <a href="https://data.unhcr.org/en/situations/drc" target="_blank" rel="noreferrer">UNHCR DRC situation</a>
+      </div>
+      <p class="limitation"><strong>Important:</strong> Uganda estimates include both observed IOM DTM EVD border-flow summaries from 15–24 May 2026 and scenario-based importation-pressure scores that combine DRC-side case-weighted movement toward border proxy zones with the 2026 Uganda destination profile. They are not Ebola transmission probabilities.</p>
+    </section>
+  </main>
+
+  <footer>
+    Prototype dashboard using Flowminder / HDX-derived DRC health-zone mobility estimates. Uganda values remain proxy estimates unless calibrated with cross-border data.
+  </footer>
+
+  <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
+  <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
+  <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <script src="assets/app.js"></script>
+</body>
+</html>
