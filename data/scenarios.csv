@@ -1,0 +1,4 @@
+scenario_id,scenario_name,cross_border_fraction,description
+low,Low cross-border assumption,0.05,Assumes 5% of movement toward Uganda-border proxy health zones continues onward into Uganda.
+medium,Medium cross-border assumption,0.15,Assumes 15% of movement toward Uganda-border proxy health zones continues onward into Uganda.
+high,High cross-border assumption,0.3,Assumes 30% of movement toward Uganda-border proxy health zones continues onward into Uganda.

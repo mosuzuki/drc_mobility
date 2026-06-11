@@ -1,0 +1,8 @@
+uganda_id,uganda_name,type,district,lat,lon,weight,source_basis
+UGA_BUFUMBIRA,Bufumbira,admin2,Kisoro,-1.281,29.686,0.500,"Historical IOM DTM Uganda-DRC FMP profiles, Jan-Mar 2020; dominant Rutshuru/Bufumbira corridor"
+UGA_BUKONZO,Bukonzo,admin2,Kasese,0.183,30.083,0.180,"Historical IOM DTM Uganda-DRC FMP profiles, Jan-Mar 2020; Beni-Bukonzo corridor"
+UGA_BWAMBA,Bwamba,admin2,Bundibugyo,0.711,30.064,0.100,"Historical IOM DTM Uganda-DRC FMP profiles, Jan-Mar 2020; frequent intended destination"
+UGA_PADYERE,Padyere,admin2,Nebbi,2.478,31.088,0.070,"Historical IOM DTM Uganda-DRC FMP profiles, Jan-Mar 2020; frequent intended destination"
+UGA_KISORO,Kisoro,admin2,Kisoro,-1.285,29.685,0.050,"Historical IOM DTM Uganda-DRC FMP profiles, Jan-Mar 2020; health-related destination mentioned"
+UGA_KAMPALA,Kampala,capital,Kampala,0.3476,32.5825,0.013,"IOM DTM reports Kampala-intended flows at 1.3-1.4% of FMP observations, Jan-Mar 2020"
+UGA_OTHER,Other Uganda destinations,aggregate,Multiple,0.900,31.000,0.087,"Residual allocation to other Uganda-side destinations observed in the IOM DTM profile"

@@ -1,0 +1,6 @@
+match_type,match_value,air_factor,label,notes
+category,kinshasa,0.25,Kinshasa long-distance screened air scenario,"Long-distance air-plausible movement to Kinshasa is down-weighted to reflect Bunia passenger-flight suspension/reopening under screening measures; scenario assumption, not observed passenger OD."
+zone_name,Goma,0.5,Regional air-hub screened scenario,Regional air-hub destination down-weighted as an air-plausible route under screening scenario.
+zone_name,Kisangani,0.5,Regional air-hub screened scenario,Regional air-hub destination down-weighted as an air-plausible route under screening scenario.
+zone_name,Beni,0.75,Regional airport partial adjustment,Regional airport destination; conservative partial adjustment.
+zone_name,Butembo,0.75,Regional airport partial adjustment,Regional airport destination; conservative partial adjustment.

@@ -1,0 +1,34 @@
+reporting_date,report_no,admin_level,province,health_zone,contacts_under_followup,contacts_seen,contact_followup_rate,alerts_reported,alerts_investigated,alert_investigation_rate,samples_received,samples_analysed,positive_samples,travellers_total,travellers_screened,poe_screening_coverage,source,notes
+2026-05-19,N5,national,,,,,0.096,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-05-20,N6,national,,,,,0.066,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-05-29,N15,national,,,,,0.3022,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-05-30,N16,national,,,,,0.452,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-05-31,N17,national,,,,,0.43,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-06-01,N18,national,,,,,0.439,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-06-02,N19,national,,,,,0.455,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-06-03,N20,national,,,,,0.555,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-06-04,N21,national,,,,,0.578,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-06-05,N22,national,,,,,0.672,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-06-06,N23,national,,,,,0.503,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-06-07,N24,national,,,,,0.644,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-06-08,N25,national,,,,,0.563,,,,,,,,,,SitRep,Contact follow-up rate reported in SitRep header or surveillance table; administrative level may vary by SitRep.
+2026-05-19,SitRep,province,Ituri,,847,81,0.096,,,,,,,,,,SitRep MVE N°005/MVE_17/2026,Province-level contact follow-up extracted from SitRep table.
+2026-05-20,SitRep,province,Ituri,,1261,83,0.066,,,,,,,,,,SitRep MVE N°006/MVB_17/2026,Province-level contact follow-up extracted from SitRep table.
+2026-05-27,SitRep,province,Ituri,,2225,0,0.0,,,,,,,,,,SitRep N°013/MVB_27/2026,Province-level contact follow-up extracted from SitRep table.
+2026-05-27,SitRep,province,Nord-Kivu,,410,0,0.0,,,,,,,,,,SitRep N°013/MVB_27/2026,Province-level contact follow-up extracted from SitRep table.
+2026-05-29,SitRep,province,Ituri,,2671,487,0.1823,,,,,,,,,,SitRep N015/MVB_29/2026,Province-level contact follow-up extracted from SitRep table.
+2026-05-29,SitRep,province,Nord-Kivu,,529,480,0.9074,,,,,,,,,,SitRep N015/MVB_29/2026,Province-level contact follow-up extracted from SitRep table.
+2026-06-06,SitRep,province,Ituri,,4118,1779,0.432,,,,,,,,,,SitRep N23/MVB_06/06/2026,Province-level contact follow-up extracted from SitRep table.
+2026-06-06,SitRep,province,Nord-Kivu,,699,577,0.825,,,,,,,,,,SitRep N23/MVB_06/06/2026,Province-level contact follow-up extracted from SitRep table.
+2026-06-06,SitRep,province,Sud-Kivu,,223,179,0.803,,,,,,,,,,SitRep N23/MVB_06/06/2026,Province-level contact follow-up extracted from SitRep table.
+2026-06-07,SitRep,province,Ituri,,4454,2678,0.601,,,,,,,,,,SitRep N24/MVB_07/06/2026,Province-level contact follow-up extracted from SitRep table.
+2026-06-07,SitRep,province,Nord-Kivu,,738,587,0.795,,,,,,,,,,SitRep N24/MVB_07/06/2026,Province-level contact follow-up extracted from SitRep table.
+2026-06-07,SitRep,province,Sud-Kivu,,226,224,0.991,,,,,,,,,,SitRep N24/MVB_07/06/2026,Province-level contact follow-up extracted from SitRep table.
+2026-06-08,SitRep,province,Ituri,,4752,2487,0.523,,,,,,,,,,SitRep N25/MVB_08/06/2026,Province-level contact follow-up extracted from SitRep table.
+2026-06-08,SitRep,province,Nord-Kivu,,703,533,0.758,,,,,,,,,,SitRep N25/MVB_08/06/2026,Province-level contact follow-up extracted from SitRep table.
+2026-06-08,SitRep,province,Sud-Kivu,,226,181,0.801,,,,,,,,,,SitRep N25/MVB_08/06/2026,Province-level contact follow-up extracted from SitRep table.
+2026-05-20,N6,national,,,,,,78,,,,35,12,1881,1881,1.0,SitRep,Alert total from SitRep N6 table; laboratory and PoE/PoC values from SitRep N6.
+2026-05-27,N13,national,,,,,,118,98,0.83,,,,,,,SitRep,Alert investigation activity reported for 27 May.
+2026-05-28,N14,national,,,,,,99,75,0.757,,,,16905,16704,0.988,SitRep,Alert investigation and PoE/PoC screening reported for 28 May.
+2026-05-29,N15,national,,,,,,132,85,0.643,,70,54,18239,18010,0.987,SitRep,"Alert investigation, laboratory and PoE/PoC screening reported for 29 May."
+2026-05-30,N16,national,,,,,,149,84,0.563,52,52,19,13960,13187,0.944,SitRep,"Alert investigation, laboratory and PoE/PoC screening reported for 30 May."
