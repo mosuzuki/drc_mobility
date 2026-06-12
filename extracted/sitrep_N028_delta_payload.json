@@ -1,0 +1,64 @@
+{
+  "from_report": "N27",
+  "to_report": "N28",
+  "from_reporting_date": "2026-06-10",
+  "to_reporting_date": "2026-06-11",
+  "confirmed_cases": {
+    "previous": 676,
+    "latest": 689,
+    "change": 13
+  },
+  "confirmed_deaths": {
+    "previous": 136,
+    "latest": 139,
+    "change": 3
+  },
+  "health_zones": {
+    "previous_count": 29,
+    "latest_count": 29,
+    "new_health_zones": [],
+    "largest_increases": [
+      {
+        "health_zone": "Bunia",
+        "change": 6,
+        "latest": 191
+      },
+      {
+        "health_zone": "Rwampara",
+        "change": 5,
+        "latest": 142
+      },
+      {
+        "health_zone": "Mongbwalu",
+        "change": 4,
+        "latest": 136
+      },
+      {
+        "health_zone": "Nizi",
+        "change": 2,
+        "latest": 9
+      }
+    ]
+  },
+  "response": {
+    "contact_followup_rate_previous": 0.718,
+    "contact_followup_rate_latest": null,
+    "contacts_under_followup_latest": 0,
+    "contacts_seen_latest": 0,
+    "alerts_reported_latest": 0,
+    "alerts_investigated_latest": 0,
+    "alert_investigation_rate_latest": null,
+    "samples_analysed_latest": 0,
+    "positive_samples_latest": 0,
+    "poe_screening_coverage_latest": null
+  },
+  "uganda": {
+    "as_of_date": "2026-06-11",
+    "confirmed_cases": 19,
+    "confirmed_deaths": 2,
+    "imported_cases": 14,
+    "local_cases": 5,
+    "new_cases_last_24h": 0,
+    "source_url": "https://evd-daily.health.go.ug/"
+  }
+}
