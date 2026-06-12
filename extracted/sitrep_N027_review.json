@@ -1,0 +1,11 @@
+{
+  "reason": "Extracted health-zone counts did not validate after deterministic extraction and optional OpenAI fallback.",
+  "article": "local",
+  "report_no": 27,
+  "reporting_date": "2026-06-10",
+  "total_confirmed": 676,
+  "health_zone_sum": 581,
+  "unassigned_cases": 94,
+  "health_zone_rows_extracted": 28,
+  "openai_api_key_configured": false
+}

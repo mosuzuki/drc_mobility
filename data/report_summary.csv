@@ -1,26 +1,27 @@
 report_no,reporting_date,publication_date,drc_confirmed_cases,drc_confirmed_deaths,uganda_confirmed_cases,uganda_confirmed_deaths,source,notes
-N1,2026-05-14,2026-05-15,8,4,7,1,SitRep MVE N°001/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N1,2026-05-14,2026-05-15,8,4.0,7,1,SitRep MVE N°001/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
 N2,2026-05-17,2026-05-18,13,,7,1,SitRep MVE N°002/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N4,2026-05-18,2026-05-20,33,4,7,1,SitRep MVE N°004/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N5,2026-05-19,2026-05-20,51,4,7,1,SitRep MVE N°005/MVE_17/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N6,2026-05-20,2026-05-21,64,6,7,1,SitRep MVE N°006/MVB_17/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N7,2026-05-21,2026-05-22,83,9,7,1,SitRep MVE N°007/MVB_17/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N8,2026-05-22,2026-05-23,91,10,7,1,SitRep N°008/MVB_23/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N9,2026-05-23,2026-05-24,101,10,7,1,SitRep N°009/MVB_24/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N10,2026-05-24,2026-05-25,105,10,7,1,SitRep N°010/MVB_25/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N11,2026-05-25,2026-05-26,106,12,7,1,SitRep N°011/MVB_26/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N12,2026-05-26,2026-05-26,121,17,7,1,SitRep N°012/MVB_26/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N13,2026-05-27,2026-05-28,125,17,7,1,SitRep N°013/MVB_27/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N14,2026-05-28,2026-05-29,210,17,7,1,SitRep N014/MVB_28/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N15,2026-05-29,2026-05-30,263,42,7,1,SitRep N015/MVB_29/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N16,2026-05-30,2026-05-31,282,42,7,1,SitRep N016/MVB_30/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N17,2026-05-31,2026-06-01,321,48,7,1,SitRep N017/MVB_31/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N18,2026-06-01,2026-06-02,344,60,7,1,SitRep N018/MVB_01/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N19,2026-06-02,2026-06-03,363,62,7,1,SitRep N019/MVB_02/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N20,2026-06-03,2026-06-04,381,64,7,1,SitRep N020/MVB_03/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N21,2026-06-04,2026-06-05,452,82,7,1,SitRep N021/MVE BUNDIBUGYO_04/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N22,2026-06-05,2026-06-06,488,86,7,1,SitRep N22/MVB_05/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N23,2026-06-06,2026-06-07,515,91,7,1,SitRep N23/MVB_06/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N24,2026-06-07,2026-06-08,550,101,7,1,SitRep N24/MVB_07/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N25,2026-06-08,2026-06-09,598,115,7,1,SitRep N25/MVB_08/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
-N26,2026-06-09,2026-06-10,635,127,7,1,SitRep N26/MVB_09/06/2026,Updated from uploaded INSP SitRep N26 PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
+N4,2026-05-18,2026-05-20,33,4.0,7,1,SitRep MVE N°004/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N5,2026-05-19,2026-05-20,51,4.0,7,1,SitRep MVE N°005/MVE_17/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N6,2026-05-20,2026-05-21,64,6.0,7,1,SitRep MVE N°006/MVB_17/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N7,2026-05-21,2026-05-22,83,9.0,7,1,SitRep MVE N°007/MVB_17/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N8,2026-05-22,2026-05-23,91,10.0,7,1,SitRep N°008/MVB_23/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N9,2026-05-23,2026-05-24,101,10.0,7,1,SitRep N°009/MVB_24/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N10,2026-05-24,2026-05-25,105,10.0,7,1,SitRep N°010/MVB_25/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N11,2026-05-25,2026-05-26,106,12.0,7,1,SitRep N°011/MVB_26/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N12,2026-05-26,2026-05-26,121,17.0,7,1,SitRep N°012/MVB_26/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N13,2026-05-27,2026-05-28,125,17.0,7,1,SitRep N°013/MVB_27/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N14,2026-05-28,2026-05-29,210,17.0,7,1,SitRep N014/MVB_28/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N15,2026-05-29,2026-05-30,263,42.0,7,1,SitRep N015/MVB_29/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N16,2026-05-30,2026-05-31,282,42.0,7,1,SitRep N016/MVB_30/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N17,2026-05-31,2026-06-01,321,48.0,7,1,SitRep N017/MVB_31/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N18,2026-06-01,2026-06-02,344,60.0,7,1,SitRep N018/MVB_01/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N19,2026-06-02,2026-06-03,363,62.0,7,1,SitRep N019/MVB_02/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N20,2026-06-03,2026-06-04,381,64.0,7,1,SitRep N020/MVB_03/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N21,2026-06-04,2026-06-05,452,82.0,7,1,SitRep N021/MVE BUNDIBUGYO_04/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N22,2026-06-05,2026-06-06,488,86.0,7,1,SitRep N22/MVB_05/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N23,2026-06-06,2026-06-07,515,91.0,7,1,SitRep N23/MVB_06/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N24,2026-06-07,2026-06-08,550,101.0,7,1,SitRep N24/MVB_07/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N25,2026-06-08,2026-06-09,598,115.0,7,1,SitRep N25/MVB_08/06/2026,Uganda figures remain the latest available DTM EVD snapshot values used in this dashboard.
+N26,2026-06-09,2026-06-10,635,127.0,7,1,SitRep N26/MVB_09/06/2026,Updated from uploaded INSP SitRep N26 PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
+N27,2026-06-10,2026-06-11,676,136.0,7,1,SitRep N27/MVB_10/06/2026,Updated from uploaded INSP SitRep N27 PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
