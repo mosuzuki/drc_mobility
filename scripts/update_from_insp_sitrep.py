@@ -107,6 +107,10 @@ def fail(message: str, detail: str = "") -> None:
     raise SystemExit(2)
 
 
+def log(message: str) -> None:
+    print(f"[sitrep-update] {message}", flush=True)
+
+
 def norm_text(s: Any) -> str:
     if s is None:
         return ""
@@ -961,12 +965,19 @@ def compact_text_for_llm(text: str, limit: int = 65000) -> str:
 
 def openai_fallback_extract(pdf_path: Path, text: str, known_lookup: dict[str, dict[str, Any]], article: SitRepArticle, reason: str) -> dict[str, Any] | None:
     """Use OpenAI only when deterministic PDF extraction failed validation."""
-    if OpenAI is None or not os.environ.get("OPENAI_API_KEY"):
+    key_configured = bool(os.environ.get("OPENAI_API_KEY"))
+    log(f"OpenAI fallback check: OPENAI_API_KEY configured = {'yes' if key_configured else 'no'}; openai package available = {'yes' if OpenAI is not None else 'no'}")
+    if OpenAI is None:
+        EXTRACTED.mkdir(exist_ok=True)
+        (EXTRACTED / "openai_fallback_error.txt").write_text("OpenAI Python package is not available in the runner.", encoding="utf-8")
+        return None
+    if not key_configured:
         return None
 
     model = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
     known_names = sorted(known_lookup.keys())
     allowed_names = ", ".join(known_names[:700])
+    log(f"OpenAI fallback started with model={model}; reason={reason}; pdf={pdf_path.name}; text_chars={len(text)}")
     prompt = f"""
 You are extracting structured data from a Democratic Republic of Congo Ebola SitRep PDF for a public-health dashboard.
 Use only the supplied PDF text and extracted tables. Do not infer values that are not stated, except that unassigned/unventilated cases may be calculated as total_confirmed minus the sum of health-zone rows if the PDF clearly reports a total.
@@ -1004,7 +1015,7 @@ Return JSON only, with this schema:
   "notes": "short extraction note"
 }}
 
-Canonical health-zone names should match this dashboard list when possible. Important aliases: Mungbwalu/Mongwalu/Mungwalu = Mongbwalu; Nyakunde = Nyankunde; Miti Murhesa = Miti-Murhesa; Gethy = Gety; Sans fiche/Echantillons sans fiche/ZS non identifiée/Autres ZS are unassigned, not map health zones.
+Canonical health-zone names should match this dashboard list when possible. Important aliases: Mungbwalu/Mongwalu/Mungwalu = Mongbwalu; Nyakunde = Nyankunde; Miti Murhesa = Miti-Murhesa; Gethy = Gety. If a named health zone is present but not in the dashboard list, keep it as a health-zone row with its name and province; do not add it to unassigned. Only Sans fiche/Echantillons sans fiche/ZS non identifiée/Autres ZS/données non ventilées are unassigned, not map health zones.
 
 Known dashboard health-zone names include:
 {allowed_names}
@@ -1018,7 +1029,9 @@ EXTRACTED TABLES:
 
     try:
         client = OpenAI()
+        raw = None
         try:
+            log("Calling OpenAI Responses API for SitRep extraction.")
             resp = client.responses.create(
                 model=model,
                 input=[{"role": "user", "content": prompt}],
@@ -1028,7 +1041,9 @@ EXTRACTED TABLES:
             raw = getattr(resp, "output_text", None)
             if not raw:
                 raw = resp.output[0].content[0].text  # type: ignore[attr-defined]
-        except Exception:
+            log("OpenAI Responses API returned output.")
+        except Exception as e1:
+            log(f"OpenAI Responses API failed; trying Chat Completions fallback. Error: {type(e1).__name__}: {e1}")
             resp = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
@@ -1036,14 +1051,21 @@ EXTRACTED TABLES:
                 temperature=0,
             )
             raw = resp.choices[0].message.content
+            log("OpenAI Chat Completions fallback returned output.")
         if not raw:
+            log("OpenAI fallback returned empty output.")
             return None
+        EXTRACTED.mkdir(exist_ok=True)
+        (EXTRACTED / "openai_fallback_raw.json").write_text(raw, encoding="utf-8")
         data = json.loads(raw)
         data["_openai_model"] = model
+        log(f"OpenAI fallback parsed JSON: health_zone_rows={len(data.get('health_zone_rows') or [])}, total_confirmed={data.get('total_confirmed')}, unassigned_cases={data.get('unassigned_cases')}")
         return data
     except Exception as e:
         EXTRACTED.mkdir(exist_ok=True)
-        (EXTRACTED / "openai_fallback_error.txt").write_text(str(e), encoding="utf-8")
+        err = f"{type(e).__name__}: {e}"
+        log(f"OpenAI fallback failed: {err}")
+        (EXTRACTED / "openai_fallback_error.txt").write_text(err, encoding="utf-8")
         return None
 
 
@@ -1061,15 +1083,14 @@ def rows_from_openai_payload(payload: dict[str, Any], known_lookup: dict[str, di
         if cval is None:
             continue
         dval = to_int(item.get("confirmed_deaths"))
-        if zone == "unventilated_unknown_health_zone" or strip_accents(zone).lower() in {"sans fiche", "echantillons sans fiche", "zs non identifiee", "autres zs"}:
+        if zone == "unventilated_unknown_health_zone" or strip_accents(zone).lower() in {"sans fiche", "echantillons sans fiche", "zs non identifiee", "autres zs", "donnees non ventilees", "donnees non ventile"}:
             unassigned_cases = cval
             unassigned_deaths = dval
             continue
-        if zone not in known_lookup:
-            unassigned_cases = int(unassigned_cases or 0) + cval
-            unassigned_deaths = (int(unassigned_deaths or 0) + dval) if dval is not None else unassigned_deaths
-            continue
         meta = known_lookup.get(zone, {})
+        # If a new named health zone is not yet in the dashboard geography, keep it
+        # as a valid health-zone row with blank geometry. The map code hides rows
+        # without reliable coordinates, but totals and trends still remain correct.
         rows.append({
             "date": report_date,
             "month": report_date[:7],
@@ -1082,7 +1103,7 @@ def rows_from_openai_payload(payload: dict[str, Any], known_lookup: dict[str, di
             "lon": meta.get("lon", ""),
             "source": report_label,
             "source_date": report_date,
-            "notes": "OpenAI-assisted fallback extraction from INSP SitRep PDF; used only after deterministic extraction failed validation.",
+            "notes": "OpenAI-assisted fallback extraction from INSP SitRep PDF; used only after deterministic extraction failed validation. Rows without dashboard geometry are retained in totals but hidden on the case map.",
         })
     return rows, to_int(unassigned_cases), to_int(unassigned_deaths)
 
@@ -1201,7 +1222,9 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
         (EXTRACTED / f"sitrep_N{report_no:03d}_openai_fallback.json").write_text(json.dumps(openai_payload, indent=2, ensure_ascii=False), encoding="utf-8")
         return True
 
+    log(f"Parsed SitRep: report_no=N{report_no}, reporting_date={report_date}, publication_date={publication_date}, total_cases={total_cases}, total_deaths={total_deaths}")
     if total_cases is None:
+        log("Total confirmed cases missing after deterministic extraction; attempting OpenAI fallback.")
         if not try_openai("Could not extract total confirmed cases with deterministic rules.") or total_cases is None:
             fail("Could not extract total confirmed cases from the SitRep PDF, and OpenAI fallback was unavailable or unsuccessful.", f"Article: {article.url}\nPDF: {pdf_path}")
 
@@ -1210,20 +1233,23 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
         diff = total_cases - hz_sum
         unassigned_cases = diff if diff > 0 else 0
 
+    log(f"Deterministic validation: health_zone_sum={hz_sum}, unassigned_cases={unassigned_cases}, total_cases={total_cases}, rows={len(hz_rows)}")
     if total_cases is not None and (hz_sum <= 0 or hz_sum + int(unassigned_cases or 0) != total_cases):
         if not openai_used:
+            log("Deterministic validation failed; attempting OpenAI fallback.")
             try_openai("Health-zone counts did not validate against the total confirmed cases.")
             hz_sum = sum(int(r["confirmed_cases"]) for r in hz_rows if str(r["confirmed_cases"]).isdigit())
             if unassigned_cases is None and total_cases is not None:
                 diff = total_cases - hz_sum
                 unassigned_cases = diff if diff > 0 else 0
+            log(f"Post-OpenAI validation: health_zone_sum={hz_sum}, unassigned_cases={unassigned_cases}, total_cases={total_cases}, rows={len(hz_rows)}, openai_used={openai_used}")
 
     if total_cases is None or hz_sum <= 0 or hz_sum + int(unassigned_cases or 0) != total_cases:
         detail = validation_detail("Extracted health-zone counts did not validate after deterministic extraction and optional OpenAI fallback.")
         (EXTRACTED / f"sitrep_N{report_no:03d}_review.json").write_text(json.dumps(detail, indent=2), encoding="utf-8")
         fail(
             "Extracted health-zone counts did not validate against the total confirmed cases.",
-            "The update was stopped to avoid publishing incorrect values. Review extracted/sitrep_N%03d_review.json. If OPENAI_API_KEY is not configured, add it as a GitHub Actions secret to enable AI fallback." % report_no,
+            "The update was stopped to avoid publishing incorrect values. Review extracted/sitrep_N%03d_review.json and, if present, extracted/openai_fallback_error.txt or extracted/openai_fallback_raw.json. OPENAI_API_KEY configured in runner: %s; OpenAI fallback used: %s." % (report_no, bool(os.environ.get("OPENAI_API_KEY")), openai_used),
         )
 
     # Write text for audit/debugging.
