@@ -190,6 +190,7 @@ def report_number_from_text(text: str) -> int | None:
         r"SitRep\s*(?:MVE\s*)?N\s*[°ºo]?\s*0*(\d{1,3})",
         r"sitrep[-_ ]?n\s*0*(\d{1,3})",
         r"N[°ºo]?\s*0*(\d{1,3})\s*/\s*MVB",
+        r"^N[°ºo]?\s*0*(\d{1,3})$",
     ]
     for pat in patterns:
         m = re.search(pat, txt, re.I)
@@ -1164,6 +1165,280 @@ def append_or_replace_csv(path: Path, new_rows: list[dict[str, Any]], key_cols: 
     out.to_csv(path, index=False)
 
 
+
+def safe_int(value: Any, default: int = 0) -> int:
+    """Parse integers from already-validated CSV values without treating 29.0 as 290."""
+    if value is None:
+        return default
+    txt = norm_text(value)
+    if not txt:
+        return default
+    try:
+        return int(float(txt.replace(",", "")))
+    except Exception:
+        v = to_int(value)
+        return int(v) if v is not None else default
+
+
+def safe_float(value: Any, default: float | None = None) -> float | None:
+    v = to_float(value)
+    return float(v) if v is not None else default
+
+
+def report_sort_key(row: dict[str, Any]) -> tuple[int, str]:
+    no = report_number_from_text(str(row.get("report_no", ""))) or 0
+    return (no, str(row.get("reporting_date", "")))
+
+
+def load_csv_dicts(path: Path) -> list[dict[str, Any]]:
+    if not path.exists():
+        return []
+    return pd.read_csv(path, dtype=str).fillna("").to_dict(orient="records")
+
+
+def previous_report_row(report_no: int, report_date: str) -> dict[str, Any] | None:
+    rows = load_csv_dicts(DATA / "report_summary.csv")
+    prior = []
+    for r in rows:
+        no = report_number_from_text(str(r.get("report_no", ""))) or 0
+        d = str(r.get("reporting_date", ""))
+        # Use the previous SitRep number as the comparator. Do not compare against
+        # an existing row with the same report number, which can happen when a
+        # report is re-run with --force or reprocessed after manual correction.
+        if no < report_no:
+            prior.append(r)
+    if not prior:
+        return None
+    prior.sort(key=report_sort_key)
+    return prior[-1]
+
+
+def rows_for_date(path: Path, date: str) -> list[dict[str, Any]]:
+    return [r for r in load_csv_dicts(path) if str(r.get("date") or r.get("reporting_date")) == str(date)]
+
+
+def health_zone_case_map(date: str) -> dict[str, int]:
+    out: dict[str, int] = {}
+    for r in rows_for_date(DATA / "cases_by_hz.csv", date):
+        hz = norm_text(r.get("health_zone", ""))
+        if hz:
+            out[hz] = safe_int(r.get("confirmed_cases"))
+    return out
+
+
+def response_national_row(date: str) -> dict[str, Any] | None:
+    rows = [r for r in rows_for_date(DATA / "response_indicators.csv", date) if str(r.get("admin_level", "")).lower() == "national"]
+    return rows[-1] if rows else None
+
+
+def latest_uganda_evd_row() -> dict[str, Any] | None:
+    path = DATA / "uganda_evd_summary.csv"
+    rows = load_csv_dicts(path)
+    if not rows:
+        return None
+    rows.sort(key=lambda r: str(r.get("as_of_date", "")))
+    return rows[-1]
+
+
+def pct_text(value: float | None) -> str:
+    if value is None:
+        return "不明"
+    return f"{value * 100:.1f}%"
+
+
+def build_sitrep_delta_payload(
+    report_no: int,
+    report_date: str,
+    current_report: dict[str, Any],
+    previous_report: dict[str, Any] | None,
+    resp_row: dict[str, Any] | None,
+) -> dict[str, Any]:
+    previous_date = str(previous_report.get("reporting_date", "")) if previous_report else ""
+    cur_hz = health_zone_case_map(report_date)
+    prev_hz = health_zone_case_map(previous_date) if previous_date else {}
+    new_hz = sorted([hz for hz, v in cur_hz.items() if v > 0 and prev_hz.get(hz, 0) <= 0])
+    increased_hz = sorted(
+        [{"health_zone": hz, "change": cur_hz[hz] - prev_hz.get(hz, 0), "latest": cur_hz[hz]}
+         for hz in cur_hz if cur_hz[hz] - prev_hz.get(hz, 0) > 0],
+        key=lambda x: x["change"],
+        reverse=True,
+    )[:8]
+
+    current_resp = response_national_row(report_date) or resp_row or {}
+    previous_resp = response_national_row(previous_date) if previous_date else None
+    ug = latest_uganda_evd_row()
+
+    payload = {
+        "from_report": previous_report.get("report_no") if previous_report else None,
+        "to_report": f"N{report_no}",
+        "from_reporting_date": previous_date or None,
+        "to_reporting_date": report_date,
+        "confirmed_cases": {
+            "previous": safe_int(previous_report.get("drc_confirmed_cases")) if previous_report else None,
+            "latest": safe_int(current_report.get("drc_confirmed_cases")),
+        },
+        "confirmed_deaths": {
+            "previous": safe_int(previous_report.get("drc_confirmed_deaths")) if previous_report else None,
+            "latest": safe_int(current_report.get("drc_confirmed_deaths")),
+        },
+        "health_zones": {
+            "previous_count": len([v for v in prev_hz.values() if v > 0]) if previous_report else None,
+            "latest_count": len([v for v in cur_hz.values() if v > 0]),
+            "new_health_zones": new_hz,
+            "largest_increases": increased_hz,
+        },
+        "response": {
+            "contact_followup_rate_previous": safe_float(previous_resp.get("contact_followup_rate")) if previous_resp else None,
+            "contact_followup_rate_latest": safe_float(current_resp.get("contact_followup_rate")) if current_resp else None,
+            "contacts_under_followup_latest": safe_int(current_resp.get("contacts_under_followup")) if current_resp else None,
+            "contacts_seen_latest": safe_int(current_resp.get("contacts_seen")) if current_resp else None,
+            "alerts_reported_latest": safe_int(current_resp.get("alerts_reported")) if current_resp else None,
+            "alerts_investigated_latest": safe_int(current_resp.get("alerts_investigated")) if current_resp else None,
+            "alert_investigation_rate_latest": safe_float(current_resp.get("alert_investigation_rate")) if current_resp else None,
+            "samples_analysed_latest": safe_int(current_resp.get("samples_analysed")) if current_resp else None,
+            "positive_samples_latest": safe_int(current_resp.get("positive_samples")) if current_resp else None,
+            "poe_screening_coverage_latest": safe_float(current_resp.get("poe_screening_coverage")) if current_resp else None,
+        },
+        "uganda": {
+            "as_of_date": ug.get("as_of_date") if ug else None,
+            "confirmed_cases": safe_int(ug.get("cumulative_confirmed_cases")) if ug else None,
+            "confirmed_deaths": safe_int(ug.get("cumulative_deaths")) if ug else None,
+            "imported_cases": safe_int(ug.get("imported_cases")) if ug else None,
+            "local_cases": safe_int(ug.get("local_cases")) if ug else None,
+            "new_cases_last_24h": safe_int(ug.get("new_cases_last_24h")) if ug else None,
+            "source_url": ug.get("source_url") if ug else "https://evd-daily.health.go.ug/",
+        },
+    }
+
+    for key in ("confirmed_cases", "confirmed_deaths"):
+        prev = payload[key]["previous"]
+        latest = payload[key]["latest"]
+        payload[key]["change"] = latest - prev if prev is not None else None
+
+    return payload
+
+
+def deterministic_delta_summary_ja(payload: dict[str, Any]) -> str:
+    from_report = payload.get("from_report") or "前回"
+    to_report = payload.get("to_report") or "今回"
+    cases = payload.get("confirmed_cases", {})
+    deaths = payload.get("confirmed_deaths", {})
+    hz = payload.get("health_zones", {})
+    resp = payload.get("response", {})
+    ug = payload.get("uganda", {})
+
+    parts = []
+    if cases.get("change") is not None and deaths.get("change") is not None:
+        parts.append(
+            f"{from_report}から{to_report}への更新では、DRCの累積確定例は{cases.get('previous')}例から{cases.get('latest')}例へ{cases.get('change')}例増加し、死亡例は{deaths.get('previous')}例から{deaths.get('latest')}例へ{deaths.get('change')}例増加した。"
+        )
+    else:
+        parts.append(f"{to_report}では、DRCの累積確定例は{cases.get('latest')}例、死亡例は{deaths.get('latest')}例である。")
+
+    new_hz = hz.get("new_health_zones") or []
+    if new_hz:
+        parts.append(
+            f"新たに{', '.join(new_hz)}の{len(new_hz)} health zoneが報告され、影響を受けたhealth zoneは{hz.get('latest_count')}に増加した。"
+        )
+    else:
+        parts.append("新規に報告されたhealth zoneは確認されず、既存の流行地での推移が中心である。")
+
+    inc = hz.get("largest_increases") or []
+    if inc:
+        top = ", ".join([f"{x['health_zone']}+{x['change']}" for x in inc[:4]])
+        parts.append(f"health zone別では、{top}などで増加が目立つ。")
+
+    prev_rate = resp.get("contact_followup_rate_previous")
+    latest_rate = resp.get("contact_followup_rate_latest")
+    if latest_rate is not None:
+        if prev_rate is not None:
+            parts.append(f"接触者追跡率は{pct_text(prev_rate)}から{pct_text(latest_rate)}へ変化したが、目標の95%にはなお達していない。")
+        else:
+            parts.append(f"接触者追跡率は{pct_text(latest_rate)}であり、目標の95%にはなお達していない。")
+    if resp.get("alert_investigation_rate_latest") is not None:
+        parts.append(f"アラート調査率は{pct_text(resp.get('alert_investigation_rate_latest'))}、検査陽性は{resp.get('positive_samples_latest')}件であった。")
+
+    if ug.get("confirmed_cases") is not None:
+        parts.append(
+            f"Uganda側はMoH daily pageに基づき累積確定例{ug.get('confirmed_cases')}例、死亡{ug.get('confirmed_deaths')}例（輸入例{ug.get('imported_cases')}例、国内例{ug.get('local_cases')}例）であり、越境リスクの監視を継続する必要がある。"
+        )
+    return "".join(parts)
+
+
+def openai_delta_summary_ja(payload: dict[str, Any]) -> tuple[str | None, str]:
+    if OpenAI is None or not os.environ.get("OPENAI_API_KEY"):
+        return None, ""
+    model = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
+    prompt = f"""
+You are writing a concise Japanese situation update for a public health dashboard.
+Use only the validated structured delta JSON below. Do not invent numbers.
+Write 4-6 Japanese sentences, focusing on changes from previous SitRep to latest SitRep:
+- confirmed cases and deaths
+- new affected health zones / geographical expansion
+- response indicators such as contact follow-up, alerts, tests
+- Uganda / cross-border implications
+Avoid alarmist language. Mention uncertainty when relevant.
+
+Validated delta JSON:
+{json.dumps(payload, ensure_ascii=False, indent=2)}
+""".strip()
+    try:
+        client = OpenAI()
+        try:
+            resp = client.responses.create(
+                model=model,
+                input=[{"role": "user", "content": prompt}],
+                temperature=0.2,
+            )
+            raw = getattr(resp, "output_text", None)
+            if not raw:
+                raw = resp.output[0].content[0].text  # type: ignore[attr-defined]
+        except Exception:
+            resp = client.chat.completions.create(
+                model=model,
+                messages=[{"role": "user", "content": prompt}],
+                temperature=0.2,
+            )
+            raw = resp.choices[0].message.content
+        return norm_text(raw), model
+    except Exception as e:
+        EXTRACTED.mkdir(exist_ok=True)
+        (EXTRACTED / "openai_delta_summary_error.txt").write_text(f"{type(e).__name__}: {e}", encoding="utf-8")
+        return None, model
+
+
+def write_ai_sitrep_summary(
+    report_no: int,
+    report_date: str,
+    current_report: dict[str, Any],
+    resp_row: dict[str, Any] | None,
+) -> None:
+    previous = previous_report_row(report_no, report_date)
+    payload = build_sitrep_delta_payload(report_no, report_date, current_report, previous, resp_row)
+    ai_summary, model = openai_delta_summary_ja(payload)
+    generated_by = "openai" if ai_summary else "deterministic"
+    summary = ai_summary or deterministic_delta_summary_ja(payload)
+
+    EXTRACTED.mkdir(exist_ok=True)
+    (EXTRACTED / f"sitrep_N{report_no:03d}_delta_payload.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
+
+    row = {
+        "report_no": f"N{report_no}",
+        "reporting_date": report_date,
+        "previous_report_no": previous.get("report_no") if previous else "",
+        "previous_reporting_date": previous.get("reporting_date") if previous else "",
+        "summary_ja": summary,
+        "generated_by": generated_by,
+        "openai_model": model if generated_by == "openai" else "",
+        "source": "validated SitRep delta + Uganda MoH EVD daily page",
+        "updated_at_utc": datetime.utcnow().isoformat(timespec="seconds") + "Z",
+        "notes": "Generated at SitRep update time. The dashboard displays this saved text and does not call OpenAI from the browser.",
+    }
+    append_or_replace_csv(DATA / "ai_sitrep_summary.csv", [row], ["report_no", "reporting_date"])
+    log(f"AI situation summary written: report=N{report_no}, generated_by={generated_by}, chars={len(summary)}")
+
+
+
 def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = False) -> bool:
     text = extract_pdf_text(pdf_path)
     EXTRACTED.mkdir(exist_ok=True)
@@ -1288,6 +1563,10 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
     if openai_payload:
         resp_row = response_row_from_openai_payload(openai_payload, report_date, f"N{report_no}", resp_row)
     append_or_replace_csv(DATA / "response_indicators.csv", [resp_row], ["reporting_date", "report_no", "admin_level", "province", "health_zone"])
+
+    # Generate a saved Japanese SitRep-to-SitRep delta summary. This may use
+    # OpenAI when available, but the browser only reads the saved CSV.
+    write_ai_sitrep_summary(report_no, report_date, report_row, resp_row)
 
     meta = {
         "updated_at_utc": datetime.utcnow().isoformat(timespec="seconds") + "Z",

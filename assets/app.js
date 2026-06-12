@@ -14,10 +14,11 @@ const files = {
   reportSummary: 'data/report_summary.csv',
   rwi: 'data/health_zone_rwi.csv',
   response: 'data/response_indicators.csv',
-  ugandaEvd: 'data/uganda_evd_summary.csv'
+  ugandaEvd: 'data/uganda_evd_summary.csv',
+  aiSummary: 'data/ai_sitrep_summary.csv'
 };
 
-let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [];
+let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], aiSitrepSummary = [];
 let healthZoneBoundaries = null;
 let mapMode = 'cases';
 let map, layerGroup;
@@ -1466,6 +1467,29 @@ function ugandaEvdSourceLabel(row = latestUgandaEvdSummary()) {
   if (!row) return 'Uganda Ministry of Health EVD daily page';
   const date = row.as_of_date ? displayDateLabel(row.as_of_date) : (row.as_of_label || 'latest available date');
   return `Uganda MoH EVD daily page, ${date}`;
+}
+
+function latestAiSitrepSummary() {
+  const rows = (aiSitrepSummary || []).slice().sort((a, b) => String(a.reporting_date || '').localeCompare(String(b.reporting_date || '')));
+  return rows[rows.length - 1] || null;
+}
+
+function updateLatestSituationSummary() {
+  const summaryEl = document.getElementById('latestSituationSummary');
+  const metaEl = document.getElementById('latestSituationMeta');
+  if (!summaryEl) return;
+  const row = latestAiSitrepSummary();
+  if (!row) {
+    summaryEl.textContent = 'SitRep更新ごとの差分要約は、次回の自動更新後に表示されます。';
+    if (metaEl) metaEl.textContent = 'Validated SitRep delta summary';
+    return;
+  }
+  summaryEl.textContent = row.summary_ja || '差分要約を作成できませんでした。';
+  if (metaEl) {
+    const gen = row.generated_by === 'openai' ? `OpenAI API（${row.openai_model || 'model未記録'}）` : 'ルールベース要約';
+    const prev = row.previous_report_no ? `${row.previous_report_no}→${row.report_no}` : row.report_no;
+    metaEl.textContent = `${prev}、報告日 ${displayDateLabel(row.reporting_date)}。生成：${gen}。`;
+  }
 }
 
 
@@ -3369,6 +3393,7 @@ function updateDashboard() {
   const destRows = groupByDestination(selectedFlows());
   updateKpis(destRows);
   setEpiKpis();
+  updateLatestSituationSummary();
   updateAssessmentPanel();
   updateEpiTimelineChart();
   updateForecastChart();
@@ -3391,8 +3416,8 @@ function updateDashboard() {
 }
 
 async function main() {
-  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary] = await Promise.all([
-    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd)
+  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, aiSitrepSummary] = await Promise.all([
+    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.aiSummary)
   ]);
   buildIndexes();
   initMap();

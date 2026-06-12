@@ -27,11 +27,24 @@
     <section class="panel ai-assessment-panel" aria-label="AI支援による状況評価">
       <div class="assessment-header">
         <div>
-          <div class="eyebrow assessment-eyebrow">AI支援による状況評価</div>
-          <h2>現在の公衆衛生アセスメント</h2>
-          <p>疫学、人口移動、短期予測、対応指標に基づくルールベースの要約です。専門家による確認が必要であり、公式リスク評価ではありません。</p>
+          <div class="eyebrow assessment-eyebrow">AI-assisted situational intelligence</div>
+          <h2 class="assessment-main-title">AI支援による状況評価</h2>
+          <p>SitRep更新時に検証済みデータから差分要約を生成し、あわせて疫学・人口移動・対応指標に基づく公衆衛生アセスメントを表示します。</p>
         </div>
         <span id="assessmentUpdated" class="assessment-updated">最新の選択SitRepに基づき更新</span>
+      </div>
+
+      <div class="latest-situation-block">
+        <div class="assessment-subhead">
+          <h3>最新の状況</h3>
+          <span id="latestSituationMeta">SitRep更新ごとの差分要約</span>
+        </div>
+        <p id="latestSituationSummary">SitRep更新ごとの差分要約を読み込み中です。</p>
+      </div>
+
+      <div class="assessment-subhead public-health-subhead">
+        <h3>公衆衛生アセスメント</h3>
+        <span>現在の指標に基づく評価</span>
       </div>
       <div class="assessment-grid">
         <article id="assessmentLocal" class="assessment-card assessment-uncertain">

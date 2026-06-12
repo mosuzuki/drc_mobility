@@ -20,4 +20,4 @@ date,month,province,category,confirmed_cases,confirmed_deaths,source,source_date
 2026-06-07,2026-06,Ituri,unventilated_unknown_health_zone,94,10.0,SitRep N24/MVB_07/06/2026,2026-06-07,Cases reported as unassigned / non-ventilated / no case form; not plotted on the map.
 2026-06-08,2026-06,Ituri,unventilated_unknown_health_zone,94,10.0,SitRep N25/MVB_08/06/2026,2026-06-08,Cases reported as unassigned / non-ventilated / no case form; not plotted on the map.
 2026-06-09,2026-06,Ituri,unventilated_unknown_health_zone,94,10.0,SitRep N26/MVB_09/06/2026,2026-06-09,Cases reported as Autres ZS / données non ventilées; not plotted on the map.
-2026-06-10,2026-06,Ituri,unventilated_unknown_health_zone,94,10,SitRep N27/MVB,2026-06-10,Cases reported as unassigned / non-ventilated / no case form; not plotted on the map. Automatically extracted or inferred as total minus mapped health-zone counts.
+2026-06-10,2026-06,Ituri,unventilated_unknown_health_zone,94,10.0,SitRep N27/MVB_10/06/2026,2026-06-10,Cases reported as Autres ZS / données non ventilées; not plotted on the map.
