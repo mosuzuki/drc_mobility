@@ -13,10 +13,11 @@ const files = {
   ugandaDistrictFlows: 'data/uganda_district_flows_2026.csv',
   reportSummary: 'data/report_summary.csv',
   rwi: 'data/health_zone_rwi.csv',
-  response: 'data/response_indicators.csv'
+  response: 'data/response_indicators.csv',
+  ugandaEvd: 'data/uganda_evd_summary.csv'
 };
 
-let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [];
+let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [];
 let healthZoneBoundaries = null;
 let mapMode = 'cases';
 let map, layerGroup;
@@ -1028,10 +1029,17 @@ function setEpiKpis() {
     const cfr = (toNumber(meta?.drc_confirmed_deaths) || mappedDeaths) / Math.max((toNumber(meta?.drc_confirmed_cases) || mappedCases), 1);
     kpiKinshasaShare.textContent = `${pct(cfr)} CFR among confirmed; ${meta?.report_no || ''}`;
   }
-  kpiBorder.textContent = fmt.format(toNumber(meta?.uganda_confirmed_cases) || 7);
-  kpiBorderShare.textContent = 'Uganda confirmed cases; latest available IOM DTM EVD snapshot';
-  kpiUganda.textContent = fmt.format(toNumber(meta?.uganda_confirmed_deaths) || 1);
-  kpiScenario.textContent = `Uganda confirmed death; DRC data ${caseDisplayLabel()}`;
+  const ug = latestUgandaEvdSummary();
+  const ugCases = toNumber(ug?.cumulative_confirmed_cases);
+  const ugDeaths = toNumber(ug?.cumulative_deaths);
+  kpiBorder.textContent = fmt.format(ugCases || toNumber(meta?.uganda_confirmed_cases) || 7);
+  kpiBorderShare.textContent = ug
+    ? `Uganda MoH EVD daily page; imported ${fmt.format(toNumber(ug.imported_cases) || 0)}, local ${fmt.format(toNumber(ug.local_cases) || 0)}; as of ${displayDateLabel(ug.as_of_date)}`
+    : 'Uganda confirmed cases; latest available IOM DTM EVD snapshot';
+  kpiUganda.textContent = fmt.format(ugDeaths || toNumber(meta?.uganda_confirmed_deaths) || 1);
+  kpiScenario.textContent = ug
+    ? `Uganda confirmed deaths; source ${ugandaEvdSourceLabel(ug)}`
+    : `Uganda confirmed death; DRC data ${caseDisplayLabel()}`;
 }
 
 
@@ -1449,6 +1457,17 @@ function comparisonCaseDate(selectedDate = selectedCaseDate()) {
 function reportSummaryForDate(date = selectedCaseDate()) {
   return reportSummary.find(r => String(r.reporting_date) === String(date)) || reportSummary.slice().sort((a,b)=>String(a.reporting_date).localeCompare(String(b.reporting_date))).slice(-1)[0] || null;
 }
+
+function latestUgandaEvdSummary() {
+  return (ugandaEvdSummary || []).slice().sort((a, b) => String(a.as_of_date || '').localeCompare(String(b.as_of_date || ''))).slice(-1)[0] || null;
+}
+
+function ugandaEvdSourceLabel(row = latestUgandaEvdSummary()) {
+  if (!row) return 'Uganda Ministry of Health EVD daily page';
+  const date = row.as_of_date ? displayDateLabel(row.as_of_date) : (row.as_of_label || 'latest available date');
+  return `Uganda MoH EVD daily page, ${date}`;
+}
+
 
 function displayDateLabel(dateStr) {
   if (!dateStr) return '—';
@@ -3372,8 +3391,8 @@ function updateDashboard() {
 }
 
 async function main() {
-  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators] = await Promise.all([
-    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response)
+  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary] = await Promise.all([
+    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd)
   ]);
   buildIndexes();
   initMap();
@@ -3392,7 +3411,9 @@ async function main() {
   const rwiMsg = healthZoneRwi.length ? `RWI ${healthZoneRwi.length} zones` : 'RWI未読込';
   const responseMsg = responseIndicators.length ? `response指標 ${responseIndicators.length}行` : 'response指標未読込';
   const ugandaMsg = ugandaFmpFlows.length ? `Uganda DTM ${ugandaFmpFlows.length} FMP / ${ugandaDistrictFlows.length} district` : 'Uganda DTM未読込';
-  document.getElementById('lastUpdated').textContent = `INSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新は${latestReport}（報告 ${latestReporting}、公開 ${latestPublished}）。`;
+  const ugLatest = latestUgandaEvdSummary();
+  const ugMsg = ugLatest ? `ウガンダ症例はUganda Ministry of Health EVD daily page（${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}）から自動取得し、最新は${displayDateLabel(ugLatest.as_of_date)}時点です。` : 'ウガンダ症例はUganda Ministry of Health EVD daily page（https://evd-daily.health.go.ug/）から自動取得する設定です。';
+  document.getElementById('lastUpdated').textContent = `DRCはINSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新は${latestReport}（報告 ${latestReporting}、公開 ${latestPublished}）。${ugMsg}`;
   updateDashboard();
   setTimeout(fitMapToData, 300);
 }
