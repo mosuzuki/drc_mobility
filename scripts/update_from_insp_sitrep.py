@@ -81,6 +81,9 @@ HZ_ALIASES = {
     "Échantillons sans fiche": "unventilated_unknown_health_zone",
     "ZS non identifiée": "unventilated_unknown_health_zone",
     "Autres ZS": "unventilated_unknown_health_zone",
+    "Kambala": "Kambala",
+    "Vuhovi": "Vuhovi",
+    "Masereka": "Masereka",
     # Some affected health zones are missing from population_by_hz.csv but are
     # still valid SitRep rows. They are retained with blank geometry so they
     # contribute to totals while not being mapped as polygons/centroids.
@@ -779,7 +782,7 @@ def extract_health_zone_rows(pdf_path: Path, known_lookup: dict[str, dict[str, A
                 "lon": meta.get("lon", ""),
                 "source": report_label,
                 "source_date": report_date,
-                "notes": "Automatically extracted from INSP SitRep PDF; validated against total cumulative cases." + note_suffix,
+                "notes": "Automatically extracted from INSP SitRep PDF; validated against total cumulative cases. Rows without dashboard geometry are retained in totals but hidden on the case map." + note_suffix,
             }
 
     # 1) Standard PDF table extraction.
