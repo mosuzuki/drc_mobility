@@ -908,3 +908,42 @@ main {
     min-height: 420px;
   }
 }
+
+
+.header-actions {
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: 10px;
+}
+.language-toggle {
+  display: inline-flex;
+  gap: 4px;
+  padding: 4px;
+  border: 1px solid rgba(255,255,255,0.28);
+  border-radius: 999px;
+  background: rgba(255,255,255,0.12);
+  backdrop-filter: blur(6px);
+}
+.lang-btn {
+  border: 0;
+  border-radius: 999px;
+  padding: 6px 10px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #ffffff;
+  background: transparent;
+  cursor: pointer;
+}
+.lang-btn.active {
+  color: #123;
+  background: #ffffff;
+}
+@media (max-width: 900px) {
+  .header-actions {
+    align-items: stretch;
+  }
+  .language-toggle {
+    align-self: flex-start;
+  }
+}

@@ -1,5 +1,5 @@
 <!doctype html>
-<html lang="en">
+<html lang="ja">
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
@@ -12,14 +12,20 @@
 <body>
   <header class="topbar">
     <div>
-      <div class="eyebrow">疫学・移動・対応状況の統合ダッシュボード</div>
-      <h1>DRC・ウガンダ Bundibugyo型エボラ流行ダッシュボード</h1>
-      <p class="subtitle">DRC東部のhealth zone別症例、人口移動、ウガンダ国境フロー、対応指標を統合し、流行状況と拡大リスクを把握するためのダッシュボードです。</p>
+      <div id="pageEyebrow" class="eyebrow">疫学・移動・対応状況の統合ダッシュボード</div>
+      <h1 id="pageTitle">DRC・ウガンダ Bundibugyo型エボラ流行ダッシュボード</h1>
+      <p id="pageSubtitle" class="subtitle">DRC東部のhealth zone別症例、人口移動、ウガンダ国境フロー、対応指標を統合し、流行状況と拡大リスクを把握するためのダッシュボードです。</p>
     </div>
-    <div class="status-card">
-      <span class="label">データ更新状況</span>
+    <div class="header-actions">
+      <div class="language-toggle" aria-label="Language selector">
+        <button id="langJa" type="button" class="lang-btn active">日本語</button>
+        <button id="langEn" type="button" class="lang-btn">EN</button>
+      </div>
+      <div class="status-card">
+        <span class="label" id="dataStatusLabel">データ更新状況</span>
       <strong id="dataStatus">SitRep N26–N28まで更新済み（最新 N28）</strong>
       <span id="lastUpdated">DRCはINSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新はN28（報告 11 Jun 2026、公開 12 Jun 2026）。ウガンダ症例はUganda Ministry of Health EVD daily page（https://evd-daily.health.go.ug/）から自動取得し、最新は11 Jun 2026時点です。</span>
+      </div>
     </div>
   </header>
 
@@ -27,49 +33,49 @@
     <section class="panel ai-assessment-panel" aria-label="AI支援による状況評価">
       <div class="assessment-header">
         <div>
-          <div class="eyebrow assessment-eyebrow">AI-assisted situational intelligence</div>
-          <h2 class="assessment-main-title">AI支援による状況評価</h2>
-          <p>更新時に差分要約を生成し、疫学・人口移動・対応指標に基づく公衆衛生アセスメントをあわせて表示します。公式のリスク評価ではなく、専門家による確認が必要です。</p>
+          <div id="assessmentEyebrow" class="eyebrow assessment-eyebrow">AI-assisted situational intelligence</div>
+          <h2 id="assessmentTitle" class="assessment-main-title">AI支援による状況評価</h2>
+          <p id="assessmentIntro">更新時に差分要約を生成し、疫学・人口移動・対応指標に基づく公衆衛生アセスメントをあわせて表示します。公式のリスク評価ではなく、専門家による確認が必要です。</p>
         </div>
         <span id="assessmentUpdated" class="assessment-updated">最新の選択SitRepに基づき更新</span>
       </div>
 
       <div class="latest-situation-block">
         <div class="assessment-subhead">
-          <h3>最新の状況</h3>
+          <h3 id="latestSituationTitle">最新の状況</h3>
           <span id="latestSituationMeta">SitRep更新ごとの差分要約</span>
         </div>
         <div id="latestSituationSummary" class="latest-situation-list">
           <div class="latest-situation-item">
             <span class="latest-situation-bullet">•</span>
-            <div><strong>DRC：</strong><span id="latestSituationDrc">SitRep更新ごとの差分要約を読み込み中です。</span></div>
+            <div><strong id="latestSituationDrcLabel">DRC：</strong><span id="latestSituationDrc">SitRep更新ごとの差分要約を読み込み中です。</span></div>
           </div>
           <div class="latest-situation-item">
             <span class="latest-situation-bullet">•</span>
-            <div><strong>ウガンダ：</strong><span id="latestSituationUganda">ウガンダ側の更新情報を読み込み中です。</span></div>
+            <div><strong id="latestSituationUgandaLabel">ウガンダ：</strong><span id="latestSituationUganda">ウガンダ側の更新情報を読み込み中です。</span></div>
           </div>
         </div>
       </div>
 
       <div class="assessment-subhead public-health-subhead">
-        <h3>公衆衛生アセスメント</h3>
-        <span>現在の指標に基づく評価</span>
+        <h3 id="publicHealthAssessmentTitle">公衆衛生アセスメント</h3>
+        <span id="publicHealthAssessmentMeta">現在の指標に基づく評価</span>
       </div>
       <div class="assessment-grid">
         <article id="assessmentLocal" class="assessment-card assessment-uncertain">
-          <span class="assessment-label">流行地における流行状況</span>
+          <span id="assessmentLocalLabel" class="assessment-label">流行地における流行状況</span>
           <strong class="assessment-category">評価中</strong>
           <p class="assessment-text">データを読み込み中です。</p>
           <small class="assessment-drivers">—</small>
         </article>
         <article id="assessmentCapital" class="assessment-card assessment-uncertain">
-          <span class="assessment-label">首都圏への拡大リスク</span>
+          <span id="assessmentCapitalLabel" class="assessment-label">首都圏への拡大リスク</span>
           <strong class="assessment-category">評価中</strong>
           <p class="assessment-text">データを読み込み中です。</p>
           <small class="assessment-drivers">—</small>
         </article>
         <article id="assessmentCrossBorder" class="assessment-card assessment-uncertain">
-          <span class="assessment-label">ウガンダ・周辺国への拡大リスク</span>
+          <span id="assessmentCrossBorderLabel" class="assessment-label">ウガンダ・周辺国への拡大リスク</span>
           <strong class="assessment-category">評価中</strong>
           <p class="assessment-text">データを読み込み中です。</p>
           <small class="assessment-drivers">—</small>
@@ -98,7 +104,7 @@
 
         <div class="map-layer-toolbar" aria-label="Map layer controls">
           <div>
-            <span class="toolbar-label">Map layer</span>
+            <span id="mapLayerLabel" class="toolbar-label">Map layer</span>
             <strong id="activeLayerLabel">Cases</strong>
           </div>
           <div class="toggle-group map-toggle-group" role="group" aria-label="Map layer">
@@ -121,7 +127,7 @@
 
         <section class="controls panel map-controls">
           <div class="control">
-            <label for="originSelect">Origin set</label>
+            <label id="originSelectLabel" for="originSelect">Origin set</label>
             <select id="originSelect"></select>
           </div>
           <div id="customOriginContainer" class="control custom-origin-control" style="display:none">
@@ -130,23 +136,23 @@
             <small>Hold Ctrl/Cmd to select multiple health zones.</small>
           </div>
           <div class="control">
-            <label for="monthSelect">Month</label>
+            <label id="monthSelectLabel" for="monthSelect">Month</label>
             <select id="monthSelect"></select>
           </div>
           <div class="control">
-            <label for="scenarioSelect">Uganda cross-border scenario</label>
+            <label id="scenarioSelectLabel" for="scenarioSelect">Uganda cross-border scenario</label>
             <select id="scenarioSelect"></select>
           </div>
         </section>
 
         <div class="timeline-controls-title">
-          <strong>SitRep time point</strong>
-          <span>Use this slider to update case bubbles and case-weighted risk layers by reporting date.</span>
+          <strong id="sitrepTimePointTitle">SitRep time point</strong>
+          <span id="sitrepTimePointHelp">Use this slider to update case bubbles and case-weighted risk layers by reporting date.</span>
         </div>
         <div class="report-date-slider" aria-label="SitRep reporting date controls">
           <div class="slider-head report-slider-head">
             <div>
-              <strong>Reporting date shown on map</strong>
+              <strong id="reportingDateMapTitle">Reporting date shown on map</strong>
               <span id="reportDateSliderLabel">Latest</span>
               <small id="caseModeLabel">Cumulative cases</small>
             </div>
@@ -180,15 +186,15 @@
 
       <article class="panel right-analysis-panel">
         <div class="timeline-chart-block">
-          <h2>Reported cumulative cases</h2>
-          <p>DRC confirmed cases by SitRep reporting date. The selected slider date is highlighted.</p>
+          <h2 id="reportedCasesTitle">Reported cumulative cases</h2>
+          <p id="reportedCasesDesc">DRC confirmed cases by SitRep reporting date. The selected slider date is highlighted.</p>
           <div id="epiTimelineChart" class="chart compact-chart"></div>
         </div>
         <div class="forecast-chart-block">
           <div class="chart-block-head">
             <div>
-              <h2>Short-term projection</h2>
-              <p>Renewal / branching-process projection based on recent reported confirmed cases. The projection starts from the selected SitRep date.</p>
+              <h2 id="forecastTitle">Short-term projection</h2>
+              <p id="forecastDesc">Renewal / branching-process projection based on recent reported confirmed cases. The projection starts from the selected SitRep date.</p>
             </div>
             <div class="forecast-control-stack">
               <select id="forecastHorizonSelect" aria-label="Forecast horizon">
@@ -209,8 +215,8 @@
         <div class="response-chart-block">
           <div class="chart-block-head">
             <div>
-              <h2>Response timeline</h2>
-              <p>Selected response indicators extracted from SitReps. Values may be national, province-level, or operational-site summaries depending on what was reported.</p>
+              <h2 id="responseTimelineTitle">Response timeline</h2>
+              <p id="responseTimelineDesc">Selected response indicators extracted from SitReps. Values may be national, province-level, or operational-site summaries depending on what was reported.</p>
             </div>
             <div class="response-control-stack">
               <select id="responseMetricSelect" aria-label="Response metric">
@@ -229,8 +235,8 @@
         <div class="rwi-chart-block">
           <div class="chart-block-head">
             <div>
-              <h2>RWI vs Ebola cases</h2>
-              <p>Health-zone ecological comparison. RWI is shown as a within-DRC percentile; selected reporting date and case mode are used.</p>
+              <h2 id="rwiTitle">RWI vs Ebola cases</h2>
+              <p id="rwiDesc">Health-zone ecological comparison. RWI is shown as a within-DRC percentile; selected reporting date and case mode are used.</p>
             </div>
             <div class="rwi-control-stack">
               <select id="rwiOutcomeSelect" aria-label="RWI chart outcome">
@@ -256,7 +262,7 @@
           <p id="rankingDescription">Top destination health zones by estimated monthly movement.</p>
           <div id="barChart" class="chart compact-chart"></div>
           <div class="control ranking-count-control">
-            <label for="topN">Top ranked areas shown</label>
+            <label id="topNLabel" for="topN">Top ranked areas shown</label>
             <input id="topN" type="range" min="5" max="20" step="1" value="12" />
             <span id="topNValue">12</span>
           </div>
@@ -265,12 +271,12 @@
     </section>
 
     <section class="panel scenario-panel">
-      <h2>Scenario interpretation</h2>
+      <h2 id="scenarioTitle">Scenario interpretation</h2>
       <div id="scenarioText" class="note"></div>
     </section>
 
     <section class="panel sources">
-      <h2>Data sources to connect</h2>
+      <h2 id="sourcesTitle">Data sources to connect</h2>
       <div class="source-grid">
         <a href="https://data.humdata.org/dataset/democratic-republic-of-congo-population-and-relocation-estimates" target="_blank" rel="noreferrer">Flowminder / HDX population and mobility estimates</a>
         <a href="https://data.humdata.org/dataset/drc-health-data" target="_blank" rel="noreferrer">HDX DRC health-zone boundaries</a>
@@ -279,11 +285,11 @@
         <a href="https://data.unhcr.org/en/country/uga" target="_blank" rel="noreferrer">UNHCR Uganda Operational Data Portal</a>
         <a href="https://data.unhcr.org/en/situations/drc" target="_blank" rel="noreferrer">UNHCR DRC situation</a>
       </div>
-      <p class="limitation"><strong>Important:</strong> Uganda estimates include both observed IOM DTM EVD border-flow summaries from 15–24 May 2026 and scenario-based importation-pressure scores that combine DRC-side case-weighted movement toward border proxy zones with the 2026 Uganda destination profile. They are not Ebola transmission probabilities.</p>
+      <p id="limitationText" class="limitation"><strong>Important:</strong> Uganda estimates include both observed IOM DTM EVD border-flow summaries from 15–24 May 2026 and scenario-based importation-pressure scores that combine DRC-side case-weighted movement toward border proxy zones with the 2026 Uganda destination profile. They are not Ebola transmission probabilities.</p>
     </section>
   </main>
 
-  <footer>
+  <footer id="footerText">
     Prototype dashboard using Flowminder / HDX-derived DRC health-zone mobility estimates. Uganda values remain proxy estimates unless calibrated with cross-border data.
   </footer>
 
