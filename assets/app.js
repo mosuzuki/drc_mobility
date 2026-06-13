@@ -82,7 +82,7 @@ const UI_TEXT = {
     forecastTitle: '短期予測',
     forecastDesc: '直近の報告確定例に基づくrenewal / branching-process予測です。選択したSitRep日から予測を開始します。',
     finalSizeTitle: 'アウトブレイク最終サイズ推定',
-    finalSizeDesc: '日々の報告確定例数に基づくシナリオ別推定です。これは確定的な予測ではありません。',
+    finalSizeDesc: 'Branching processとAI支援による過去流行マッチングを組み合わせた推定です。これは確定的な予測ではありません。',
     responseTimelineTitle: '対応指標の推移',
     responseTimelineDesc: 'SitRepから抽出した対応指標です。報告内容により、国全体、州レベル、またはオペレーションサイト単位の値が含まれます。',
     rwiTitle: 'RWIとエボラ症例',
@@ -131,7 +131,7 @@ const UI_TEXT = {
     forecastTitle: 'Short-term projection',
     forecastDesc: 'Renewal / branching-process projection based on recent reported confirmed cases. The projection starts from the selected SitRep date.',
     finalSizeTitle: 'Estimated final outbreak size',
-    finalSizeDesc: 'Scenario-based estimates using daily reported confirmed cases. This is not a deterministic prediction.',
+    finalSizeDesc: 'Final-size projection combining a branching process model and AI-assisted historical matching. This is not a deterministic prediction.',
     responseTimelineTitle: 'Response timeline',
     responseTimelineDesc: 'Selected response indicators extracted from SitReps. Values may be national, province-level, or operational-site summaries depending on what was reported.',
     rwiTitle: 'RWI vs Ebola cases',
@@ -176,9 +176,12 @@ function formatDeathCount(n) {
 }
 
 function finalSizeScenarioLabel(key) {
+  const labelsFromJson = finalSizeProjectionData?.model_labels || finalSizeProjectionData?.scenario_labels;
+  const item = labelsFromJson && labelsFromJson[key];
+  if (item && item[currentLang]) return item[currentLang];
   const labels = {
-    ja: { baseline: '現状維持', improved: '制御改善', delayed: '制御遅延' },
-    en: { baseline: 'Baseline', improved: 'Improved control', delayed: 'Delayed control' }
+    ja: { ensemble: 'Ensemble（推奨）', branching: 'Branching process', historical_ai: 'AI支援による過去流行マッチング', baseline: '現状維持', improved: '制御改善', delayed: '制御遅延' },
+    en: { ensemble: 'Ensemble (recommended)', branching: 'Branching process', historical_ai: 'AI-assisted historical matching', baseline: 'Baseline', improved: 'Improved control', delayed: 'Delayed control' }
   };
   return (labels[currentLang] && labels[currentLang][key]) || key;
 }
@@ -186,12 +189,19 @@ function finalSizeScenarioLabel(key) {
 function refreshFinalSizeScenarioOptions() {
   const sel = document.getElementById('finalSizeScenarioSelect');
   if (!sel) return;
-  const value = sel.value || 'baseline';
-  ['baseline','improved','delayed'].forEach(key => {
-    const opt = sel.querySelector(`option[value="${key}"]`);
-    if (opt) opt.textContent = finalSizeScenarioLabel(key);
+  const available = finalSizeProjectionData?.model_labels || finalSizeProjectionData?.scenario_labels;
+  const modelKeys = available ? Object.keys(available) : ['ensemble', 'branching', 'historical_ai'];
+  const preferred = ['ensemble', 'branching', 'historical_ai'];
+  const keys = preferred.filter(k => modelKeys.includes(k)).concat(modelKeys.filter(k => !preferred.includes(k)));
+  const oldValue = sel.value || 'ensemble';
+  sel.innerHTML = '';
+  keys.forEach(key => {
+    const opt = document.createElement('option');
+    opt.value = key;
+    opt.textContent = finalSizeScenarioLabel(key);
+    sel.appendChild(opt);
   });
-  sel.value = value;
+  sel.value = keys.includes(oldValue) ? oldValue : (keys.includes('ensemble') ? 'ensemble' : keys[0] || 'ensemble');
 }
 
 function applyStaticLanguage() {
@@ -3279,15 +3289,16 @@ function getFinalSizeProjectionRecord(selectedDate = selectedCaseDate()) {
 }
 
 function finalProjectionScenarioData(record, scenario) {
-  if (!record || !record.scenarios) return null;
-  return record.scenarios[scenario] || record.scenarios.baseline || null;
+  if (!record) return null;
+  const models = record.models || record.scenarios || {};
+  return models[scenario] || models.ensemble || models.branching || models.baseline || null;
 }
 
 function updateFinalSizeProjectionChart() {
   const el = document.getElementById('finalSizeChart');
   if (!el) return;
   refreshFinalSizeScenarioOptions();
-  const scenario = document.getElementById('finalSizeScenarioSelect')?.value || 'baseline';
+  const scenario = document.getElementById('finalSizeScenarioSelect')?.value || 'ensemble';
   const summaryEl = document.getElementById('finalSizeSummary');
   const statsEl = document.getElementById('finalSizeStats');
   const record = getFinalSizeProjectionRecord(selectedCaseDate());
@@ -3312,14 +3323,19 @@ function updateFinalSizeProjectionChart() {
   const ed = proj.end_date || {};
   const rt = proj.rt || {};
   if (summaryEl) {
+    const topMatches = Array.isArray(proj.matches) ? proj.matches.slice(0, 3).map(m => m.outbreak_label).filter(Boolean) : [];
+    const matchCardJa = topMatches.length ? `<div class="final-size-stat-card"><span>類似した過去流行</span><strong>${topMatches[0]}</strong><small>${topMatches.slice(1).join(' / ')}</small></div>` : '';
+    const matchCardEn = topMatches.length ? `<div class="final-size-stat-card"><span>Closest historical analogs</span><strong>${topMatches[0]}</strong><small>${topMatches.slice(1).join(' / ')}</small></div>` : '';
     if (currentLang === 'ja') {
       summaryEl.innerHTML = `
         <div class="final-size-stat-card"><span>推定最終累積症例数</span><strong>${formatCaseCount(fs.median)}</strong><small>90%予測区間 ${formatCaseCount(fs.pi90?.[0])}–${formatCaseCount(fs.pi90?.[1])}</small></div>
-        <div class="final-size-stat-card"><span>推定終息日</span><strong>${formatDateLong(ed.median)}</strong><small>90%予測区間 ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>`;
+        <div class="final-size-stat-card"><span>推定終息日</span><strong>${formatDateLong(ed.median)}</strong><small>90%予測区間 ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>
+        ${matchCardJa}`;
     } else {
       summaryEl.innerHTML = `
         <div class="final-size-stat-card"><span>Estimated final cumulative cases</span><strong>${formatCaseCount(fs.median)}</strong><small>90% PI ${formatCaseCount(fs.pi90?.[0])}–${formatCaseCount(fs.pi90?.[1])}</small></div>
-        <div class="final-size-stat-card"><span>Estimated end date</span><strong>${formatDateLong(ed.median)}</strong><small>90% PI ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>`;
+        <div class="final-size-stat-card"><span>Estimated end date</span><strong>${formatDateLong(ed.median)}</strong><small>90% PI ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>
+        ${matchCardEn}`;
     }
   }
 
@@ -3360,12 +3376,29 @@ function updateFinalSizeProjectionChart() {
   }, { responsive: true, displayModeBar: false });
 
   if (statsEl) {
-    const method = finalSizeProjectionData?.method || 'renewal_branching_process_negative_binomial';
     const sourceSitrep = record.report_no || finalSizeProjectionData?.source_sitrep || '';
+    const topMatches = Array.isArray(proj.matches) ? proj.matches.slice(0, 3).map(m => `${m.outbreak_label}${m.normalized_weight ? ' ' + Math.round(m.normalized_weight * 100) + '%' : ''}`).join('、') : '';
+    const weights = proj.weights || null;
+    const rtTextJa = Number.isFinite(rt.median) ? `Rt中央値 <strong>${rt.median.toFixed(2)}</strong>（95% CrI ${Number.isFinite(rt.q025) ? rt.q025.toFixed(2) : '—'}–${Number.isFinite(rt.q975) ? rt.q975.toFixed(2) : '—'}）。` : '';
+    const rtTextEn = Number.isFinite(rt.median) ? `Rt median <strong>${rt.median.toFixed(2)}</strong> (95% CrI ${Number.isFinite(rt.q025) ? rt.q025.toFixed(2) : '—'}–${Number.isFinite(rt.q975) ? rt.q975.toFixed(2) : '—'}). ` : '';
+    const weightTextJa = weights ? `Ensemble重みはBranching process ${Math.round((weights.branching_process || 0) * 100)}%、AI支援過去流行マッチング ${Math.round((weights.ai_assisted_historical_matching || 0) * 100)}%です。` : '';
+    const weightTextEn = weights ? `Ensemble weights: branching process ${Math.round((weights.branching_process || 0) * 100)}%, AI-assisted historical matching ${Math.round((weights.ai_assisted_historical_matching || 0) * 100)}%. ` : '';
     if (currentLang === 'ja') {
-      statsEl.innerHTML = `シナリオ：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例を用い、GitHub Actions側で事前計算したrenewal / branching-process negative-binomialモデルです。Rt中央値 <strong>${Number.isFinite(rt.median) ? rt.median.toFixed(2) : '—'}</strong>（95% CrI ${Number.isFinite(rt.q025) ? rt.q025.toFixed(2) : '—'}–${Number.isFinite(rt.q975) ? rt.q975.toFixed(2) : '—'}）。推定終息日は、シミュレーション上で日別新規確定例が42日間連続して0となる最初の日です。これはシナリオ推定であり、確定的な予測ではありません。`;
+      if (scenario === 'historical_ai') {
+        statsEl.innerHTML = `モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例の累積曲線を、過去DRCエボラ流行曲線にスケーリングして照合します。近い過去流行：<strong>${topMatches || '—'}</strong>。これはAI支援によるアナログ推定であり、都市部侵入、医療機関内伝播、制御活動の変化により大きく外れる可能性があります。`;
+      } else if (scenario === 'ensemble') {
+        statsEl.innerHTML = `モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例を用い、Branching processとAI支援による過去流行マッチングを統合した推奨表示です。${weightTextJa}${rtTextJa}推定終息日は、モデル上で日別新規確定例が42日間連続して0となる最初の日です。これは確定的な予測ではありません。`;
+      } else {
+        statsEl.innerHTML = `モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例を用い、GitHub Actions側で事前計算したrenewal / branching-process negative-binomialモデルです。${rtTextJa}推定終息日は、シミュレーション上で日別新規確定例が42日間連続して0となる最初の日です。これは確定的な予測ではありません。`;
+      }
     } else {
-      statsEl.innerHTML = `Scenario: <strong>${finalSizeScenarioLabel(scenario)}</strong>. Precomputed in GitHub Actions using a renewal / branching-process negative-binomial model with reported confirmed cases through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. Rt median <strong>${Number.isFinite(rt.median) ? rt.median.toFixed(2) : '—'}</strong> (95% CrI ${Number.isFinite(rt.q025) ? rt.q025.toFixed(2) : '—'}–${Number.isFinite(rt.q975) ? rt.q975.toFixed(2) : '—'}). The estimated end date is the first date followed by 42 consecutive days with zero incident confirmed cases in the simulations. This is a scenario-based estimate, not a deterministic prediction.`;
+      if (scenario === 'historical_ai') {
+        statsEl.innerHTML = `Model: <strong>${finalSizeScenarioLabel(scenario)}</strong>. The cumulative trajectory through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''} is scaled and matched to previous DRC Ebola outbreak curves. Closest analogs: <strong>${topMatches || '—'}</strong>. This is an AI-assisted analog forecast; urban spread, nosocomial transmission and response changes may substantially alter the projection.`;
+      } else if (scenario === 'ensemble') {
+        statsEl.innerHTML = `Model: <strong>${finalSizeScenarioLabel(scenario)}</strong>. Recommended display combining branching process and AI-assisted historical matching using reported confirmed cases through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${weightTextEn}${rtTextEn}The estimated end date is the first date followed by 42 consecutive days with zero incident confirmed cases in the model. This is not a deterministic prediction.`;
+      } else {
+        statsEl.innerHTML = `Model: <strong>${finalSizeScenarioLabel(scenario)}</strong>. Precomputed in GitHub Actions using a renewal / branching-process negative-binomial model with reported confirmed cases through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${rtTextEn}The estimated end date is the first date followed by 42 consecutive days with zero incident confirmed cases in the simulations. This is not a deterministic prediction.`;
+      }
     }
   }
 }

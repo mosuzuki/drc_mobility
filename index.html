@@ -216,13 +216,13 @@
           <div class="chart-block-head">
             <div>
               <h2 id="finalSizeTitle">アウトブレイク最終サイズ推定</h2>
-              <p id="finalSizeDesc">日々の報告確定例数に基づくシナリオ別推定です。これは確定的な予測ではありません。</p>
+              <p id="finalSizeDesc">Branching processとAI支援による過去流行マッチングを組み合わせた推定です。これは確定的な予測ではありません。</p>
             </div>
             <div class="final-size-control-stack">
-              <select id="finalSizeScenarioSelect" aria-label="Final size scenario">
-                <option value="baseline" selected>現状維持</option>
-                <option value="improved">制御改善</option>
-                <option value="delayed">制御遅延</option>
+              <select id="finalSizeScenarioSelect" aria-label="Final size model">
+                <option value="ensemble" selected>Ensemble（推奨）</option>
+                <option value="branching">Branching process</option>
+                <option value="historical_ai">AI支援による過去流行マッチング</option>
               </select>
             </div>
           </div>
