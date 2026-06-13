@@ -28,7 +28,7 @@ import sys
 import time
 import unicodedata
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, date
 from pathlib import Path
 from typing import Any, Iterable
 from urllib.parse import quote, unquote, urljoin, urlparse, parse_qs
@@ -1240,10 +1240,116 @@ def latest_uganda_evd_row() -> dict[str, Any] | None:
     return rows[-1]
 
 
+def parse_iso_date(value: Any) -> date | None:
+    txt = norm_text(value)
+    if not txt:
+        return None
+    try:
+        return date.fromisoformat(txt[:10])
+    except Exception:
+        return None
+
+
+def uganda_history_rows() -> list[dict[str, Any]]:
+    rows = load_csv_dicts(DATA / "uganda_evd_history.csv")
+    if not rows:
+        rows = load_csv_dicts(DATA / "uganda_evd_summary.csv")
+    rows = [r for r in rows if r.get("as_of_date")]
+    rows.sort(key=lambda r: str(r.get("as_of_date", "")))
+    return rows
+
+
+def uganda_daily_case_rows() -> list[dict[str, Any]]:
+    rows = load_csv_dicts(DATA / "uganda_evd_daily_cases.csv")
+    rows = [r for r in rows if r.get("date")]
+    rows.sort(key=lambda r: str(r.get("date", "")))
+    return rows
+
+
+def uganda_no_reported_increase_info(latest: dict[str, Any] | None) -> dict[str, Any]:
+    """Return Uganda trend info, preferring daily confirmation chart over cumulative history.
+
+    no_increase_days counts calendar days from the day after the most recent
+    positive daily-confirmation date to the latest Uganda as-of date.
+    """
+    if not latest:
+        return {}
+    latest_date = parse_iso_date(latest.get("as_of_date"))
+    latest_cases = safe_int(latest.get("cumulative_confirmed_cases"))
+
+    daily = uganda_daily_case_rows()
+    if daily and latest_date:
+        positive_dates = []
+        for r in daily:
+            d = parse_iso_date(r.get("date"))
+            v = safe_int(r.get("confirmed_cases"))
+            if d and d <= latest_date and v > 0:
+                positive_dates.append(d)
+        if positive_dates:
+            last_positive = max(positive_dates)
+            return {
+                "basis": "daily_confirmation_chart",
+                "last_increase_date": last_positive.isoformat(),
+                "no_increase_days": max((latest_date - last_positive).days, 0),
+                "latest_as_of_date": latest_date.isoformat(),
+                "latest_confirmed_cases": latest_cases,
+                "status": "no_recent_increase" if (latest_date - last_positive).days > 0 else "increase_on_latest_date",
+            }
+
+    hist = uganda_history_rows()
+    if len(hist) >= 2 and latest_date:
+        last_increase_date = None
+        prev_cases = None
+        for r in hist:
+            d = parse_iso_date(r.get("as_of_date"))
+            c = safe_int(r.get("cumulative_confirmed_cases"))
+            if d is None:
+                continue
+            if prev_cases is not None and c > prev_cases:
+                last_increase_date = d
+            prev_cases = c
+        if last_increase_date:
+            return {
+                "basis": "cumulative_history",
+                "last_increase_date": last_increase_date.isoformat(),
+                "no_increase_days": max((latest_date - last_increase_date).days, 0),
+                "latest_as_of_date": latest_date.isoformat(),
+                "latest_confirmed_cases": latest_cases,
+                "status": "no_recent_increase" if (latest_date - last_increase_date).days > 0 else "increase_on_latest_date",
+            }
+        # If no increase is seen within the available history, report the span
+        # conservatively as since the first available history date.
+        first = parse_iso_date(hist[0].get("as_of_date"))
+        if first:
+            return {
+                "basis": "cumulative_history_no_increase_within_available_history",
+                "last_increase_date": None,
+                "no_increase_days": max((latest_date - first).days, 0),
+                "latest_as_of_date": latest_date.isoformat(),
+                "latest_confirmed_cases": latest_cases,
+                "status": "no_increase_within_available_history",
+            }
+    return {
+        "basis": "latest_snapshot_only",
+        "last_increase_date": None,
+        "no_increase_days": None,
+        "latest_as_of_date": latest.get("as_of_date"),
+        "latest_confirmed_cases": latest_cases,
+        "status": "unknown",
+    }
+
+
 def pct_text(value: float | None) -> str:
     if value is None:
         return "不明"
     return f"{value * 100:.1f}%"
+
+
+def fmt_count(value: Any) -> str:
+    try:
+        return f"{int(value):,}"
+    except Exception:
+        return str(value)
 
 
 def build_sitrep_delta_payload(
@@ -1267,6 +1373,7 @@ def build_sitrep_delta_payload(
     current_resp = response_national_row(report_date) or resp_row or {}
     previous_resp = response_national_row(previous_date) if previous_date else None
     ug = latest_uganda_evd_row()
+    ug_trend = uganda_no_reported_increase_info(ug)
 
     payload = {
         "from_report": previous_report.get("report_no") if previous_report else None,
@@ -1297,6 +1404,8 @@ def build_sitrep_delta_payload(
             "alert_investigation_rate_latest": safe_float(current_resp.get("alert_investigation_rate")) if current_resp else None,
             "samples_analysed_latest": safe_int(current_resp.get("samples_analysed")) if current_resp else None,
             "positive_samples_latest": safe_int(current_resp.get("positive_samples")) if current_resp else None,
+            "travellers_total_latest": safe_int(current_resp.get("travellers_total")) if current_resp else None,
+            "travellers_screened_latest": safe_int(current_resp.get("travellers_screened")) if current_resp else None,
             "poe_screening_coverage_latest": safe_float(current_resp.get("poe_screening_coverage")) if current_resp else None,
         },
         "uganda": {
@@ -1306,6 +1415,10 @@ def build_sitrep_delta_payload(
             "imported_cases": safe_int(ug.get("imported_cases")) if ug else None,
             "local_cases": safe_int(ug.get("local_cases")) if ug else None,
             "new_cases_last_24h": safe_int(ug.get("new_cases_last_24h")) if ug else None,
+            "no_reported_increase_days": ug_trend.get("no_increase_days"),
+            "last_reported_increase_date": ug_trend.get("last_increase_date"),
+            "trend_basis": ug_trend.get("basis"),
+            "trend_status": ug_trend.get("status"),
             "source_url": ug.get("source_url") if ug else "https://evd-daily.health.go.ug/",
         },
     }
@@ -1318,7 +1431,7 @@ def build_sitrep_delta_payload(
     return payload
 
 
-def deterministic_delta_summary_ja(payload: dict[str, Any]) -> str:
+def deterministic_summary_parts_ja(payload: dict[str, Any]) -> tuple[str, str]:
     from_report = payload.get("from_report") or "前回"
     to_report = payload.get("to_report") or "今回"
     cases = payload.get("confirmed_cases", {})
@@ -1327,68 +1440,110 @@ def deterministic_delta_summary_ja(payload: dict[str, Any]) -> str:
     resp = payload.get("response", {})
     ug = payload.get("uganda", {})
 
-    parts = []
+    drc_parts = []
     if cases.get("change") is not None and deaths.get("change") is not None:
-        parts.append(
+        drc_parts.append(
             f"{from_report}から{to_report}への更新では、DRCの累積確定例は{cases.get('previous')}例から{cases.get('latest')}例へ{cases.get('change')}例増加し、死亡例は{deaths.get('previous')}例から{deaths.get('latest')}例へ{deaths.get('change')}例増加した。"
         )
     else:
-        parts.append(f"{to_report}では、DRCの累積確定例は{cases.get('latest')}例、死亡例は{deaths.get('latest')}例である。")
+        drc_parts.append(f"{to_report}では、DRCの累積確定例は{cases.get('latest')}例、死亡例は{deaths.get('latest')}例である。")
 
     new_hz = hz.get("new_health_zones") or []
     if new_hz:
-        parts.append(
-            f"新たに{', '.join(new_hz)}の{len(new_hz)} health zoneが報告され、影響を受けたhealth zoneは{hz.get('latest_count')}に増加した。"
+        drc_parts.append(
+            f"新たに{', '.join(new_hz)}の{len(new_hz)} health zoneが報告され、影響を受けたhealth zoneは{hz.get('latest_count')}であった。"
         )
     else:
-        parts.append("新規に報告されたhealth zoneは確認されず、既存の流行地での推移が中心である。")
+        drc_parts.append("新規に報告されたhealth zoneは確認されていない。")
 
     inc = hz.get("largest_increases") or []
     if inc:
         top = ", ".join([f"{x['health_zone']}+{x['change']}" for x in inc[:4]])
-        parts.append(f"health zone別では、{top}などで増加が目立つ。")
+        drc_parts.append(f"health zone別では、{top}などで増加が報告された。")
 
     prev_rate = resp.get("contact_followup_rate_previous")
     latest_rate = resp.get("contact_followup_rate_latest")
     if latest_rate is not None:
         if prev_rate is not None:
-            parts.append(f"接触者追跡率は{pct_text(prev_rate)}から{pct_text(latest_rate)}へ変化したが、目標の95%にはなお達していない。")
+            drc_parts.append(f"接触者追跡率は{pct_text(prev_rate)}から{pct_text(latest_rate)}へ変化した。")
         else:
-            parts.append(f"接触者追跡率は{pct_text(latest_rate)}であり、目標の95%にはなお達していない。")
+            drc_parts.append(f"接触者追跡率は{pct_text(latest_rate)}であった。")
     if resp.get("alert_investigation_rate_latest") is not None:
-        parts.append(f"アラート調査率は{pct_text(resp.get('alert_investigation_rate_latest'))}、検査陽性は{resp.get('positive_samples_latest')}件であった。")
+        drc_parts.append(f"アラート調査率は{pct_text(resp.get('alert_investigation_rate_latest'))}、検査陽性は{resp.get('positive_samples_latest')}件であった。")
 
+    # PoE/PoC screening is shown only when a concrete updated value is available
+    # from the latest SitRep response indicators.
+    poe_cov = resp.get("poe_screening_coverage_latest")
+    travellers_total = resp.get("travellers_total_latest")
+    travellers_screened = resp.get("travellers_screened_latest")
+    if poe_cov is not None or travellers_total or travellers_screened:
+        if travellers_total and poe_cov is not None:
+            drc_parts.append(f"PoC/PoEでは{fmt_count(travellers_total)}人の通過が記録され、スクリーニング率は{pct_text(poe_cov)}であった。")
+        elif poe_cov is not None:
+            drc_parts.append(f"PoC/PoEスクリーニング率は{pct_text(poe_cov)}であった。")
+
+    ug_parts = []
     if ug.get("confirmed_cases") is not None:
-        parts.append(
-            f"Uganda側はMoH daily pageに基づき累積確定例{ug.get('confirmed_cases')}例、死亡{ug.get('confirmed_deaths')}例（輸入例{ug.get('imported_cases')}例、国内例{ug.get('local_cases')}例）であり、越境リスクの監視を継続する必要がある。"
+        ug_parts.append(
+            f"ウガンダ側はMoH daily pageに基づき累積確定例{ug.get('confirmed_cases')}例、死亡{ug.get('confirmed_deaths')}例（輸入例{ug.get('imported_cases')}例、国内例{ug.get('local_cases')}例）である。"
         )
-    return "".join(parts)
+        if ug.get("new_cases_last_24h") is not None:
+            ug_parts.append(f"過去24時間の新規確定例は{ug.get('new_cases_last_24h')}例であった。")
+        no_inc_days = ug.get("no_reported_increase_days")
+        trend_status = ug.get("trend_status")
+        last_inc = ug.get("last_reported_increase_date")
+        if no_inc_days is not None and trend_status in {"no_recent_increase", "no_increase_within_available_history"}:
+            if last_inc:
+                ug_parts.append(f"日別確定例データでは{last_inc}を最後に増加が記録され、最新更新日時点で過去{no_inc_days}日間、新たな確定例の増加は報告されていない。")
+            else:
+                ug_parts.append(f"累積履歴に基づき、過去{no_inc_days}日間、新たな確定例の増加は報告されていない。")
+    return "".join(drc_parts), "".join(ug_parts)
 
 
-def openai_delta_summary_ja(payload: dict[str, Any]) -> tuple[str | None, str]:
+def deterministic_delta_summary_ja(payload: dict[str, Any]) -> str:
+    drc, uganda = deterministic_summary_parts_ja(payload)
+    if uganda:
+        return f"• DRC：{drc}\n• ウガンダ：{uganda}"
+    return f"• DRC：{drc}"
+
+
+def openai_delta_summary_ja(payload: dict[str, Any]) -> tuple[dict[str, str] | None, str]:
     if OpenAI is None or not os.environ.get("OPENAI_API_KEY"):
         return None, ""
     model = os.environ.get("OPENAI_MODEL", "gpt-4.1-mini")
     prompt = f"""
-You are writing a concise Japanese situation update for a public health dashboard.
+You are writing concise Japanese factual updates for a public health dashboard.
 Use only the validated structured delta JSON below. Do not invent numbers.
-Write 4-6 Japanese sentences, focusing on changes from previous SitRep to latest SitRep:
-- confirmed cases and deaths
-- new affected health zones / geographical expansion
-- response indicators such as contact follow-up, alerts, tests
-- Uganda / cross-border implications
-Avoid alarmist language. Mention uncertainty when relevant.
+
+Return JSON only with:
+{{
+  "drc_summary_ja": "Japanese factual summary for DRC only",
+  "uganda_summary_ja": "Japanese factual summary for Uganda only",
+  "summary_ja": "combined summary using two bullets: • DRC：...\\n• ウガンダ：..."
+}}
+
+Rules:
+- Separate DRC and ウガンダ.
+- Use "ウガンダ", not "Uganda", in Japanese text.
+- Describe only observed/reported changes and reported indicators.
+- Do not include recommendations, risk judgments, or value judgments.
+- Do not use phrases such as 「重要である」「必要である」「警戒が必要」「懸念される」「監視が必要」.
+- Include PoE/PoC screening only if concrete screening values are present in the JSON.
+- Mention whether ウガンダ has reported no increase for X days when that field is present.
+- Keep each country summary to 2-4 sentences.
 
 Validated delta JSON:
 {json.dumps(payload, ensure_ascii=False, indent=2)}
 """.strip()
     try:
         client = OpenAI()
+        raw = None
         try:
             resp = client.responses.create(
                 model=model,
                 input=[{"role": "user", "content": prompt}],
-                temperature=0.2,
+                response_format={"type": "json_object"},
+                temperature=0.1,
             )
             raw = getattr(resp, "output_text", None)
             if not raw:
@@ -1397,10 +1552,21 @@ Validated delta JSON:
             resp = client.chat.completions.create(
                 model=model,
                 messages=[{"role": "user", "content": prompt}],
-                temperature=0.2,
+                response_format={"type": "json_object"},
+                temperature=0.1,
             )
             raw = resp.choices[0].message.content
-        return norm_text(raw), model
+        if not raw:
+            return None, model
+        data = json.loads(raw)
+        drc = norm_text(data.get("drc_summary_ja", ""))
+        uganda = norm_text(data.get("uganda_summary_ja", ""))
+        summary = norm_text(data.get("summary_ja", ""))
+        if not summary:
+            summary = f"• DRC：{drc}\n• ウガンダ：{uganda}" if uganda else f"• DRC：{drc}"
+        if not drc and not uganda:
+            return None, model
+        return {"drc_summary_ja": drc, "uganda_summary_ja": uganda, "summary_ja": summary}, model
     except Exception as e:
         EXTRACTED.mkdir(exist_ok=True)
         (EXTRACTED / "openai_delta_summary_error.txt").write_text(f"{type(e).__name__}: {e}", encoding="utf-8")
@@ -1415,9 +1581,14 @@ def write_ai_sitrep_summary(
 ) -> None:
     previous = previous_report_row(report_no, report_date)
     payload = build_sitrep_delta_payload(report_no, report_date, current_report, previous, resp_row)
-    ai_summary, model = openai_delta_summary_ja(payload)
-    generated_by = "openai" if ai_summary else "deterministic"
-    summary = ai_summary or deterministic_delta_summary_ja(payload)
+    det_drc, det_uganda = deterministic_summary_parts_ja(payload)
+    det_summary = f"• DRC：{det_drc}\n• ウガンダ：{det_uganda}" if det_uganda else f"• DRC：{det_drc}"
+
+    ai_parts, model = openai_delta_summary_ja(payload)
+    generated_by = "openai" if ai_parts else "deterministic"
+    drc_summary = (ai_parts or {}).get("drc_summary_ja") or det_drc
+    uganda_summary = (ai_parts or {}).get("uganda_summary_ja") or det_uganda
+    summary = (ai_parts or {}).get("summary_ja") or det_summary
 
     EXTRACTED.mkdir(exist_ok=True)
     (EXTRACTED / f"sitrep_N{report_no:03d}_delta_payload.json").write_text(json.dumps(payload, indent=2, ensure_ascii=False), encoding="utf-8")
@@ -1427,12 +1598,14 @@ def write_ai_sitrep_summary(
         "reporting_date": report_date,
         "previous_report_no": previous.get("report_no") if previous else "",
         "previous_reporting_date": previous.get("reporting_date") if previous else "",
+        "drc_summary_ja": drc_summary,
+        "uganda_summary_ja": uganda_summary,
         "summary_ja": summary,
         "generated_by": generated_by,
         "openai_model": model if generated_by == "openai" else "",
         "source": "validated SitRep delta + Uganda MoH EVD daily page",
         "updated_at_utc": datetime.utcnow().isoformat(timespec="seconds") + "Z",
-        "notes": "Generated at SitRep update time. The dashboard displays this saved text and does not call OpenAI from the browser.",
+        "notes": "Generated at SitRep update time. The dashboard displays this saved text and does not call OpenAI from the browser. Latest-situation text is limited to observed/reported changes; value judgments are left to the public-health assessment cards.",
     }
     append_or_replace_csv(DATA / "ai_sitrep_summary.csv", [row], ["report_no", "reporting_date"])
     log(f"AI situation summary written: report=N{report_no}, generated_by={generated_by}, chars={len(summary)}")

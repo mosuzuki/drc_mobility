@@ -1475,23 +1475,43 @@ function latestAiSitrepSummary() {
 }
 
 function updateLatestSituationSummary() {
-  const summaryEl = document.getElementById('latestSituationSummary');
+  const wrapperEl = document.getElementById('latestSituationSummary');
+  const drcEl = document.getElementById('latestSituationDrc');
+  const ugandaEl = document.getElementById('latestSituationUganda');
   const metaEl = document.getElementById('latestSituationMeta');
-  if (!summaryEl) return;
+  if (!wrapperEl) return;
   const row = latestAiSitrepSummary();
   if (!row) {
-    summaryEl.textContent = 'SitRep更新ごとの差分要約は、次回の自動更新後に表示されます。';
+    if (drcEl) drcEl.textContent = 'SitRep更新ごとの差分要約は、次回の自動更新後に表示されます。';
+    if (ugandaEl) ugandaEl.textContent = 'ウガンダ側の更新情報は、次回の自動更新後に表示されます。';
     if (metaEl) metaEl.textContent = 'Validated SitRep delta summary';
     return;
   }
-  summaryEl.textContent = row.summary_ja || '差分要約を作成できませんでした。';
+
+  const drcText = row.drc_summary_ja || '';
+  const ugandaText = row.uganda_summary_ja || '';
+  if (drcEl && ugandaEl) {
+    if (drcText || ugandaText) {
+      drcEl.textContent = drcText || 'DRC側の差分要約を作成できませんでした。';
+      ugandaEl.textContent = ugandaText || 'ウガンダ側の差分要約を作成できませんでした。';
+    } else {
+      const summary = row.summary_ja || '差分要約を作成できませんでした。';
+      const parts = summary.split(/•\s*ウガンダ：/);
+      const drc = parts[0].replace(/^•\s*DRC：/, '').trim();
+      const ug = (parts[1] || '').trim();
+      drcEl.textContent = drc || summary;
+      ugandaEl.textContent = ug || 'ウガンダ側の個別要約はありません。';
+    }
+  } else {
+    wrapperEl.textContent = row.summary_ja || '差分要約を作成できませんでした。';
+  }
+
   if (metaEl) {
     const gen = row.generated_by === 'openai' ? `OpenAI API（${row.openai_model || 'model未記録'}）` : 'ルールベース要約';
     const prev = row.previous_report_no ? `${row.previous_report_no}→${row.report_no}` : row.report_no;
     metaEl.textContent = `${prev}、報告日 ${displayDateLabel(row.reporting_date)}。生成：${gen}。`;
   }
 }
-
 
 function displayDateLabel(dateStr) {
   if (!dateStr) return '—';

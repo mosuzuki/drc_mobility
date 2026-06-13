@@ -570,3 +570,131 @@ code { background:#eef4fb; border:1px solid var(--line); border-radius:6px; padd
     font-size: 1.35rem;
   }
 }
+
+
+/* Latest situation: country-separated factual updates */
+.latest-situation-list {
+  display: grid;
+  gap: 10px;
+}
+
+.latest-situation-item {
+  display: grid;
+  grid-template-columns: 18px minmax(0, 1fr);
+  gap: 6px;
+  align-items: start;
+  color: #1d2939;
+  font-size: 0.94rem;
+  line-height: 1.65;
+}
+
+.latest-situation-bullet {
+  color: #1f5d8c;
+  font-weight: 950;
+  line-height: 1.65;
+}
+
+.latest-situation-item strong {
+  color: #123b5d;
+  font-weight: 950;
+}
+
+/* Make assessment status labels more salient while keeping the text calm. */
+.assessment-category {
+  font-size: 1.05rem;
+  line-height: 1.15;
+  padding: 7px 12px;
+  border: 1px solid currentColor;
+  box-shadow: 0 4px 12px rgba(15, 39, 66, 0.08);
+}
+
+.assessment-card {
+  position: relative;
+}
+
+.assessment-high .assessment-category,
+.assessment-moderate-high .assessment-category,
+.assessment-moderate .assessment-category {
+  font-weight: 950;
+}
+
+/* Prevent page-level horizontal scrolling on mobile screens. */
+html, body {
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+}
+
+img, svg, canvas, video {
+  max-width: 100%;
+}
+
+.container,
+main,
+.panel,
+.kpi-grid,
+.epi-kpi-grid,
+.dashboard-grid,
+.assessment-grid,
+.latest-situation-block,
+.map-panel,
+.chart-panel,
+.chart-card {
+  max-width: 100%;
+  min-width: 0;
+}
+
+@media (max-width: 768px) {
+  body {
+    overflow-x: hidden;
+  }
+
+  .container,
+  main,
+  .panel {
+    width: 100%;
+    max-width: 100%;
+  }
+
+  .assessment-header {
+    flex-direction: column;
+  }
+
+  .assessment-updated {
+    white-space: normal;
+    width: 100%;
+  }
+
+  .assessment-grid,
+  .kpi-grid,
+  .epi-kpi-grid,
+  .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .latest-situation-item {
+    grid-template-columns: 16px minmax(0, 1fr);
+  }
+
+  .latest-situation-item div,
+  .latest-situation-item span,
+  .latest-situation-item strong,
+  .assessment-card,
+  .assessment-text,
+  .assessment-drivers {
+    overflow-wrap: anywhere;
+    word-break: normal;
+  }
+
+  #map,
+  .leaflet-container,
+  .chart-card,
+  .panel {
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+  }
+}
