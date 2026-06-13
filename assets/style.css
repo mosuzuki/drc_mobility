@@ -705,7 +705,7 @@ main,
    -------------------------------------------------------------------------- */
 :root {
   --dashboard-max-width: 1440px;
-  --dashboard-side-width: 380px;
+  --dashboard-side-width: 460px;
   --dashboard-gap: 20px;
 }
 
@@ -728,7 +728,7 @@ main {
 
 /* Main analytical canvas: map takes the available space, analysis is a compact rail. */
 .grid-two {
-  grid-template-columns: minmax(720px, 1fr) var(--dashboard-side-width) !important;
+  grid-template-columns: minmax(620px, 1fr) var(--dashboard-side-width) !important;
   gap: var(--dashboard-gap);
   align-items: start;
 }
@@ -947,3 +947,9 @@ main {
     align-self: flex-start;
   }
 }
+
+
+/* Right-panel readability update: slightly narrower map column and wider analysis rail. */
+#epiTimelineChart { min-height: 360px; }
+.forecast-chart { min-height: 320px; }
+.timeline-chart-block { padding-bottom: 28px; }
