@@ -79,6 +79,8 @@ const UI_TEXT = {
     reportedCasesDesc: 'SitRep報告日別のDRC確定例数です。スライダーで選択した日付を強調表示します。',
     forecastTitle: '短期予測',
     forecastDesc: '直近の報告確定例に基づくrenewal / branching-process予測です。選択したSitRep日から予測を開始します。',
+    finalSizeTitle: 'アウトブレイク最終サイズ推定',
+    finalSizeDesc: '日々の報告確定例数に基づくシナリオ別推定です。これは確定的な予測ではありません。',
     responseTimelineTitle: '対応指標の推移',
     responseTimelineDesc: 'SitRepから抽出した対応指標です。報告内容により、国全体、州レベル、またはオペレーションサイト単位の値が含まれます。',
     rwiTitle: 'RWIとエボラ症例',
@@ -126,6 +128,8 @@ const UI_TEXT = {
     reportedCasesDesc: 'DRC confirmed cases by SitRep reporting date. The selected slider date is highlighted.',
     forecastTitle: 'Short-term projection',
     forecastDesc: 'Renewal / branching-process projection based on recent reported confirmed cases. The projection starts from the selected SitRep date.',
+    finalSizeTitle: 'Estimated final outbreak size',
+    finalSizeDesc: 'Scenario-based estimates using daily reported confirmed cases. This is not a deterministic prediction.',
     responseTimelineTitle: 'Response timeline',
     responseTimelineDesc: 'Selected response indicators extracted from SitReps. Values may be national, province-level, or operational-site summaries depending on what was reported.',
     rwiTitle: 'RWI vs Ebola cases',
@@ -169,15 +173,35 @@ function formatDeathCount(n) {
   return `${v} death${Math.round(toNumber(n)) === 1 ? '' : 's'}`;
 }
 
+function finalSizeScenarioLabel(key) {
+  const labels = {
+    ja: { baseline: '現状維持', improved: '制御改善', delayed: '制御遅延' },
+    en: { baseline: 'Baseline', improved: 'Improved control', delayed: 'Delayed control' }
+  };
+  return (labels[currentLang] && labels[currentLang][key]) || key;
+}
+
+function refreshFinalSizeScenarioOptions() {
+  const sel = document.getElementById('finalSizeScenarioSelect');
+  if (!sel) return;
+  const value = sel.value || 'baseline';
+  ['baseline','improved','delayed'].forEach(key => {
+    const opt = sel.querySelector(`option[value="${key}"]`);
+    if (opt) opt.textContent = finalSizeScenarioLabel(key);
+  });
+  sel.value = value;
+}
+
 function applyStaticLanguage() {
   document.documentElement.lang = currentLang === 'ja' ? 'ja' : 'en';
-  const ids = ['pageEyebrow','pageTitle','pageSubtitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','responseTimelineTitle','responseTimelineDesc','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiUgandaDeathsLabel'];
+  const ids = ['pageEyebrow','pageTitle','pageSubtitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','finalSizeTitle','finalSizeDesc','responseTimelineTitle','responseTimelineDesc','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiUgandaDeathsLabel'];
   ids.forEach(id => setTextById(id, uiText(id)));
   setTextById('limitationText', uiText('limitationText'), true);
   const ja = document.getElementById('langJa');
   const en = document.getElementById('langEn');
   if (ja) ja.classList.toggle('active', currentLang === 'ja');
   if (en) en.classList.toggle('active', currentLang === 'en');
+  refreshFinalSizeScenarioOptions();
   updateDataStatusText();
 }
 
@@ -1155,6 +1179,7 @@ function populateControls() {
   document.getElementById('rwiScaleSelect')?.addEventListener('change', () => { updateRwiScatterChart(); });
   document.getElementById('forecastHorizonSelect')?.addEventListener('change', () => { updateForecastChart(); });
   document.getElementById('forecastSiSelect')?.addEventListener('change', () => { updateForecastChart(); });
+  document.getElementById('finalSizeScenarioSelect')?.addEventListener('change', () => { updateFinalSizeProjectionChart(); });
 
   if (monthSlider) {
     monthSlider.addEventListener('input', () => {
@@ -1702,6 +1727,9 @@ function updateLatestSituationSummary() {
   }
 
   const normalizeJaEpiUnits = (text) => String(text || '')
+    // 死亡の増減表現：死亡者数は136人から139人に3人増加 → 死亡例は136例から139例に3例増加
+    .replace(/死亡(?:者数)?(?:は|が)?\s*([0-9,]+)\s*人から\s*([0-9,]+)\s*人に\s*([0-9,]+)\s*人増加/g, '死亡例は$1例から$2例に$3例増加')
+    .replace(/死亡(?:者数)?(?:は|が)?\s*([0-9,]+)\s*人から\s*([0-9,]+)\s*人/g, '死亡例は$1例から$2例')
     .replace(/(死亡(?:者数)?(?:は|が)?\s*)([0-9,]+)\s*人/g, '死亡例は$2例')
     .replace(/([0-9,]+)\s*人(?:の)?死亡/g, '死亡$1例')
     .replace(/([0-9,]+)件/g, '$1例');
@@ -3187,6 +3215,216 @@ function addDaysIso(dateStr, days) {
   return d.toISOString().slice(0, 10);
 }
 
+const FINAL_SIZE_SCENARIOS = {
+  baseline: {
+    rtFactorStart: 1.0,
+    rtFactorEnd: 0.82,
+    transitionDays: 35,
+    labelKey: 'baseline'
+  },
+  improved: {
+    rtFactorStart: 0.9,
+    rtFactorEnd: 0.55,
+    transitionDays: 21,
+    labelKey: 'improved'
+  },
+  delayed: {
+    rtFactorStart: 1.12,
+    rtFactorEnd: 0.9,
+    transitionDays: 55,
+    labelKey: 'delayed'
+  }
+};
+
+function scenarioRtMultiplier(scenario, day) {
+  const cfg = FINAL_SIZE_SCENARIOS[scenario] || FINAL_SIZE_SCENARIOS.baseline;
+  const t = Math.min(1, Math.max(0, day / Math.max(1, cfg.transitionDays || 1)));
+  return cfg.rtFactorStart + (cfg.rtFactorEnd - cfg.rtFactorStart) * t;
+}
+
+function latestObservedCumulative(selectedDate = selectedCaseDate()) {
+  const row = reportSummaryForDate(selectedDate);
+  return row ? Math.max(0, toNumber(row.drc_confirmed_cases)) : 0;
+}
+
+function formatDateLong(dateStr) {
+  const d = new Date(String(dateStr) + 'T00:00:00Z');
+  if (!Number.isFinite(d.getTime())) return dateStr || '—';
+  if (currentLang === 'ja') return d.toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' });
+  return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
+}
+
+function makeFinalSizeProjection(selectedDate = selectedCaseDate(), scenario = 'baseline') {
+  const observed = dailyObservedSeriesUntil(selectedDate);
+  if (observed.length < 6) return null;
+  const siMean = Math.max(1, Number(document.getElementById('forecastSiSelect')?.value || 12));
+  const siSd = Math.max(1, siMean * (5 / 12));
+  const weights = discretizedGammaWeights(siMean, siSd, 40);
+  const obsInc = observed.map(r => Math.max(0, toNumber(r.incidence)));
+  const rt = estimateRtFromSeries(obsInc, weights, 12);
+  const currentCum = latestObservedCumulative(selectedDate) || (observed.length ? toNumber(observed[observed.length - 1].cumulative) : 0);
+  const rng = mulberry32(seedFromString(`final-size|${selectedDate}|${scenario}|${siMean}|${obsInc.map(x => x.toFixed(3)).join(',')}`));
+  const nSim = 400;
+  const maxDays = 240;
+  const endZeroDays = 42;
+  const dispersion = 0.32;
+  const checkpoints = Array.from({ length: 181 }, (_, i) => i); // selected date through +180 days
+  const byDay = checkpoints.map(() => []);
+  const finalSizes = [];
+  const endOffsets = [];
+
+  for (let i = 0; i < nSim; i++) {
+    const rtSample = gammaRand(rt.shape, 1 / Math.max(rt.rate, 1e-9), rng);
+    const inc = obsInc.slice();
+    let cum = currentCum;
+    let zeroRun = 0;
+    let endOffset = maxDays;
+
+    for (let h = 0; h <= maxDays; h++) {
+      if (h <= 180) byDay[h].push(cum);
+      if (h === maxDays) break;
+      const t = inc.length;
+      const lam = infectiousnessAt(inc, t, weights);
+      const mult = scenarioRtMultiplier(scenario, h + 1);
+      const mean = Math.max(0, rtSample * mult * lam);
+      const val = negativeBinomialRand(mean, dispersion, rng);
+      inc.push(val);
+      cum += val;
+      zeroRun = val < 0.5 ? zeroRun + 1 : 0;
+      if (zeroRun >= endZeroDays) {
+        endOffset = h + 1 - endZeroDays + 1;
+        for (let fill = h + 1; fill <= 180; fill++) byDay[fill].push(cum);
+        break;
+      }
+    }
+    finalSizes.push(cum);
+    endOffsets.push(endOffset);
+  }
+
+  const trajectory = checkpoints.map((h) => {
+    const vals = byDay[h].length ? byDay[h] : finalSizes;
+    return {
+      date: addDaysIso(selectedDate, h),
+      median: quantile(vals, 0.5),
+      lo50: quantile(vals, 0.25),
+      hi50: quantile(vals, 0.75),
+      lo90: quantile(vals, 0.05),
+      hi90: quantile(vals, 0.95)
+    };
+  });
+  const endMedianOffset = Math.round(quantile(endOffsets, 0.5));
+  const endLoOffset = Math.round(quantile(endOffsets, 0.05));
+  const endHiOffset = Math.round(quantile(endOffsets, 0.95));
+  return {
+    selectedDate,
+    scenario,
+    observed,
+    currentCum,
+    rt,
+    rtMedian: rt.mean,
+    finalMedian: quantile(finalSizes, 0.5),
+    finalLo50: quantile(finalSizes, 0.25),
+    finalHi50: quantile(finalSizes, 0.75),
+    finalLo90: quantile(finalSizes, 0.05),
+    finalHi90: quantile(finalSizes, 0.95),
+    endDateMedian: addDaysIso(selectedDate, endMedianOffset),
+    endDateLo90: addDaysIso(selectedDate, endLoOffset),
+    endDateHi90: addDaysIso(selectedDate, endHiOffset),
+    trajectory
+  };
+}
+
+function updateFinalSizeProjectionChart() {
+  const el = document.getElementById('finalSizeChart');
+  if (!el) return;
+  refreshFinalSizeScenarioOptions();
+  const scenario = document.getElementById('finalSizeScenarioSelect')?.value || 'baseline';
+  const proj = makeFinalSizeProjection(selectedCaseDate(), scenario);
+  const summaryEl = document.getElementById('finalSizeSummary');
+  const statsEl = document.getElementById('finalSizeStats');
+  if (!proj) {
+    if (summaryEl) summaryEl.innerHTML = '';
+    if (statsEl) statsEl.textContent = currentLang === 'ja' ? '最終サイズ推定には十分なSitRep観測点がありません。' : 'There are insufficient SitRep observations for final-size projection.';
+    Plotly.newPlot('finalSizeChart', [], {
+      margin: { l: 62, r: 24, t: 18, b: 60 },
+      annotations: [{ text: currentLang === 'ja' ? '最終サイズ推定には十分な観測点がありません' : 'Not enough observations for final-size projection', x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', showarrow: false, font: { size: 13, color: '#667085' } }],
+      paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
+    }, { responsive: true, displayModeBar: false });
+    return;
+  }
+
+  if (summaryEl) {
+    if (currentLang === 'ja') {
+      summaryEl.innerHTML = `
+        <div class="final-size-stat-card"><span>推定最終累積症例数</span><strong>${formatCaseCount(proj.finalMedian)}</strong><small>90%予測区間 ${formatCaseCount(proj.finalLo90)}–${formatCaseCount(proj.finalHi90)}</small></div>
+        <div class="final-size-stat-card"><span>推定終息日</span><strong>${formatDateLong(proj.endDateMedian)}</strong><small>90%予測区間 ${formatDateLong(proj.endDateLo90)}–${formatDateLong(proj.endDateHi90)}</small></div>`;
+    } else {
+      summaryEl.innerHTML = `
+        <div class="final-size-stat-card"><span>Estimated final cumulative cases</span><strong>${formatCaseCount(proj.finalMedian)}</strong><small>90% PI ${formatCaseCount(proj.finalLo90)}–${formatCaseCount(proj.finalHi90)}</small></div>
+        <div class="final-size-stat-card"><span>Estimated end date</span><strong>${formatDateLong(proj.endDateMedian)}</strong><small>90% PI ${formatDateLong(proj.endDateLo90)}–${formatDateLong(proj.endDateHi90)}</small></div>`;
+    }
+  }
+
+  const obs = proj.observed.filter(r => String(r.date) <= String(proj.selectedDate));
+  const obsDates = obs.map(r => r.date);
+  const obsCum = obs.map(r => r.cumulative);
+  const pred = proj.trajectory;
+  const x = pred.map(r => r.date);
+  const traces = [
+    { type: 'scatter', mode: 'lines+markers', name: currentLang === 'ja' ? '観測累積症例数' : 'Observed cumulative cases', x: obsDates, y: obsCum, line: { width: 2 }, marker: { size: 5 }, hovertemplate: currentLang === 'ja' ? '%{x}<br>観測累積: %{y:,.0f}例<extra></extra>' : '%{x}<br>Observed cumulative: %{y:,.0f} cases<extra></extra>' },
+    { type: 'scatter', mode: 'lines', name: '90% PI lower', x, y: pred.map(r => r.lo90), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
+    { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '90%予測区間' : '90% prediction interval', x, y: pred.map(r => r.hi90), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.12)', hoverinfo: 'skip' },
+    { type: 'scatter', mode: 'lines', name: '50% PI lower', x, y: pred.map(r => r.lo50), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
+    { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '50%予測区間' : '50% prediction interval', x, y: pred.map(r => r.hi50), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.22)', hoverinfo: 'skip' },
+    { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '中央値' : 'Median trajectory', x, y: pred.map(r => r.median), line: { width: 2.5, color: '#175cd3' }, hovertemplate: currentLang === 'ja' ? '%{x}<br>中央値: %{y:,.0f}例<extra></extra>' : '%{x}<br>Median: %{y:,.0f} cases<extra></extra>' }
+  ];
+  const maxY = Math.max(...obsCum, ...pred.map(r => r.hi90), 1);
+  const chartEndDate = pred.length ? pred[pred.length - 1].date : proj.selectedDate;
+  const finalShapes = [{ type: 'line', xref: 'x', yref: 'y', x0: proj.selectedDate, x1: proj.selectedDate, y0: 0, y1: maxY, line: { width: 2, dash: 'dot', color: '#667085' } }];
+  const finalAnnotations = [{ x: proj.selectedDate, y: maxY, xref: 'x', yref: 'y', text: currentLang === 'ja' ? '推定開始' : 'projection start', showarrow: false, yshift: 8, font: { size: 10, color: '#667085' } }];
+  if (String(proj.endDateMedian) <= String(chartEndDate)) {
+    finalShapes.push({ type: 'line', xref: 'x', yref: 'y', x0: proj.endDateMedian, x1: proj.endDateMedian, y0: 0, y1: maxY, line: { width: 2, dash: 'dash', color: '#12b76a' } });
+    finalAnnotations.push({ x: proj.endDateMedian, y: maxY * 0.82, xref: 'x', yref: 'y', text: currentLang === 'ja' ? '推定終息日' : 'estimated end', showarrow: false, yshift: 8, font: { size: 10, color: '#027a48' } });
+  }
+  Plotly.newPlot('finalSizeChart', traces, {
+    margin: { l: 68, r: 24, t: 18, b: 120 },
+    xaxis: { title: { text: currentLang === 'ja' ? '日付' : 'Date', standoff: 12 }, tickangle: -35, gridcolor: '#eef3f8', automargin: true, nticks: 7 },
+    yaxis: { title: currentLang === 'ja' ? '累積確定症例数' : 'Cumulative confirmed cases', gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.55, yanchor: 'top' },
+    shapes: finalShapes,
+    annotations: finalAnnotations,
+    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
+  }, { responsive: true, displayModeBar: false });
+
+  if (statsEl) {
+    if (currentLang === 'ja') {
+      statsEl.innerHTML = `シナリオ：<strong>${finalSizeScenarioLabel(scenario)}</strong>。推定終息日は、モデル上で新規確定症例が42日間連続して0となる最初の日として定義しています。これはシナリオに基づく推定であり、確定的な予測ではありません。`;
+    } else {
+      statsEl.innerHTML = `Scenario: <strong>${finalSizeScenarioLabel(scenario)}</strong>. The estimated end date is defined as the first date followed by 42 consecutive days with zero incident confirmed cases in the model. This is a scenario-based estimate, not a deterministic prediction.`;
+    }
+  }
+}
+
+function syncRightPanelHeight() {
+  const mapPanel = document.querySelector('.map-panel');
+  const rightPanel = document.querySelector('.right-analysis-panel');
+  if (!mapPanel || !rightPanel) return;
+  if (window.matchMedia('(max-width: 1180px)').matches) {
+    rightPanel.style.height = '';
+    rightPanel.style.maxHeight = '';
+    return;
+  }
+  const h = Math.max(520, Math.round(mapPanel.getBoundingClientRect().height));
+  rightPanel.style.height = `${h}px`;
+  rightPanel.style.maxHeight = `${h}px`;
+}
+
+window.addEventListener('resize', () => {
+  window.clearTimeout(window.__rightPanelHeightTimer);
+  window.__rightPanelHeightTimer = window.setTimeout(syncRightPanelHeight, 120);
+});
+
+
 function daysBetweenIso(a, b) {
   const da = new Date(a + 'T00:00:00Z');
   const db = new Date(b + 'T00:00:00Z');
@@ -3670,6 +3908,7 @@ function updateDashboard() {
   updateAssessmentPanel();
   updateEpiTimelineChart();
   updateForecastChart();
+  updateFinalSizeProjectionChart();
   updateResponseTimelineChart();
   updateRwiScatterChart();
   if (mapMode === 'cases') updateCasesMap();
@@ -3686,6 +3925,8 @@ function updateDashboard() {
   else updateMap(destRows);
   updateBarChart(destRows);
   updateTrendChart();
+  syncRightPanelHeight();
+  window.setTimeout(syncRightPanelHeight, 80);
 }
 
 async function main() {
@@ -3712,7 +3953,7 @@ async function main() {
   const ugandaMsg = ugandaFmpFlows.length ? `Uganda DTM ${ugandaFmpFlows.length} FMP / ${ugandaDistrictFlows.length} district` : 'Uganda DTM未読込';
   updateDataStatusText();
   updateDashboard();
-  setTimeout(fitMapToData, 300);
+  setTimeout(() => { fitMapToData(); syncRightPanelHeight(); }, 300);
 }
 
 main().catch(err => {

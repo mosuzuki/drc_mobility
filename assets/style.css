@@ -953,3 +953,86 @@ main {
 #epiTimelineChart { min-height: 360px; }
 .forecast-chart { min-height: 320px; }
 .timeline-chart-block { padding-bottom: 28px; }
+
+/* --------------------------------------------------------------------------
+   Final-size projection and right-rail refinement.
+   -------------------------------------------------------------------------- */
+:root {
+  --dashboard-side-width: 540px;
+}
+
+.grid-two {
+  grid-template-columns: minmax(500px, 1fr) var(--dashboard-side-width) !important;
+  align-items: start;
+}
+
+.right-analysis-panel {
+  overflow-y: auto;
+  overscroll-behavior: contain;
+}
+
+.final-size-chart-block {
+  border-top: 1px solid #e4ebf3;
+  padding-top: 16px;
+}
+
+.final-size-control-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  min-width: 142px;
+}
+
+.final-size-control-stack select {
+  width: 100%;
+}
+
+.final-size-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 10px;
+  margin: 8px 0 10px;
+}
+
+.final-size-stat-card {
+  border: 1px solid #d9e4ef;
+  border-radius: 14px;
+  padding: 10px 12px;
+  background: #f8fbff;
+}
+
+.final-size-stat-card span {
+  display: block;
+  color: #667085;
+  font-size: 0.76rem;
+  line-height: 1.25;
+  margin-bottom: 4px;
+}
+
+.final-size-stat-card strong {
+  display: block;
+  color: #0b2a4a;
+  font-size: 1.03rem;
+  line-height: 1.2;
+}
+
+.final-size-stat-card small {
+  display: block;
+  color: #667085;
+  font-size: 0.72rem;
+  line-height: 1.25;
+  margin-top: 4px;
+}
+
+.final-size-chart {
+  min-height: 280px;
+}
+
+@media (max-width: 1180px) {
+  :root {
+    --dashboard-side-width: 460px;
+  }
+  .final-size-summary-grid {
+    grid-template-columns: 1fr;
+  }
+}

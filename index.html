@@ -212,6 +212,25 @@
           <div id="forecastStats" class="chart-note"></div>
         </div>
 
+        <div class="final-size-chart-block">
+          <div class="chart-block-head">
+            <div>
+              <h2 id="finalSizeTitle">アウトブレイク最終サイズ推定</h2>
+              <p id="finalSizeDesc">日々の報告確定例数に基づくシナリオ別推定です。これは確定的な予測ではありません。</p>
+            </div>
+            <div class="final-size-control-stack">
+              <select id="finalSizeScenarioSelect" aria-label="Final size scenario">
+                <option value="baseline" selected>現状維持</option>
+                <option value="improved">制御改善</option>
+                <option value="delayed">制御遅延</option>
+              </select>
+            </div>
+          </div>
+          <div id="finalSizeSummary" class="final-size-summary-grid"></div>
+          <div id="finalSizeChart" class="chart compact-chart final-size-chart"></div>
+          <div id="finalSizeStats" class="chart-note"></div>
+        </div>
+
         <div class="response-chart-block">
           <div class="chart-block-head">
             <div>
