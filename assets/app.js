@@ -15,10 +15,12 @@ const files = {
   rwi: 'data/health_zone_rwi.csv',
   response: 'data/response_indicators.csv',
   ugandaEvd: 'data/uganda_evd_summary.csv',
-  aiSummary: 'data/ai_sitrep_summary.csv'
+  aiSummary: 'data/ai_sitrep_summary.csv',
+  finalProjection: 'data/final_size_projection.json'
 };
 
 let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], aiSitrepSummary = [];
+let finalSizeProjectionData = null;
 let healthZoneBoundaries = null;
 let mapMode = 'cases';
 let map, layerGroup;
@@ -382,6 +384,18 @@ async function loadGeoJsonOptional(path) {
     return json;
   } catch (e) {
     console.warn(`Optional GeoJSON not loaded: ${path}`, e);
+    return null;
+  }
+}
+
+
+async function loadJsonOptional(path) {
+  try {
+    const res = await fetch(path, { cache: 'no-store' });
+    if (!res.ok) return null;
+    return await res.json();
+  } catch (e) {
+    console.warn(`Optional JSON not loaded: ${path}`, e);
     return null;
   }
 }
@@ -3254,74 +3268,19 @@ function formatDateLong(dateStr) {
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
-function makeFinalSizeProjection(selectedDate = selectedCaseDate(), scenario = 'baseline') {
-  // Lightweight scenario-based final-size approximation.
-  // This intentionally avoids heavy browser-side Monte Carlo so the dashboard stays responsive.
-  const observed = dailyObservedSeriesUntil(selectedDate);
-  if (observed.length < 4) return null;
-  const currentCum = latestObservedCumulative(selectedDate) || Math.max(0, toNumber(observed[observed.length - 1].cumulative));
-  const recent = observed.slice(-10).map(r => Math.max(0, toNumber(r.incidence))).filter(Number.isFinite);
-  const recent7 = recent.slice(-7);
-  const baseDaily = Math.max(0.15, recent7.length ? recent7.reduce((a, b) => a + b, 0) / recent7.length : recent.reduce((a, b) => a + b, 0) / Math.max(1, recent.length));
-  const scenarioParams = {
-    baseline: { decay: 0.965, uncertainty: 1.00 },
-    improved: { decay: 0.925, uncertainty: 0.82 },
-    delayed: { decay: 0.985, uncertainty: 1.30 }
-  };
-  const p = scenarioParams[scenario] || scenarioParams.baseline;
-  const maxDays = 180;
-  const quantileProfiles = {
-    lo90: { scale: 0.55 * p.uncertainty, decay: Math.max(0.86, p.decay - 0.030) },
-    lo50: { scale: 0.80 * p.uncertainty, decay: Math.max(0.88, p.decay - 0.015) },
-    median: { scale: 1.00 * p.uncertainty, decay: p.decay },
-    hi50: { scale: 1.25 * p.uncertainty, decay: Math.min(1.01, p.decay + 0.012) },
-    hi90: { scale: 1.70 * p.uncertainty, decay: Math.min(1.025, p.decay + 0.025) }
-  };
-  function cumulativeAt(profile, h) {
-    let total = currentCum;
-    let daily = baseDaily * profile.scale;
-    for (let d = 1; d <= h; d++) {
-      total += Math.max(0, daily);
-      daily *= profile.decay;
-      if (daily < 0.02 && profile.decay < 1) break;
-    }
-    return total;
-  }
-  function endOffset(profile) {
-    let daily = baseDaily * profile.scale;
-    let zeroRun = 0;
-    for (let d = 1; d <= 260; d++) {
-      daily *= profile.decay;
-      if (daily < 0.5) zeroRun += 1;
-      else zeroRun = 0;
-      if (zeroRun >= 42) return Math.max(1, d - 41);
-    }
-    return 260;
-  }
-  const trajectory = Array.from({ length: maxDays + 1 }, (_, h) => ({
-    date: addDaysIso(selectedDate, h),
-    median: cumulativeAt(quantileProfiles.median, h),
-    lo50: cumulativeAt(quantileProfiles.lo50, h),
-    hi50: cumulativeAt(quantileProfiles.hi50, h),
-    lo90: cumulativeAt(quantileProfiles.lo90, h),
-    hi90: cumulativeAt(quantileProfiles.hi90, h)
-  }));
-  return {
-    selectedDate,
-    scenario,
-    observed,
-    currentCum,
-    baseDaily,
-    finalMedian: cumulativeAt(quantileProfiles.median, 260),
-    finalLo50: cumulativeAt(quantileProfiles.lo50, 260),
-    finalHi50: cumulativeAt(quantileProfiles.hi50, 260),
-    finalLo90: cumulativeAt(quantileProfiles.lo90, 260),
-    finalHi90: cumulativeAt(quantileProfiles.hi90, 260),
-    endDateMedian: addDaysIso(selectedDate, endOffset(quantileProfiles.median)),
-    endDateLo90: addDaysIso(selectedDate, endOffset(quantileProfiles.lo90)),
-    endDateHi90: addDaysIso(selectedDate, endOffset(quantileProfiles.hi90)),
-    trajectory
-  };
+function getFinalSizeProjectionRecord(selectedDate = selectedCaseDate()) {
+  const dates = finalSizeProjectionData && finalSizeProjectionData.dates;
+  if (!dates || !Object.keys(dates).length) return null;
+  if (dates[selectedDate]) return dates[selectedDate];
+  const keys = Object.keys(dates).sort();
+  const prior = keys.filter(d => String(d) <= String(selectedDate)).pop();
+  if (prior) return dates[prior];
+  return dates[keys[keys.length - 1]];
+}
+
+function finalProjectionScenarioData(record, scenario) {
+  if (!record || !record.scenarios) return null;
+  return record.scenarios[scenario] || record.scenarios.baseline || null;
 }
 
 function updateFinalSizeProjectionChart() {
@@ -3331,73 +3290,82 @@ function updateFinalSizeProjectionChart() {
   const scenario = document.getElementById('finalSizeScenarioSelect')?.value || 'baseline';
   const summaryEl = document.getElementById('finalSizeSummary');
   const statsEl = document.getElementById('finalSizeStats');
-  if (summaryEl && !summaryEl.innerHTML.trim()) summaryEl.innerHTML = `<div class="final-size-stat-card"><span>${currentLang === 'ja' ? '計算中' : 'Calculating'}</span><strong>—</strong></div>`;
-  let proj = null;
-  try {
-    proj = makeFinalSizeProjection(selectedCaseDate(), scenario);
-  } catch (err) {
-    console.warn('Final-size projection failed', err);
-    proj = null;
-  }
-  if (!proj) {
+  const record = getFinalSizeProjectionRecord(selectedCaseDate());
+  const proj = finalProjectionScenarioData(record, scenario);
+
+  if (!record || !proj || !Array.isArray(proj.trajectory) || !proj.trajectory.length) {
     if (summaryEl) summaryEl.innerHTML = '';
-    if (statsEl) statsEl.textContent = currentLang === 'ja' ? '最終サイズ推定には十分なSitRep観測点がありません。' : 'There are insufficient SitRep observations for final-size projection.';
+    if (statsEl) {
+      statsEl.textContent = currentLang === 'ja'
+        ? '最終サイズ推定JSONがまだ生成されていないか、このSitRep時点では十分な観測点がありません。'
+        : 'Final-size projection JSON has not been generated yet, or there are insufficient observations for this SitRep time point.';
+    }
     Plotly.newPlot('finalSizeChart', [], {
-      margin: { l: 62, r: 24, t: 18, b: 60 },
-      annotations: [{ text: currentLang === 'ja' ? '最終サイズ推定には十分な観測点がありません' : 'Not enough observations for final-size projection', x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', showarrow: false, font: { size: 13, color: '#667085' } }],
+      margin: { l: 62, r: 24, t: 18, b: 64 },
+      annotations: [{ text: currentLang === 'ja' ? '最終サイズ推定データなし' : 'No final-size projection data', x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', showarrow: false, font: { size: 13, color: '#667085' } }],
       paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
     }, { responsive: true, displayModeBar: false });
     return;
   }
 
+  const fs = proj.final_size || {};
+  const ed = proj.end_date || {};
+  const rt = proj.rt || {};
   if (summaryEl) {
     if (currentLang === 'ja') {
       summaryEl.innerHTML = `
-        <div class="final-size-stat-card"><span>推定最終累積症例数</span><strong>${formatCaseCount(proj.finalMedian)}</strong><small>90%予測区間 ${formatCaseCount(proj.finalLo90)}–${formatCaseCount(proj.finalHi90)}</small></div>
-        <div class="final-size-stat-card"><span>推定終息日</span><strong>${formatDateLong(proj.endDateMedian)}</strong><small>90%予測区間 ${formatDateLong(proj.endDateLo90)}–${formatDateLong(proj.endDateHi90)}</small></div>`;
+        <div class="final-size-stat-card"><span>推定最終累積症例数</span><strong>${formatCaseCount(fs.median)}</strong><small>90%予測区間 ${formatCaseCount(fs.pi90?.[0])}–${formatCaseCount(fs.pi90?.[1])}</small></div>
+        <div class="final-size-stat-card"><span>推定終息日</span><strong>${formatDateLong(ed.median)}</strong><small>90%予測区間 ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>`;
     } else {
       summaryEl.innerHTML = `
-        <div class="final-size-stat-card"><span>Estimated final cumulative cases</span><strong>${formatCaseCount(proj.finalMedian)}</strong><small>90% PI ${formatCaseCount(proj.finalLo90)}–${formatCaseCount(proj.finalHi90)}</small></div>
-        <div class="final-size-stat-card"><span>Estimated end date</span><strong>${formatDateLong(proj.endDateMedian)}</strong><small>90% PI ${formatDateLong(proj.endDateLo90)}–${formatDateLong(proj.endDateHi90)}</small></div>`;
+        <div class="final-size-stat-card"><span>Estimated final cumulative cases</span><strong>${formatCaseCount(fs.median)}</strong><small>90% PI ${formatCaseCount(fs.pi90?.[0])}–${formatCaseCount(fs.pi90?.[1])}</small></div>
+        <div class="final-size-stat-card"><span>Estimated end date</span><strong>${formatDateLong(ed.median)}</strong><small>90% PI ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>`;
     }
   }
 
-  const obs = proj.observed.filter(r => String(r.date) <= String(proj.selectedDate));
+  const projectionDate = record.reporting_date || selectedCaseDate();
+  const currentCum = toNumber(record.current_cumulative_cases || latestObservedCumulative(projectionDate));
+  const obs = dailyObservedSeriesUntil(projectionDate).filter(r => String(r.date) <= String(projectionDate));
   const obsDates = obs.map(r => r.date);
   const obsCum = obs.map(r => r.cumulative);
-  const pred = proj.trajectory;
+  const pred = [{ date: projectionDate, median: currentCum, q25: currentCum, q75: currentCum, q05: currentCum, q95: currentCum }].concat(proj.trajectory || []);
   const x = pred.map(r => r.date);
+
   const traces = [
     { type: 'scatter', mode: 'lines+markers', name: currentLang === 'ja' ? '観測累積症例数' : 'Observed cumulative cases', x: obsDates, y: obsCum, line: { width: 2 }, marker: { size: 5 }, hovertemplate: currentLang === 'ja' ? '%{x}<br>観測累積: %{y:,.0f}例<extra></extra>' : '%{x}<br>Observed cumulative: %{y:,.0f} cases<extra></extra>' },
-    { type: 'scatter', mode: 'lines', name: '90% PI lower', x, y: pred.map(r => r.lo90), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
-    { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '90%予測区間' : '90% prediction interval', x, y: pred.map(r => r.hi90), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.12)', hoverinfo: 'skip' },
-    { type: 'scatter', mode: 'lines', name: '50% PI lower', x, y: pred.map(r => r.lo50), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
-    { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '50%予測区間' : '50% prediction interval', x, y: pred.map(r => r.hi50), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.22)', hoverinfo: 'skip' },
+    { type: 'scatter', mode: 'lines', name: '90% PI lower', x, y: pred.map(r => r.q05), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
+    { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '90%予測区間' : '90% prediction interval', x, y: pred.map(r => r.q95), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.12)', hoverinfo: 'skip' },
+    { type: 'scatter', mode: 'lines', name: '50% PI lower', x, y: pred.map(r => r.q25), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
+    { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '50%予測区間' : '50% prediction interval', x, y: pred.map(r => r.q75), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.22)', hoverinfo: 'skip' },
     { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '中央値' : 'Median trajectory', x, y: pred.map(r => r.median), line: { width: 2.5, color: '#175cd3' }, hovertemplate: currentLang === 'ja' ? '%{x}<br>中央値: %{y:,.0f}例<extra></extra>' : '%{x}<br>Median: %{y:,.0f} cases<extra></extra>' }
   ];
-  const maxY = Math.max(...obsCum, ...pred.map(r => r.hi90), 1);
-  const chartEndDate = pred.length ? pred[pred.length - 1].date : proj.selectedDate;
-  const finalShapes = [{ type: 'line', xref: 'x', yref: 'y', x0: proj.selectedDate, x1: proj.selectedDate, y0: 0, y1: maxY, line: { width: 2, dash: 'dot', color: '#667085' } }];
-  const finalAnnotations = [{ x: proj.selectedDate, y: maxY, xref: 'x', yref: 'y', text: currentLang === 'ja' ? '推定開始' : 'projection start', showarrow: false, yshift: 8, font: { size: 10, color: '#667085' } }];
-  if (String(proj.endDateMedian) <= String(chartEndDate)) {
-    finalShapes.push({ type: 'line', xref: 'x', yref: 'y', x0: proj.endDateMedian, x1: proj.endDateMedian, y0: 0, y1: maxY, line: { width: 2, dash: 'dash', color: '#12b76a' } });
-    finalAnnotations.push({ x: proj.endDateMedian, y: maxY * 0.82, xref: 'x', yref: 'y', text: currentLang === 'ja' ? '推定終息日' : 'estimated end', showarrow: false, yshift: 8, font: { size: 10, color: '#027a48' } });
+
+  const maxY = Math.max(...obsCum, ...pred.map(r => toNumber(r.q95)), 1);
+  const chartEndDate = pred.length ? pred[pred.length - 1].date : projectionDate;
+  const finalShapes = [{ type: 'line', xref: 'x', yref: 'y', x0: projectionDate, x1: projectionDate, y0: 0, y1: maxY, line: { width: 2, dash: 'dot', color: '#667085' } }];
+  const finalAnnotations = [{ x: projectionDate, y: maxY, xref: 'x', yref: 'y', text: currentLang === 'ja' ? '推定開始' : 'projection start', showarrow: false, yshift: 8, font: { size: 10, color: '#667085' } }];
+  if (ed.median && String(ed.median) <= String(chartEndDate)) {
+    finalShapes.push({ type: 'line', xref: 'x', yref: 'y', x0: ed.median, x1: ed.median, y0: 0, y1: maxY, line: { width: 2, dash: 'dash', color: '#12b76a' } });
+    finalAnnotations.push({ x: ed.median, y: maxY * 0.82, xref: 'x', yref: 'y', text: currentLang === 'ja' ? '推定終息日' : 'estimated end', showarrow: false, yshift: 8, font: { size: 10, color: '#027a48' } });
   }
+
   Plotly.newPlot('finalSizeChart', traces, {
-    margin: { l: 68, r: 24, t: 18, b: 120 },
-    xaxis: { title: { text: currentLang === 'ja' ? '日付' : 'Date', standoff: 12 }, tickangle: -35, gridcolor: '#eef3f8', automargin: true, nticks: 7 },
+    margin: { l: 68, r: 24, t: 18, b: 124 },
+    xaxis: { title: { text: currentLang === 'ja' ? '日付' : 'Date', standoff: 12 }, tickangle: -35, gridcolor: '#eef3f8', automargin: true, nticks: window.innerWidth < 700 ? 5 : 7 },
     yaxis: { title: currentLang === 'ja' ? '累積確定症例数' : 'Cumulative confirmed cases', gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
-    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.55, yanchor: 'top' },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.56, yanchor: 'top' },
     shapes: finalShapes,
     annotations: finalAnnotations,
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
   }, { responsive: true, displayModeBar: false });
 
   if (statsEl) {
+    const method = finalSizeProjectionData?.method || 'renewal_branching_process_negative_binomial';
+    const sourceSitrep = record.report_no || finalSizeProjectionData?.source_sitrep || '';
     if (currentLang === 'ja') {
-      statsEl.innerHTML = `シナリオ：<strong>${finalSizeScenarioLabel(scenario)}</strong>。推定終息日は、モデル上で日別新規確定例が42日間連続して0となる最初の日として定義しています。これは日々の報告例数に基づくシナリオ推定であり、確定的な予測ではありません。`;
+      statsEl.innerHTML = `シナリオ：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例を用い、GitHub Actions側で事前計算したrenewal / branching-process negative-binomialモデルです。Rt中央値 <strong>${Number.isFinite(rt.median) ? rt.median.toFixed(2) : '—'}</strong>（95% CrI ${Number.isFinite(rt.q025) ? rt.q025.toFixed(2) : '—'}–${Number.isFinite(rt.q975) ? rt.q975.toFixed(2) : '—'}）。推定終息日は、シミュレーション上で日別新規確定例が42日間連続して0となる最初の日です。これはシナリオ推定であり、確定的な予測ではありません。`;
     } else {
-      statsEl.innerHTML = `Scenario: <strong>${finalSizeScenarioLabel(scenario)}</strong>. The estimated end date is defined as the first date followed by 42 consecutive days with zero incident confirmed cases in the model. This is a scenario-based estimate, not a deterministic prediction.`;
+      statsEl.innerHTML = `Scenario: <strong>${finalSizeScenarioLabel(scenario)}</strong>. Precomputed in GitHub Actions using a renewal / branching-process negative-binomial model with reported confirmed cases through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. Rt median <strong>${Number.isFinite(rt.median) ? rt.median.toFixed(2) : '—'}</strong> (95% CrI ${Number.isFinite(rt.q025) ? rt.q025.toFixed(2) : '—'}–${Number.isFinite(rt.q975) ? rt.q975.toFixed(2) : '—'}). The estimated end date is the first date followed by 42 consecutive days with zero incident confirmed cases in the simulations. This is a scenario-based estimate, not a deterministic prediction.`;
     }
   }
 }
@@ -3928,8 +3896,8 @@ function updateDashboard() {
 
 async function main() {
   initLanguageControls();
-  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, aiSitrepSummary] = await Promise.all([
-    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.aiSummary)
+  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, aiSitrepSummary, finalSizeProjectionData] = await Promise.all([
+    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.aiSummary), loadJsonOptional(files.finalProjection)
   ]);
   buildIndexes();
   initMap();

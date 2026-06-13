@@ -1078,3 +1078,163 @@ main > .grid-two:first-of-type .right-analysis-panel {
     max-height: none !important;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Mobile usability refinement.
+   The desktop view keeps the wider right rail. On phones/tablets the map panel
+   and analysis rail stack, fixed heights are removed, and controls/charts become
+   single-column to avoid horizontal overflow.
+   -------------------------------------------------------------------------- */
+@media (max-width: 760px) {
+  html, body {
+    width: 100%;
+    max-width: 100%;
+    overflow-x: hidden;
+  }
+  body {
+    min-width: 0;
+  }
+  .topbar {
+    padding: 18px 12px;
+    border-radius: 0 0 22px 22px;
+  }
+  .header-actions,
+  .status-card {
+    width: 100%;
+  }
+  main {
+    width: 100% !important;
+    max-width: 100% !important;
+    padding: 12px 10px 28px !important;
+    box-sizing: border-box;
+  }
+  .panel,
+  .kpi-card {
+    border-radius: 18px;
+  }
+  .panel {
+    padding: 14px !important;
+  }
+  .kpi-grid,
+  .epi-kpi-grid,
+  .source-grid,
+  .assessment-grid {
+    grid-template-columns: 1fr !important;
+  }
+  main > .grid-two:first-of-type,
+  .grid-two {
+    display: block !important;
+    grid-template-columns: 1fr !important;
+    gap: 0 !important;
+    width: 100% !important;
+  }
+  main > .grid-two:first-of-type .map-panel,
+  main > .grid-two:first-of-type .right-analysis-panel,
+  .map-panel,
+  .right-analysis-panel {
+    width: 100% !important;
+    min-width: 0 !important;
+    max-width: 100% !important;
+    box-sizing: border-box;
+  }
+  .right-analysis-panel {
+    height: auto !important;
+    max-height: none !important;
+    overflow: visible !important;
+    margin-top: 14px;
+    padding-right: 14px !important;
+  }
+  #map {
+    height: min(58vh, 460px) !important;
+    min-height: 340px;
+    border-radius: 16px;
+  }
+  .panel-head,
+  .chart-block-head,
+  .report-slider-head,
+  .report-date-actions,
+  .timeline-controls-title {
+    flex-direction: column !important;
+    align-items: stretch !important;
+    gap: 10px;
+  }
+  .panel-head .ghost,
+  .forecast-control-stack,
+  .final-size-control-stack,
+  .rwi-control-stack,
+  .report-date-actions select,
+  .forecast-control-stack select,
+  .final-size-control-stack select,
+  .control select,
+  select {
+    width: 100% !important;
+    max-width: 100% !important;
+  }
+  .map-layer-toolbar {
+    display: block !important;
+  }
+  .map-toggle-group {
+    display: flex !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+    gap: 8px;
+    padding: 6px 2px 10px;
+    scroll-snap-type: x proximity;
+  }
+  .map-toggle-group .toggle {
+    flex: 0 0 auto;
+    min-width: max-content;
+    scroll-snap-align: start;
+    white-space: nowrap;
+  }
+  .map-controls,
+  .controls {
+    grid-template-columns: 1fr !important;
+  }
+  .report-date-slider input[type="range"] {
+    width: 100%;
+  }
+  .chart,
+  .compact-chart,
+  #epiTimelineChart,
+  .forecast-chart,
+  .final-size-chart {
+    width: 100% !important;
+    height: 320px !important;
+    min-height: 320px !important;
+  }
+  .final-size-summary-grid {
+    grid-template-columns: 1fr !important;
+  }
+  .map-legend {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 6px;
+  }
+}
+
+@media (max-width: 460px) {
+  main {
+    padding-left: 8px !important;
+    padding-right: 8px !important;
+  }
+  .topbar h1 {
+    font-size: 1.35rem;
+  }
+  #map {
+    height: 330px !important;
+    min-height: 310px;
+  }
+  .chart,
+  .compact-chart,
+  #epiTimelineChart,
+  .forecast-chart,
+  .final-size-chart {
+    height: 300px !important;
+    min-height: 300px !important;
+  }
+  .kpi-card strong {
+    font-size: 1.7rem;
+  }
+}
