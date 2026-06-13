@@ -338,7 +338,7 @@
   }
 
   let applying = false;
-  function applyLanguage(lang = getLang()) {
+  function applyLanguage(lang = getLang(), opts = {}) {
     if (applying || !document.body) return;
     applying = true;
     try {
@@ -347,7 +347,9 @@
       for (const [selector, key] of Object.entries(selectors)) setText(selector, key, lang);
       translateOptions(lang);
       translateKnownDynamic(lang);
-      translateExactTextNodes(document.body, lang);
+      // Full-body text walking is relatively expensive on a dashboard with Leaflet/Plotly.
+      // Run it only on initial load or an explicit language switch, not after every chart/map redraw.
+      if (opts.deep) translateExactTextNodes(document.body, lang);
       document.querySelectorAll('.language-button').forEach(btn => btn.classList.toggle('active', btn.dataset.lang === lang));
     } finally {
       applying = false;
@@ -357,12 +359,11 @@
   function setLanguage(lang) {
     const target = lang === 'en' ? 'en' : 'ja';
     localStorage.setItem(LANG_KEY, target);
-    applyLanguage(target);
-    // Redraw Plotly charts so axis titles and labels can be updated by app.js-localized strings if present.
+    // Redraw once so app.js-generated labels, charts, legends and case units use the selected language.
     if (typeof window.updateDashboard === 'function') {
       try { window.updateDashboard(); } catch (e) { /* app not ready yet */ }
     }
-    applyLanguage(target);
+    applyLanguage(target, { deep: true });
   }
 
   window.dashboardI18n = { t, setLanguage, applyLanguage, getLang };
@@ -377,12 +378,6 @@
   });
 
   document.addEventListener('DOMContentLoaded', () => {
-    applyLanguage(getLang());
-    const observer = new MutationObserver(() => {
-      if (applying) return;
-      clearTimeout(window.__i18nMutationTimer);
-      window.__i18nMutationTimer = setTimeout(() => applyLanguage(getLang()), 80);
-    });
-    observer.observe(document.body, { childList: true, subtree: true, characterData: true });
+    applyLanguage(getLang(), { deep: true });
   });
 })();
