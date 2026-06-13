@@ -46,6 +46,38 @@ let updateTimer = null;
 const fmt = new Intl.NumberFormat('en-US');
 const pct = (x) => `${(x * 100).toFixed(1)}%`;
 
+function dashboardLang() {
+  try {
+    if (window.dashboardI18n && typeof window.dashboardI18n.getLang === 'function') return window.dashboardI18n.getLang();
+    if (typeof window.getDashboardLang === 'function') return window.getDashboardLang();
+  } catch (e) { /* ignore */ }
+  return 'ja';
+}
+
+function isJapaneseDashboard() {
+  return dashboardLang() === 'ja';
+}
+
+function formatCaseCount(value, englishUnit = 'cases') {
+  const n = fmt.format(Math.round(toNumber(value)));
+  return isJapaneseDashboard() ? `${n}例` : `${n} ${englishUnit}`;
+}
+
+function formatCaseNumber(value) {
+  const n = fmt.format(Math.round(toNumber(value)));
+  return isJapaneseDashboard() ? `${n}例` : n;
+}
+
+function caseAxisTitle(englishTitle = 'Confirmed cases') {
+  return isJapaneseDashboard() ? '確定症例数（例）' : englishTitle;
+}
+
+function caseHoverTemplate(labelJa = '確定症例', labelEn = 'Confirmed cases', axis = 'x') {
+  const label = isJapaneseDashboard() ? labelJa : labelEn;
+  const suffix = isJapaneseDashboard() ? '例' : '';
+  return `${label}: %{${axis}:,.0f}${suffix}`;
+}
+
 function toNumber(x) {
   const n = Number(x);
   return Number.isFinite(n) ? n : 0;
@@ -778,7 +810,7 @@ function updateRwiScatterChart() {
       x: zeroRows.map(r => r.rwi_percentile), y: zeroRows.map(r => transformY(r[yKey])),
       customdata: zeroRows.map(r => [r.zone_name, r.province, r.cases, r.cases_per100k, r.population, r.rwi, r.rwi_percentile, r.rwi_quintile, r.n_rwi_points]),
       marker: { size: 5, color: '#98a2b3', opacity: 0.22, line: { width: 0 } },
-      hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>RWI percentile: %{customdata[6]:.0f}<br>%{customdata[7]}<br>Original median RWI: %{customdata[5]:.3f}<br>Cases: %{customdata[2]:,.0f}<br>Cases per 100,000: %{customdata[3]:.2f}<br>Population: %{customdata[4]:,.0f}<extra></extra>'
+      hovertemplate: `<b>%{customdata[0]}</b><br>%{customdata[1]}<br>RWI percentile: %{customdata[6]:.0f}<br>%{customdata[7]}<br>Original median RWI: %{customdata[5]:.3f}<br>${isJapaneseDashboard() ? '症例' : 'Cases'}: %{customdata[2]:,.0f}${isJapaneseDashboard() ? '例' : ''}<br>${isJapaneseDashboard() ? '人口10万対症例' : 'Cases per 100,000'}: %{customdata[3]:.2f}<br>Population: %{customdata[4]:,.0f}<extra></extra>`
     });
   }
   const provinces = [...new Set(affectedRows.map(r => r.province || 'Unknown'))].sort();
@@ -790,7 +822,7 @@ function updateRwiScatterChart() {
       x: rr.map(r => r.rwi_percentile), y: rr.map(r => transformY(r[yKey])),
       customdata: rr.map(r => [r.zone_name, r.province, r.cases, r.cases_per100k, r.population, r.rwi, r.rwi_percentile, r.rwi_quintile, r.n_rwi_points, r.deaths]),
       marker: { size: rr.map(r => 8 + 24 * Math.sqrt(Math.max(toNumber(r.population), 0) / maxPop)), opacity: 0.76, line: { width: 1.4, color: '#344054' } },
-      hovertemplate: '<b>%{customdata[0]}</b><br>%{customdata[1]}<br>RWI percentile: %{customdata[6]:.0f}<br>%{customdata[7]}<br>Original median RWI: %{customdata[5]:.3f}<br>Cases: %{customdata[2]:,.0f}<br>Deaths: %{customdata[9]:,.0f}<br>Cases per 100,000: %{customdata[3]:.2f}<br>Population: %{customdata[4]:,.0f}<br>RWI points: %{customdata[8]:,.0f}<extra></extra>'
+      hovertemplate: `<b>%{customdata[0]}</b><br>%{customdata[1]}<br>RWI percentile: %{customdata[6]:.0f}<br>%{customdata[7]}<br>Original median RWI: %{customdata[5]:.3f}<br>${isJapaneseDashboard() ? '症例' : 'Cases'}: %{customdata[2]:,.0f}${isJapaneseDashboard() ? '例' : ''}<br>Deaths: %{customdata[9]:,.0f}<br>${isJapaneseDashboard() ? '人口10万対症例' : 'Cases per 100,000'}: %{customdata[3]:.2f}<br>Population: %{customdata[4]:,.0f}<br>RWI points: %{customdata[8]:,.0f}<extra></extra>`
     });
   }
   const corrRows = analysisRows.filter(r => Number.isFinite(r.rwi_percentile) && Number.isFinite(transformY(r[yKey])));
@@ -908,7 +940,7 @@ function refreshCustomOriginOptions() {
   if (!customOriginSelect) return;
   const prev = new Set(Array.from(customOriginSelect.selectedOptions || []).map(o => String(o.value)));
   const rows = affectedOriginRows().sort((a, b) => a.province.localeCompare(b.province) || a.zone_name.localeCompare(b.zone_name));
-  customOriginSelect.innerHTML = rows.map(r => `<option value="${r.zone_id}">${r.zone_name} (${r.province}; ${fmt.format(Math.round(r.confirmed_cases))} ${caseDisplayMode === 'recent' ? 'new' : 'cases'})</option>`).join('');
+  customOriginSelect.innerHTML = rows.map(r => `<option value="${r.zone_id}">${r.zone_name} (${r.province}; ${formatCaseCount(r.confirmed_cases, caseDisplayMode === 'recent' ? 'new' : 'cases')})</option>`).join('');
   const majors = new Set(majorOriginIds().map(String));
   for (const opt of customOriginSelect.options) {
     if (prev.size ? prev.has(String(opt.value)) : majors.has(String(opt.value))) opt.selected = true;
@@ -1021,11 +1053,11 @@ function setEpiKpis() {
   const mappedCases = rows.reduce((a,b)=>a+toNumber(b.confirmed_cases),0);
   const mappedDeaths = rows.reduce((a,b)=>a+toNumber(b.confirmed_deaths),0);
   if (caseDisplayMode === 'recent') {
-    kpiTotal.textContent = fmt.format(Math.round(mappedCases));
+    kpiTotal.textContent = formatCaseNumber(mappedCases);
     kpiKinshasa.textContent = fmt.format(Math.round(mappedDeaths));
     kpiKinshasaShare.textContent = `Mappable health-zone increase; ${displayDateLabel(comparisonCaseDate(d))} to ${displayDateLabel(d)}`;
   } else {
-    kpiTotal.textContent = fmt.format(toNumber(meta?.drc_confirmed_cases) || Math.round(mappedCases));
+    kpiTotal.textContent = formatCaseNumber(toNumber(meta?.drc_confirmed_cases) || Math.round(mappedCases));
     kpiKinshasa.textContent = fmt.format(toNumber(meta?.drc_confirmed_deaths) || Math.round(mappedDeaths));
     const cfr = (toNumber(meta?.drc_confirmed_deaths) || mappedDeaths) / Math.max((toNumber(meta?.drc_confirmed_cases) || mappedCases), 1);
     kpiKinshasaShare.textContent = `${pct(cfr)} CFR among confirmed; ${meta?.report_no || ''}`;
@@ -1033,9 +1065,9 @@ function setEpiKpis() {
   const ug = latestUgandaEvdSummary();
   const ugCases = toNumber(ug?.cumulative_confirmed_cases);
   const ugDeaths = toNumber(ug?.cumulative_deaths);
-  kpiBorder.textContent = fmt.format(ugCases || toNumber(meta?.uganda_confirmed_cases) || 7);
+  kpiBorder.textContent = formatCaseNumber(ugCases || toNumber(meta?.uganda_confirmed_cases) || 7);
   kpiBorderShare.textContent = ug
-    ? `Uganda MoH EVD daily page; imported ${fmt.format(toNumber(ug.imported_cases) || 0)}, local ${fmt.format(toNumber(ug.local_cases) || 0)}; as of ${displayDateLabel(ug.as_of_date)}`
+    ? (isJapaneseDashboard() ? `Uganda MoH EVD daily page；輸入例 ${formatCaseCount(toNumber(ug.imported_cases) || 0)}、国内例 ${formatCaseCount(toNumber(ug.local_cases) || 0)}；${displayDateLabel(ug.as_of_date)}時点` : `Uganda MoH EVD daily page; imported ${fmt.format(toNumber(ug.imported_cases) || 0)}, local ${fmt.format(toNumber(ug.local_cases) || 0)}; as of ${displayDateLabel(ug.as_of_date)}`)
     : 'Uganda confirmed cases; latest available IOM DTM EVD snapshot';
   kpiUganda.textContent = fmt.format(ugDeaths || toNumber(meta?.uganda_confirmed_deaths) || 1);
   kpiScenario.textContent = ug
@@ -1662,14 +1694,14 @@ function addCaseBubbleLegend(maxCases) {
   const mid = Math.max(1, Math.round(maxCases / 2));
   const small = Math.max(1, Math.round(maxCases / 10));
   const items = [
-    { label: fmt.format(large), size: 28 },
-    { label: fmt.format(mid), size: 20 },
-    { label: fmt.format(small), size: 11 }
+    { label: formatCaseCount(large, caseDisplayMode === 'recent' ? 'new' : 'cases'), size: 28 },
+    { label: formatCaseCount(mid, caseDisplayMode === 'recent' ? 'new' : 'cases'), size: 20 },
+    { label: formatCaseCount(small, caseDisplayMode === 'recent' ? 'new' : 'cases'), size: 11 }
   ];
   choroLegend = L.control({ position: 'bottomright' });
   choroLegend.onAdd = function() {
     const div = L.DomUtil.create('div', 'choro-legend case-bubble-legend');
-    div.innerHTML = `<strong>${caseDisplayMode === 'recent' ? 'Recent cases' : 'Confirmed cases'}<br><small>bubble size</small></strong>` + items.map(d => `<div class="bubble-row"><span class="bubble-symbol" style="width:${d.size}px;height:${d.size}px"></span>${d.label} ${caseDisplayMode === 'recent' ? 'new' : 'cases'}</div>`).join('');
+    div.innerHTML = `<strong>${isJapaneseDashboard() ? (caseDisplayMode === 'recent' ? '直近増加例' : '確定症例') : (caseDisplayMode === 'recent' ? 'Recent cases' : 'Confirmed cases')}<br><small>${isJapaneseDashboard() ? 'バブルサイズ' : 'bubble size'}</small></strong>` + items.map(d => `<div class="bubble-row"><span class="bubble-symbol" style="width:${d.size}px;height:${d.size}px"></span>${d.label}</div>`).join('');
     return div;
   };
   choroLegend.addTo(map);
@@ -1711,7 +1743,7 @@ function updateCasesMap() {
   notice.style.display = 'block';
   notice.className = 'population-notice';
   const hiddenUnmapped = rows.filter(r => toNumber(r.cases) > 0 && !r.map_location_known).reduce((sum, r) => sum + toNumber(r.cases), 0);
-  notice.innerHTML = `Case layer: bubble size represents ${caseDisplayMode === 'recent' ? 'recent increase in confirmed cases' : 'cumulative confirmed cases'} by health zone for ${caseDisplayLabel()}. Unventilated / unknown-health-zone cases are not shown because they cannot be assigned to a specific health zone.${hiddenUnmapped > 0 ? ` An additional ${fmt.format(Math.round(hiddenUnmapped))} case${hiddenUnmapped === 1 ? '' : 's'} from mapped health-zone records are retained in the totals but hidden on the map because no reliable geographic match is available.` : ''}`;
+  notice.innerHTML = isJapaneseDashboard() ? `症例レイヤー：バブルサイズは${caseDisplayMode === 'recent' ? 'health zone別の直近増加例' : 'health zone別の累積確定症例'}を表します（${caseDisplayLabel()}）。未分類／health zone不明の症例は特定のhealth zoneに割り当てられないため地図には表示していません。${hiddenUnmapped > 0 ? ` 追加で${formatCaseCount(hiddenUnmapped)}が、集計には含まれますが、信頼できる地理的位置がないため地図上では非表示です。` : ''}` : `Case layer: bubble size represents ${caseDisplayMode === 'recent' ? 'recent increase in confirmed cases' : 'cumulative confirmed cases'} by health zone for ${caseDisplayLabel()}. Unventilated / unknown-health-zone cases are not shown because they cannot be assigned to a specific health zone.${hiddenUnmapped > 0 ? ` An additional ${fmt.format(Math.round(hiddenUnmapped))} case${hiddenUnmapped === 1 ? '' : 's'} from mapped health-zone records are retained in the totals but hidden on the map because no reliable geographic match is available.` : ''}`;
 
   // Do not draw health-zone polygon outlines in the Cases layer.
   // The proportional case bubbles are the primary visual encoding here;
@@ -1727,11 +1759,11 @@ function updateCasesMap() {
       fillOpacity: 0.54,
       opacity: 0.95
     })
-      .bindPopup(`<strong>${r.zone_name}</strong><br>${r.province}<br>Confirmed cases: ${fmt.format(Math.round(r.cases))}<br>Confirmed deaths: ${fmt.format(Math.round(r.deaths))}<br>Source date: ${latestCaseDate() || '—'}`)
+      .bindPopup(`<strong>${r.zone_name}</strong><br>${r.province}<br>${isJapaneseDashboard() ? '確定症例' : 'Confirmed cases'}: ${formatCaseNumber(r.cases)}<br>${isJapaneseDashboard() ? '確定死亡' : 'Confirmed deaths'}: ${fmt.format(Math.round(r.deaths))}<br>${isJapaneseDashboard() ? '出典日' : 'Source date'}: ${latestCaseDate() || '—'}`)
       .addTo(layerGroup);
 
     if (toNumber(r.cases) >= Math.max(10, maxCases * 0.12)) {
-      addFlowLabel([r.lat, r.lon], `${r.zone_name}: ${fmt.format(Math.round(r.cases))}`, 'case-bubble-label');
+      addFlowLabel([r.lat, r.lon], `${r.zone_name}: ${formatCaseNumber(r.cases)}`, 'case-bubble-label');
     }
   });
 
@@ -2211,7 +2243,7 @@ function updateKpis(destRows) {
     document.getElementById('kpiBorder').textContent = fmt.format(affected.length);
     document.getElementById('kpiBorderShare').textContent = `Health zones with reported cases on ${displayDateLabel(selectedCaseDate())}`;
     document.getElementById('kpiUganda').textContent = top ? top.zone_name : '—';
-    document.getElementById('kpiScenario').textContent = top ? `${fmt.format(Math.round(top.cases))} cases; RWI percentile ${top.rwi_percentile.toFixed(0)}` : 'No affected health zone in selected date';
+    document.getElementById('kpiScenario').textContent = top ? isJapaneseDashboard() ? `${formatCaseCount(top.cases)}；RWIパーセンタイル ${top.rwi_percentile.toFixed(0)}` : `${fmt.format(Math.round(top.cases))} cases; RWI percentile ${top.rwi_percentile.toFixed(0)}` : 'No affected health zone in selected date';
     document.getElementById('scenarioText').innerHTML = '<strong>Relative wealth percentile layer</strong><br>Original standardized RWI values are converted to within-DRC percentiles for display. The scatter plot is ecological and exploratory; it does not imply causality and is not adjusted for population mobility, surveillance intensity, healthcare access, or distance from outbreak origin.';
     return;
   }
@@ -2228,7 +2260,7 @@ function updateKpis(destRows) {
     document.getElementById('kpiBorder').textContent = fmt.format(rows.filter(r => toNumber(r.confirmed_cases)>0 && r.zone_id).length);
     document.getElementById('kpiBorderShare').textContent = `${mapped} rows with mappable zone ID`;
     document.getElementById('kpiUganda').textContent = top ? top.health_zone : '—';
-    document.getElementById('kpiScenario').textContent = top ? `${fmt.format(Math.round(top.confirmed_cases))} confirmed cases; source ${latestCaseDate()}` : 'No case data';
+    document.getElementById('kpiScenario').textContent = top ? isJapaneseDashboard() ? `${formatCaseCount(top.confirmed_cases)}；出典 ${latestCaseDate()}` : `${fmt.format(Math.round(top.confirmed_cases))} confirmed cases; source ${latestCaseDate()}` : 'No case data';
     document.getElementById('scenarioText').innerHTML = `<strong>Case-count layer</strong><br>Confirmed cases and deaths are taken from the selected SitRep reporting date. In recent-increase mode, values are differences from the closest available SitRep at least seven days earlier. Unventilated / unknown-health-zone cases are intentionally not shown on the case-bubble map because they cannot be assigned to a specific health zone.`;
     return;
   }
@@ -2601,7 +2633,7 @@ function updateBarChart(destRows) {
 
   if (mapMode === 'cases') {
     const rows = caseRowsLatest().filter(r => toNumber(r.confirmed_cases)>0).sort((a,b)=>toNumber(b.confirmed_cases)-toNumber(a.confirmed_cases)).slice(0, f.topN).reverse();
-    Plotly.newPlot('barChart', [{ type:'bar', orientation:'h', x: rows.map(d=>d.confirmed_cases), y: rows.map(d=>`${d.health_zone} (${d.province})`), hovertemplate: '%{y}<br>Confirmed cases: %{x:,.0f}<extra></extra>' }], { margin:{l:155,r:20,t:18,b:40}, xaxis:{title:'Confirmed cases', gridcolor:'#e7eef7'}, yaxis:{automargin:true}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)'}, {responsive:true, displayModeBar:false});
+    Plotly.newPlot('barChart', [{ type:'bar', orientation:'h', x: rows.map(d=>d.confirmed_cases), y: rows.map(d=>`${d.health_zone} (${d.province})`), hovertemplate: `%{y}<br>${caseHoverTemplate('確定症例', 'Confirmed cases', 'x')}<extra></extra>` }], { margin:{l:155,r:20,t:18,b:40}, xaxis:{title: caseAxisTitle('Confirmed cases'), gridcolor:'#e7eef7'}, yaxis:{automargin:true}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)'}, {responsive:true, displayModeBar:false});
     return;
   }
 
@@ -2732,13 +2764,13 @@ function updateTrendChart() {
 
   if (mapMode === 'rwi') {
     const rows = rwiRowsForChart().filter(r => r.cases > 0).sort((a,b)=>b.cases-a.cases).slice(0, 12).reverse();
-    Plotly.newPlot('trendChart', [{ type:'bar', orientation:'h', x: rows.map(d=>d.cases), y: rows.map(d=>`${d.zone_name} (${d.province})`), hovertemplate:'%{y}<br>Cases: %{x:,.0f}<br>RWI percentile: %{customdata:.0f}<extra></extra>', customdata: rows.map(d=>d.rwi_percentile) }], { margin:{l:155,r:20,t:18,b:46}, xaxis:{title:'Confirmed cases at selected reporting date', gridcolor:'#e7eef7'}, yaxis:{automargin:true}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)'}, {responsive:true, displayModeBar:false});
+    Plotly.newPlot('trendChart', [{ type:'bar', orientation:'h', x: rows.map(d=>d.cases), y: rows.map(d=>`${d.zone_name} (${d.province})`), hovertemplate:`%{y}<br>${caseHoverTemplate('症例', 'Cases', 'x')}<br>RWI percentile: %{customdata:.0f}<extra></extra>`, customdata: rows.map(d=>d.rwi_percentile) }], { margin:{l:155,r:20,t:18,b:46}, xaxis:{title: caseAxisTitle('Confirmed cases at selected reporting date'), gridcolor:'#e7eef7'}, yaxis:{automargin:true}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)'}, {responsive:true, displayModeBar:false});
     return;
   }
 
   if (mapMode === 'cases') {
     const rows = caseRowsLatest().filter(r => toNumber(r.confirmed_cases)>0).sort((a,b)=>toNumber(b.confirmed_cases)-toNumber(a.confirmed_cases)).slice(0, 12).reverse();
-    Plotly.newPlot('trendChart', [{ type:'bar', orientation:'h', name:'Confirmed cases', x: rows.map(r=>r.confirmed_cases), y: rows.map(r=>`${r.health_zone} (${r.province})`), hovertemplate:'%{y}<br>Cases: %{x:,.0f}<extra></extra>'}], { margin:{l:155,r:20,t:18,b:40}, xaxis:{title:'Confirmed cases', gridcolor:'#e7eef7'}, yaxis:{automargin:true}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)'}, {responsive:true, displayModeBar:false});
+    Plotly.newPlot('trendChart', [{ type:'bar', orientation:'h', name: isJapaneseDashboard() ? '確定症例' : 'Confirmed cases', x: rows.map(r=>r.confirmed_cases), y: rows.map(r=>`${r.health_zone} (${r.province})`), hovertemplate:`%{y}<br>${caseHoverTemplate('症例', 'Cases', 'x')}<extra></extra>`}], { margin:{l:155,r:20,t:18,b:40}, xaxis:{title: caseAxisTitle('Confirmed cases'), gridcolor:'#e7eef7'}, yaxis:{automargin:true}, paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)'}, {responsive:true, displayModeBar:false});
     return;
   }
 
@@ -2910,11 +2942,11 @@ function updateEpiTimelineChart() {
     {
       type: 'scatter',
       mode: 'lines+markers',
-      name: 'Cumulative confirmed cases',
+      name: isJapaneseDashboard() ? '累積確定症例' : 'Cumulative confirmed cases',
       x,
       y,
       customdata: rows.map((r, i) => [reports[i], r.reporting_date, deaths[i]]),
-      hovertemplate: '%{customdata[0]}<br>%{x}<br>Confirmed cases: %{y:,.0f}<br>Confirmed deaths: %{customdata[2]:,.0f}<extra></extra>'
+      hovertemplate: `%{customdata[0]}<br>%{x}<br>${caseHoverTemplate('確定症例', 'Confirmed cases', 'y')}<br>${isJapaneseDashboard() ? '確定死亡' : 'Confirmed deaths'}: %{customdata[2]:,.0f}<extra></extra>`
     },
     {
       type: 'scatter',
@@ -2925,12 +2957,12 @@ function updateEpiTimelineChart() {
       text: [selectedReport],
       textposition: 'top center',
       marker: { size: 13, symbol: 'circle-open', line: { width: 3 } },
-      hovertemplate: `${selectedReport}<br>${selectedLabel}<br>Selected cases: ${fmt.format(selectedCases)}<br>Selected deaths: ${fmt.format(selectedDeaths)}<extra></extra>`
+      hovertemplate: `${selectedReport}<br>${selectedLabel}<br>${isJapaneseDashboard() ? '選択中の症例' : 'Selected cases'}: ${formatCaseNumber(selectedCases)}<br>${isJapaneseDashboard() ? '選択中の死亡' : 'Selected deaths'}: ${fmt.format(selectedDeaths)}<extra></extra>`
     }
   ], {
     margin: { l: 62, r: 24, t: 18, b: 112 },
     xaxis: { title: { text: 'Reporting date', standoff: 16 }, tickangle: -40, gridcolor: '#eef3f8', automargin: true },
-    yaxis: { title: 'Confirmed cases', gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
+    yaxis: { title: caseAxisTitle('Confirmed cases'), gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
     legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.58, yanchor: 'top' },
     shapes: selectedIdx >= 0 ? [{
       type: 'line', xref: 'x', yref: 'y', x0: selectedLabel, x1: selectedLabel, y0: 0, y1: maxY,
@@ -2939,7 +2971,7 @@ function updateEpiTimelineChart() {
     annotations: [{
       x: selectedLabel,
       y: selectedCases,
-      text: `${selectedReport}: ${fmt.format(selectedCases)}`,
+      text: `${selectedReport}: ${formatCaseNumber(selectedCases)}`,
       showarrow: true,
       arrowhead: 2,
       ax: 18,
@@ -3247,7 +3279,7 @@ function updateForecastChart() {
   }, { responsive: true, displayModeBar: false });
   const stat = document.getElementById('forecastStats');
   if (stat) {
-    stat.innerHTML = `Projection from <strong>${displayDateLabel(fc.selectedDate)}</strong> using a renewal/branching-process model; generation-interval mean <strong>${fc.siMean} days</strong>, SD approximately <strong>${(fc.siMean * 5 / 12).toFixed(1)} days</strong>. Estimated Rt: <strong>${fc.rtMedian.toFixed(2)}</strong> (95% CrI ${fc.rtLo.toFixed(2)}–${fc.rtHi.toFixed(2)}); P(Rt &gt; 1): <strong>${pct(fc.probRtAbove1)}</strong>. Projected new cases over ${fc.horizon} days: <strong>${fmt.format(Math.round(fc.newMedian))}</strong> (90% PI ${fmt.format(Math.round(fc.newLo))}–${fmt.format(Math.round(fc.newHi))}); projected cumulative cases: <strong>${fmt.format(Math.round(fc.finalCumMedian))}</strong> (90% PI ${fmt.format(Math.round(fc.finalCumLo))}–${fmt.format(Math.round(fc.finalCumHi))}). Reporting-date data are not adjusted for onset date or reporting delay.`;
+    stat.innerHTML = `Projection from <strong>${displayDateLabel(fc.selectedDate)}</strong> using a renewal/branching-process model; generation-interval mean <strong>${fc.siMean} days</strong>, SD approximately <strong>${(fc.siMean * 5 / 12).toFixed(1)} days</strong>. Estimated Rt: <strong>${fc.rtMedian.toFixed(2)}</strong> (95% CrI ${fc.rtLo.toFixed(2)}–${fc.rtHi.toFixed(2)}); P(Rt &gt; 1): <strong>${pct(fc.probRtAbove1)}</strong>. Projected new cases over ${fc.horizon} days: <strong>${formatCaseNumber(fc.newMedian)}</strong> (90% PI ${formatCaseNumber(fc.newLo)}–${formatCaseNumber(fc.newHi)}); projected cumulative cases: <strong>${formatCaseNumber(fc.finalCumMedian)}</strong> (90% PI ${formatCaseNumber(fc.finalCumLo)}–${formatCaseNumber(fc.finalCumHi)}). Reporting-date data are not adjusted for onset date or reporting delay.`;
   }
 }
 
@@ -3433,6 +3465,7 @@ function updateDashboard() {
   else updateMap(destRows);
   updateBarChart(destRows);
   updateTrendChart();
+  if (window.applyDashboardLanguage) window.applyDashboardLanguage();
 }
 
 async function main() {
@@ -3459,6 +3492,7 @@ async function main() {
   const ugLatest = latestUgandaEvdSummary();
   const ugMsg = ugLatest ? `ウガンダ症例はUganda Ministry of Health EVD daily page（${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}）から自動取得し、最新は${displayDateLabel(ugLatest.as_of_date)}時点です。` : 'ウガンダ症例はUganda Ministry of Health EVD daily page（https://evd-daily.health.go.ug/）から自動取得する設定です。';
   document.getElementById('lastUpdated').textContent = `DRCはINSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新は${latestReport}（報告 ${latestReporting}、公開 ${latestPublished}）。${ugMsg}`;
+  if (window.applyDashboardLanguage) window.applyDashboardLanguage();
   updateDashboard();
   setTimeout(fitMapToData, 300);
 }

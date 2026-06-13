@@ -16,10 +16,17 @@
       <h1>DRC・ウガンダ Bundibugyo型エボラ流行ダッシュボード</h1>
       <p class="subtitle">DRC東部のhealth zone別症例、人口移動、ウガンダ国境フロー、対応指標を統合し、流行状況と拡大リスクを把握するためのダッシュボードです。</p>
     </div>
-    <div class="status-card">
-      <span class="label">データ更新状況</span>
-      <strong id="dataStatus">SitRep N1–N27まで更新済み</strong>
-      <span id="lastUpdated">DRCはINSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新はN27（報告 10 Jun 2026、公開 11 Jun 2026）。ウガンダ症例はUganda Ministry of Health EVD daily page（https://evd-daily.health.go.ug/）から自動取得し、最新は11 Jun 2026時点です。</span>
+    <div class="topbar-actions">
+      <div class="language-switch" aria-label="Language selector">
+        <span class="language-switch-label">Language</span>
+        <button id="langJa" type="button" class="language-button active" data-lang="ja">日本語</button>
+        <button id="langEn" type="button" class="language-button" data-lang="en">EN</button>
+      </div>
+      <div class="status-card">
+        <span class="label">データ更新状況</span>
+        <strong id="dataStatus">SitRep N1–N27まで更新済み</strong>
+        <span id="lastUpdated">DRCはINSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新はN27（報告 10 Jun 2026、公開 11 Jun 2026）。ウガンダ症例はUganda Ministry of Health EVD daily page（https://evd-daily.health.go.ug/）から自動取得し、最新は11 Jun 2026時点です。</span>
+      </div>
     </div>
   </header>
 
@@ -291,6 +298,7 @@
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
+  <script src="assets/i18n.js"></script>
   <script src="assets/app.js"></script>
 </body>
 </html>
