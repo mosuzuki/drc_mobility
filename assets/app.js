@@ -3255,81 +3255,71 @@ function formatDateLong(dateStr) {
 }
 
 function makeFinalSizeProjection(selectedDate = selectedCaseDate(), scenario = 'baseline') {
+  // Lightweight scenario-based final-size approximation.
+  // This intentionally avoids heavy browser-side Monte Carlo so the dashboard stays responsive.
   const observed = dailyObservedSeriesUntil(selectedDate);
-  if (observed.length < 6) return null;
-  const siMean = Math.max(1, Number(document.getElementById('forecastSiSelect')?.value || 12));
-  const siSd = Math.max(1, siMean * (5 / 12));
-  const weights = discretizedGammaWeights(siMean, siSd, 40);
-  const obsInc = observed.map(r => Math.max(0, toNumber(r.incidence)));
-  const rt = estimateRtFromSeries(obsInc, weights, 12);
-  const currentCum = latestObservedCumulative(selectedDate) || (observed.length ? toNumber(observed[observed.length - 1].cumulative) : 0);
-  const rng = mulberry32(seedFromString(`final-size|${selectedDate}|${scenario}|${siMean}|${obsInc.map(x => x.toFixed(3)).join(',')}`));
-  const nSim = 400;
-  const maxDays = 240;
-  const endZeroDays = 42;
-  const dispersion = 0.32;
-  const checkpoints = Array.from({ length: 181 }, (_, i) => i); // selected date through +180 days
-  const byDay = checkpoints.map(() => []);
-  const finalSizes = [];
-  const endOffsets = [];
-
-  for (let i = 0; i < nSim; i++) {
-    const rtSample = gammaRand(rt.shape, 1 / Math.max(rt.rate, 1e-9), rng);
-    const inc = obsInc.slice();
-    let cum = currentCum;
-    let zeroRun = 0;
-    let endOffset = maxDays;
-
-    for (let h = 0; h <= maxDays; h++) {
-      if (h <= 180) byDay[h].push(cum);
-      if (h === maxDays) break;
-      const t = inc.length;
-      const lam = infectiousnessAt(inc, t, weights);
-      const mult = scenarioRtMultiplier(scenario, h + 1);
-      const mean = Math.max(0, rtSample * mult * lam);
-      const val = negativeBinomialRand(mean, dispersion, rng);
-      inc.push(val);
-      cum += val;
-      zeroRun = val < 0.5 ? zeroRun + 1 : 0;
-      if (zeroRun >= endZeroDays) {
-        endOffset = h + 1 - endZeroDays + 1;
-        for (let fill = h + 1; fill <= 180; fill++) byDay[fill].push(cum);
-        break;
-      }
+  if (observed.length < 4) return null;
+  const currentCum = latestObservedCumulative(selectedDate) || Math.max(0, toNumber(observed[observed.length - 1].cumulative));
+  const recent = observed.slice(-10).map(r => Math.max(0, toNumber(r.incidence))).filter(Number.isFinite);
+  const recent7 = recent.slice(-7);
+  const baseDaily = Math.max(0.15, recent7.length ? recent7.reduce((a, b) => a + b, 0) / recent7.length : recent.reduce((a, b) => a + b, 0) / Math.max(1, recent.length));
+  const scenarioParams = {
+    baseline: { decay: 0.965, uncertainty: 1.00 },
+    improved: { decay: 0.925, uncertainty: 0.82 },
+    delayed: { decay: 0.985, uncertainty: 1.30 }
+  };
+  const p = scenarioParams[scenario] || scenarioParams.baseline;
+  const maxDays = 180;
+  const quantileProfiles = {
+    lo90: { scale: 0.55 * p.uncertainty, decay: Math.max(0.86, p.decay - 0.030) },
+    lo50: { scale: 0.80 * p.uncertainty, decay: Math.max(0.88, p.decay - 0.015) },
+    median: { scale: 1.00 * p.uncertainty, decay: p.decay },
+    hi50: { scale: 1.25 * p.uncertainty, decay: Math.min(1.01, p.decay + 0.012) },
+    hi90: { scale: 1.70 * p.uncertainty, decay: Math.min(1.025, p.decay + 0.025) }
+  };
+  function cumulativeAt(profile, h) {
+    let total = currentCum;
+    let daily = baseDaily * profile.scale;
+    for (let d = 1; d <= h; d++) {
+      total += Math.max(0, daily);
+      daily *= profile.decay;
+      if (daily < 0.02 && profile.decay < 1) break;
     }
-    finalSizes.push(cum);
-    endOffsets.push(endOffset);
+    return total;
   }
-
-  const trajectory = checkpoints.map((h) => {
-    const vals = byDay[h].length ? byDay[h] : finalSizes;
-    return {
-      date: addDaysIso(selectedDate, h),
-      median: quantile(vals, 0.5),
-      lo50: quantile(vals, 0.25),
-      hi50: quantile(vals, 0.75),
-      lo90: quantile(vals, 0.05),
-      hi90: quantile(vals, 0.95)
-    };
-  });
-  const endMedianOffset = Math.round(quantile(endOffsets, 0.5));
-  const endLoOffset = Math.round(quantile(endOffsets, 0.05));
-  const endHiOffset = Math.round(quantile(endOffsets, 0.95));
+  function endOffset(profile) {
+    let daily = baseDaily * profile.scale;
+    let zeroRun = 0;
+    for (let d = 1; d <= 260; d++) {
+      daily *= profile.decay;
+      if (daily < 0.5) zeroRun += 1;
+      else zeroRun = 0;
+      if (zeroRun >= 42) return Math.max(1, d - 41);
+    }
+    return 260;
+  }
+  const trajectory = Array.from({ length: maxDays + 1 }, (_, h) => ({
+    date: addDaysIso(selectedDate, h),
+    median: cumulativeAt(quantileProfiles.median, h),
+    lo50: cumulativeAt(quantileProfiles.lo50, h),
+    hi50: cumulativeAt(quantileProfiles.hi50, h),
+    lo90: cumulativeAt(quantileProfiles.lo90, h),
+    hi90: cumulativeAt(quantileProfiles.hi90, h)
+  }));
   return {
     selectedDate,
     scenario,
     observed,
     currentCum,
-    rt,
-    rtMedian: rt.mean,
-    finalMedian: quantile(finalSizes, 0.5),
-    finalLo50: quantile(finalSizes, 0.25),
-    finalHi50: quantile(finalSizes, 0.75),
-    finalLo90: quantile(finalSizes, 0.05),
-    finalHi90: quantile(finalSizes, 0.95),
-    endDateMedian: addDaysIso(selectedDate, endMedianOffset),
-    endDateLo90: addDaysIso(selectedDate, endLoOffset),
-    endDateHi90: addDaysIso(selectedDate, endHiOffset),
+    baseDaily,
+    finalMedian: cumulativeAt(quantileProfiles.median, 260),
+    finalLo50: cumulativeAt(quantileProfiles.lo50, 260),
+    finalHi50: cumulativeAt(quantileProfiles.hi50, 260),
+    finalLo90: cumulativeAt(quantileProfiles.lo90, 260),
+    finalHi90: cumulativeAt(quantileProfiles.hi90, 260),
+    endDateMedian: addDaysIso(selectedDate, endOffset(quantileProfiles.median)),
+    endDateLo90: addDaysIso(selectedDate, endOffset(quantileProfiles.lo90)),
+    endDateHi90: addDaysIso(selectedDate, endOffset(quantileProfiles.hi90)),
     trajectory
   };
 }
@@ -3339,9 +3329,16 @@ function updateFinalSizeProjectionChart() {
   if (!el) return;
   refreshFinalSizeScenarioOptions();
   const scenario = document.getElementById('finalSizeScenarioSelect')?.value || 'baseline';
-  const proj = makeFinalSizeProjection(selectedCaseDate(), scenario);
   const summaryEl = document.getElementById('finalSizeSummary');
   const statsEl = document.getElementById('finalSizeStats');
+  if (summaryEl && !summaryEl.innerHTML.trim()) summaryEl.innerHTML = `<div class="final-size-stat-card"><span>${currentLang === 'ja' ? '計算中' : 'Calculating'}</span><strong>—</strong></div>`;
+  let proj = null;
+  try {
+    proj = makeFinalSizeProjection(selectedCaseDate(), scenario);
+  } catch (err) {
+    console.warn('Final-size projection failed', err);
+    proj = null;
+  }
   if (!proj) {
     if (summaryEl) summaryEl.innerHTML = '';
     if (statsEl) statsEl.textContent = currentLang === 'ja' ? '最終サイズ推定には十分なSitRep観測点がありません。' : 'There are insufficient SitRep observations for final-size projection.';
@@ -3398,7 +3395,7 @@ function updateFinalSizeProjectionChart() {
 
   if (statsEl) {
     if (currentLang === 'ja') {
-      statsEl.innerHTML = `シナリオ：<strong>${finalSizeScenarioLabel(scenario)}</strong>。推定終息日は、モデル上で新規確定症例が42日間連続して0となる最初の日として定義しています。これはシナリオに基づく推定であり、確定的な予測ではありません。`;
+      statsEl.innerHTML = `シナリオ：<strong>${finalSizeScenarioLabel(scenario)}</strong>。推定終息日は、モデル上で日別新規確定例が42日間連続して0となる最初の日として定義しています。これは日々の報告例数に基づくシナリオ推定であり、確定的な予測ではありません。`;
     } else {
       statsEl.innerHTML = `Scenario: <strong>${finalSizeScenarioLabel(scenario)}</strong>. The estimated end date is defined as the first date followed by 42 consecutive days with zero incident confirmed cases in the model. This is a scenario-based estimate, not a deterministic prediction.`;
     }

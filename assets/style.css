@@ -1036,3 +1036,45 @@ main {
     grid-template-columns: 1fr;
   }
 }
+
+
+/* Final adjustment: make the right analysis rail visibly wider and the map rail narrower. */
+:root {
+  --dashboard-max-width: 1500px;
+  --dashboard-side-width: 620px;
+}
+main {
+  width: min(100%, var(--dashboard-max-width));
+  max-width: var(--dashboard-max-width);
+}
+main > .grid-two:first-of-type {
+  grid-template-columns: minmax(460px, 1fr) var(--dashboard-side-width) !important;
+  gap: 18px !important;
+}
+main > .grid-two:first-of-type .map-panel {
+  min-width: 0;
+}
+main > .grid-two:first-of-type .right-analysis-panel {
+  width: 100%;
+  min-width: 0;
+  overflow-y: auto;
+}
+.final-size-chart {
+  height: 330px;
+  min-height: 330px;
+}
+.final-size-summary-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+@media (max-width: 1320px) {
+  :root { --dashboard-side-width: 560px; }
+}
+@media (max-width: 1180px) {
+  main > .grid-two:first-of-type {
+    grid-template-columns: 1fr !important;
+  }
+  .right-analysis-panel {
+    height: auto !important;
+    max-height: none !important;
+  }
+}
