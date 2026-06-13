@@ -698,3 +698,213 @@ main,
     min-width: 0;
   }
 }
+
+/* --------------------------------------------------------------------------
+   Width and layout refinement: keep dashboard content unchanged, but prevent
+   the screen from becoming too wide on large monitors.
+   -------------------------------------------------------------------------- */
+:root {
+  --dashboard-max-width: 1440px;
+  --dashboard-side-width: 380px;
+  --dashboard-gap: 20px;
+}
+
+body {
+  background: #f4f7fb;
+}
+
+.topbar {
+  max-width: var(--dashboard-max-width);
+  margin: 0 auto;
+  border-radius: 0 0 24px 24px;
+  padding: 28px clamp(18px, 2.4vw, 36px);
+}
+
+main {
+  width: min(100%, var(--dashboard-max-width));
+  max-width: var(--dashboard-max-width);
+  padding: 22px clamp(14px, 2vw, 28px) 40px;
+}
+
+/* Main analytical canvas: map takes the available space, analysis is a compact rail. */
+.grid-two {
+  grid-template-columns: minmax(720px, 1fr) var(--dashboard-side-width) !important;
+  gap: var(--dashboard-gap);
+  align-items: start;
+}
+
+.map-panel {
+  min-width: 0;
+}
+
+#map {
+  height: min(70vh, 720px);
+  min-height: 560px;
+}
+
+.right-analysis-panel {
+  width: 100%;
+  min-width: 0;
+  max-height: calc(100vh - 28px);
+  overflow-y: auto;
+  position: sticky;
+  top: 14px;
+  padding-right: 16px;
+}
+
+.right-analysis-panel::-webkit-scrollbar {
+  width: 8px;
+}
+
+.right-analysis-panel::-webkit-scrollbar-thumb {
+  background: #c9d6e4;
+  border-radius: 999px;
+}
+
+.right-analysis-panel h2 {
+  font-size: 17px;
+}
+
+.right-analysis-panel p {
+  font-size: 0.82rem;
+  line-height: 1.45;
+}
+
+.compact-chart,
+#epiTimelineChart,
+.forecast-chart,
+.response-timeline-chart,
+.rwi-scatter-chart {
+  min-height: 240px;
+}
+
+#epiTimelineChart {
+  min-height: 260px;
+}
+
+/* Keep layer buttons readable without forcing the page wider. */
+.map-layer-toolbar {
+  display: grid;
+  grid-template-columns: 150px minmax(0, 1fr);
+  align-items: start;
+}
+
+.map-toggle-group {
+  grid-template-columns: repeat(auto-fit, minmax(104px, 1fr));
+}
+
+.layer-toggle {
+  min-width: 0;
+  font-size: 0.70rem;
+  padding: 6px 7px;
+}
+
+/* Form controls should wrap within the map card instead of widening it. */
+.controls {
+  gap: 12px;
+}
+
+.control {
+  min-width: min(210px, 100%);
+}
+
+.map-controls .control {
+  flex: 1 1 190px;
+}
+
+.custom-origin-control select[multiple] {
+  min-width: 100%;
+}
+
+/* Make the dense KPI row calmer on constrained widths. */
+.kpi-grid {
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.kpi-card {
+  padding: 15px;
+}
+
+/* Below the main canvas, keep long source/interpretation panels within the same readable width. */
+.scenario-panel,
+.sources {
+  max-width: var(--dashboard-max-width);
+  margin-left: auto;
+  margin-right: auto;
+}
+
+/* Tablet and small-laptop layout: stack the side rail below the map. */
+@media (max-width: 1180px) {
+  .grid-two {
+    grid-template-columns: 1fr !important;
+  }
+
+  .right-analysis-panel {
+    position: static;
+    max-height: none;
+    overflow: visible;
+    padding-right: 20px;
+  }
+
+  #map {
+    height: 600px;
+    min-height: 520px;
+  }
+
+  .kpi-grid,
+  .epi-kpi-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 850px) {
+  .topbar {
+    border-radius: 0;
+  }
+
+  main {
+    padding: 16px 12px 32px;
+  }
+
+  .panel {
+    padding: 16px;
+    border-radius: 18px;
+  }
+
+  .map-layer-toolbar {
+    grid-template-columns: 1fr;
+  }
+
+  .map-toggle-group {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .report-slider-head,
+  .chart-block-head,
+  .slider-head {
+    flex-direction: column;
+    align-items: stretch;
+  }
+
+  #map {
+    height: 520px;
+    min-height: 460px;
+  }
+
+  .source-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (max-width: 620px) {
+  .kpi-grid,
+  .epi-kpi-grid {
+    grid-template-columns: 1fr;
+  }
+
+  #map {
+    height: 470px;
+    min-height: 420px;
+  }
+}
