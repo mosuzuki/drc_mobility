@@ -463,15 +463,15 @@ def main() -> None:
         "definition_of_end_date": "First date followed by 42 consecutive days with zero incident confirmed cases in the simulated or analog-projected reporting process.",
         "caveat": "Scenario-based projection from reported confirmed cases. Not adjusted for onset date, reporting delay, under-ascertainment, spatial heterogeneity or future response changes outside model assumptions. AI-assisted historical matching is an auxiliary analog forecast, not a deterministic prediction.",
         "model_labels": {
-            "ensemble": {"ja": "Ensemble（推奨）", "en": "Ensemble (recommended)"},
-            "branching": {"ja": "Branching process", "en": "Branching process"},
-            "historical_ai": {"ja": "AI支援による過去流行マッチング", "en": "AI-assisted historical matching"},
+            "ensemble": {"ja": "Ensemble（推奨）", "en": "Ensemble (recommended)", "fr": "Ensemble (recommandé)"},
+            "branching": {"ja": "Branching process", "en": "Branching process", "fr": "Processus de branchement"},
+            "historical_ai": {"ja": "AI支援による過去流行マッチング", "en": "AI-assisted historical matching", "fr": "Appariement historique assisté par IA"},
         },
         # Backward-compatible name consumed by app.js.
         "scenario_labels": {
-            "ensemble": {"ja": "Ensemble（推奨）", "en": "Ensemble (recommended)"},
-            "branching": {"ja": "Branching process", "en": "Branching process"},
-            "historical_ai": {"ja": "AI支援による過去流行マッチング", "en": "AI-assisted historical matching"},
+            "ensemble": {"ja": "Ensemble（推奨）", "en": "Ensemble (recommended)", "fr": "Ensemble (recommandé)"},
+            "branching": {"ja": "Branching process", "en": "Branching process", "fr": "Processus de branchement"},
+            "historical_ai": {"ja": "AI支援による過去流行マッチング", "en": "AI-assisted historical matching", "fr": "Appariement historique assisté par IA"},
         },
         "model_definitions": {
             "ensemble": "Weighted combination of branching process and AI-assisted historical matching. Initial display uses this recommended layer.",

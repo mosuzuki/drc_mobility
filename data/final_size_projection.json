@@ -9,29 +9,35 @@
   "model_labels": {
     "ensemble": {
       "ja": "Ensemble（推奨）",
-      "en": "Ensemble (recommended)"
+      "en": "Ensemble (recommended)",
+      "fr": "Ensemble (recommandé)"
     },
     "branching": {
       "ja": "Branching process",
-      "en": "Branching process"
+      "en": "Branching process",
+      "fr": "Processus de branchement"
     },
     "historical_ai": {
       "ja": "AI支援による過去流行マッチング",
-      "en": "AI-assisted historical matching"
+      "en": "AI-assisted historical matching",
+      "fr": "Appariement historique assisté par IA"
     }
   },
   "scenario_labels": {
     "ensemble": {
       "ja": "Ensemble（推奨）",
-      "en": "Ensemble (recommended)"
+      "en": "Ensemble (recommended)",
+      "fr": "Ensemble (recommandé)"
     },
     "branching": {
       "ja": "Branching process",
-      "en": "Branching process"
+      "en": "Branching process",
+      "fr": "Processus de branchement"
     },
     "historical_ai": {
       "ja": "AI支援による過去流行マッチング",
-      "en": "AI-assisted historical matching"
+      "en": "AI-assisted historical matching",
+      "fr": "Appariement historique assisté par IA"
     }
   },
   "model_definitions": {

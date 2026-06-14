@@ -49,7 +49,7 @@ const fmt = new Intl.NumberFormat('en-US');
 const pct = (x) => `${(x * 100).toFixed(1)}%`;
 
 let currentLang = localStorage.getItem('dashboardLanguage') || 'ja';
-if (!['ja', 'en'].includes(currentLang)) currentLang = 'ja';
+if (!['ja', 'en', 'fr'].includes(currentLang)) currentLang = 'ja';
 
 const UI_TEXT = {
   ja: {
@@ -149,11 +149,66 @@ const UI_TEXT = {
     kpiDrcDeathsLabel: 'DRC confirmed deaths',
     kpiUgandaCasesLabel: 'Uganda confirmed cases',
     kpiUgandaDeathsLabel: 'Uganda confirmed deaths'
+  },
+  fr: {
+    pageEyebrow: 'Tableau intégré épidémiologie, mobilité et réponse',
+    pageTitle: 'Tableau de bord Ebola Bundibugyo RDC–Ouganda',
+    pageSubtitle: 'Ce tableau intègre les cas par zone de santé dans l’est de la RDC, la mobilité de la population, les flux frontaliers vers l’Ouganda et les indicateurs de réponse afin d’appuyer la compréhension de la situation et l’évaluation du risque de diffusion.',
+    dataStatusLabel: 'État des données',
+    assessmentEyebrow: 'Veille situationnelle assistée par IA',
+    assessmentTitle: 'Évaluation situationnelle assistée par IA',
+    assessmentIntro: 'À chaque mise à jour, le tableau affiche un résumé des changements et une évaluation de santé publique fondée sur l’épidémiologie, la mobilité et les indicateurs de réponse. Il ne s’agit pas d’une évaluation officielle du risque et une revue experte reste nécessaire.',
+    assessmentUpdatedLoading: 'Mis à jour avec le SitRep sélectionné le plus récent',
+    latestSituationTitle: 'Situation récente',
+    latestSituationMetaFallback: 'Résumé des changements par SitRep',
+    latestSituationDrcLabel: 'RDC : ',
+    latestSituationUgandaLabel: 'Ouganda : ',
+    publicHealthAssessmentTitle: 'Évaluation de santé publique',
+    publicHealthAssessmentMeta: 'Évaluation fondée sur les indicateurs actuels',
+    assessmentLocalLabel: 'Situation épidémique dans les zones touchées',
+    assessmentCapitalLabel: 'Risque de diffusion vers la capitale',
+    assessmentCrossBorderLabel: 'Risque de diffusion vers l’Ouganda et les pays voisins',
+    mapLayerLabel: 'Couche cartographique',
+    originSelectLabel: 'Zone d’origine',
+    monthSelectLabel: 'Mois',
+    scenarioSelectLabel: 'Scénario transfrontalier vers l’Ouganda',
+    sitrepTimePointTitle: 'Point temporel SitRep',
+    sitrepTimePointHelp: 'Utilisez ce curseur pour mettre à jour les bulles de cas et les couches de risque pondérées par les cas selon la date de rapport.',
+    reportingDateMapTitle: 'Date de rapport affichée sur la carte',
+    reportedCasesTitle: 'Cas cumulés rapportés',
+    reportedCasesDesc: 'Cas confirmés en RDC par date de rapport SitRep. La date sélectionnée par le curseur est mise en évidence.',
+    forecastTitle: 'Projection à court terme',
+    forecastDesc: 'Projection renewal / processus de branchement fondée sur les cas confirmés récemment rapportés. La projection commence à la date SitRep sélectionnée.',
+    finalSizeTitle: 'Estimation de la taille finale de l’épidémie',
+    finalSizeDesc: 'Projection de la taille finale combinant un modèle de processus de branchement et un appariement historique assisté par IA. Il ne s’agit pas d’une prédiction déterministe.',
+    responseTimelineTitle: 'Chronologie de la réponse',
+    responseTimelineDesc: 'Indicateurs de réponse extraits des SitReps. Les valeurs peuvent être nationales, provinciales ou résumées par site opérationnel selon ce qui a été rapporté.',
+    rwiTitle: 'RWI et cas d’Ebola',
+    rwiDesc: 'Comparaison écologique par zone de santé. Le RWI est présenté en percentile au sein de la RDC ; la date de rapport et le mode d’affichage des cas sélectionnés sont utilisés.',
+    rankingTitleCases: 'Classement par nombre de cas',
+    rankingDescriptionCases: 'Cas confirmés cumulés et décès par zone de santé au SitRep sélectionné.',
+    rankingTitleDefault: 'Classement des destinations',
+    rankingDescriptionDefault: 'Principales zones de santé de destination selon le mouvement mensuel estimé.',
+    topNLabel: 'Nombre de zones à afficher',
+    scenarioTitle: 'Interprétation du scénario',
+    sourcesTitle: 'Sources de données à connecter',
+    limitationText: '<strong>Important :</strong> Les estimations pour l’Ouganda incluent à la fois les synthèses observées des flux frontaliers EVD de l’IOM DTM du 15 au 24 mai 2026 et des scores de pression d’importation fondés sur des scénarios combinant les mouvements pondérés par les cas côté RDC vers des zones frontalières proxy avec le profil de destination 2026 pour l’Ouganda. Il ne s’agit pas de probabilités de transmission d’Ebola.',
+    footerText: 'Prototype de tableau de bord utilisant des estimations de mobilité par zone de santé en RDC dérivées de Flowminder / HDX. Les valeurs pour l’Ouganda doivent être interprétées comme des proxys tant qu’elles ne sont pas calibrées avec des données transfrontalières.',
+    kpiTotalLabel: 'Cas confirmés en RDC',
+    kpiDrcDeathsLabel: 'Décès confirmés en RDC',
+    kpiUgandaCasesLabel: 'Cas confirmés en Ouganda',
+    kpiUgandaDeathsLabel: 'Décès confirmés en Ouganda'
   }
 };
 
 function uiText(key) {
   return (UI_TEXT[currentLang] && UI_TEXT[currentLang][key]) || (UI_TEXT.en && UI_TEXT.en[key]) || key;
+}
+
+function textByLang(ja, en, fr) {
+  if (currentLang === 'ja') return ja;
+  if (currentLang === 'fr') return fr ?? en;
+  return en;
 }
 
 function setTextById(id, value, html = false) {
@@ -166,12 +221,14 @@ function setTextById(id, value, html = false) {
 function formatCaseCount(n) {
   const v = fmt.format(Math.round(toNumber(n)));
   if (currentLang === 'ja') return `${v}例`;
+  if (currentLang === 'fr') return `${v} cas`;
   return `${v} case${Math.round(toNumber(n)) === 1 ? '' : 's'}`;
 }
 
 function formatDeathCount(n) {
   const v = fmt.format(Math.round(toNumber(n)));
   if (currentLang === 'ja') return `${v}例`;
+  if (currentLang === 'fr') return `${v} décès`;
   return `${v} death${Math.round(toNumber(n)) === 1 ? '' : 's'}`;
 }
 
@@ -181,7 +238,8 @@ function finalSizeScenarioLabel(key) {
   if (item && item[currentLang]) return item[currentLang];
   const labels = {
     ja: { ensemble: 'Ensemble（推奨）', branching: 'Branching process', historical_ai: 'AI支援による過去流行マッチング', baseline: '現状維持', improved: '制御改善', delayed: '制御遅延' },
-    en: { ensemble: 'Ensemble (recommended)', branching: 'Branching process', historical_ai: 'AI-assisted historical matching', baseline: 'Baseline', improved: 'Improved control', delayed: 'Delayed control' }
+    en: { ensemble: 'Ensemble (recommended)', branching: 'Branching process', historical_ai: 'AI-assisted historical matching', baseline: 'Baseline', improved: 'Improved control', delayed: 'Delayed control' },
+    fr: { ensemble: 'Ensemble (recommandé)', branching: 'Processus de branchement', historical_ai: 'Appariement historique assisté par IA', baseline: 'Scénario de référence', improved: 'Contrôle renforcé', delayed: 'Contrôle retardé' }
   };
   return (labels[currentLang] && labels[currentLang][key]) || key;
 }
@@ -205,20 +263,22 @@ function refreshFinalSizeScenarioOptions() {
 }
 
 function applyStaticLanguage() {
-  document.documentElement.lang = currentLang === 'ja' ? 'ja' : 'en';
+  document.documentElement.lang = currentLang === 'ja' ? 'ja' : (currentLang === 'fr' ? 'fr' : 'en');
   const ids = ['pageEyebrow','pageTitle','pageSubtitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','finalSizeTitle','finalSizeDesc','responseTimelineTitle','responseTimelineDesc','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiUgandaDeathsLabel'];
   ids.forEach(id => setTextById(id, uiText(id)));
   setTextById('limitationText', uiText('limitationText'), true);
   const ja = document.getElementById('langJa');
   const en = document.getElementById('langEn');
+  const fr = document.getElementById('langFr');
   if (ja) ja.classList.toggle('active', currentLang === 'ja');
   if (en) en.classList.toggle('active', currentLang === 'en');
+  if (fr) fr.classList.toggle('active', currentLang === 'fr');
   refreshFinalSizeScenarioOptions();
   updateDataStatusText();
 }
 
 function setLanguage(lang) {
-  if (!['ja','en'].includes(lang) || lang === currentLang) return;
+  if (!['ja','en','fr'].includes(lang) || lang === currentLang) return;
   currentLang = lang;
   localStorage.setItem('dashboardLanguage', currentLang);
   applyStaticLanguage();
@@ -228,8 +288,10 @@ function setLanguage(lang) {
 function initLanguageControls() {
   const ja = document.getElementById('langJa');
   const en = document.getElementById('langEn');
+  const fr = document.getElementById('langFr');
   if (ja) ja.addEventListener('click', () => setLanguage('ja'));
   if (en) en.addEventListener('click', () => setLanguage('en'));
+  if (fr) fr.addEventListener('click', () => setLanguage('fr'));
   applyStaticLanguage();
 }
 
@@ -242,20 +304,23 @@ function updateDataStatusText() {
   const firstSummary = summaryRows[0] || null;
   const latestReport = latestSummary?.report_no || 'latest SitRep';
   const firstReport = firstSummary?.report_no || 'first SitRep';
-  const latestReporting = latestSummary?.reporting_date ? displayDateLabel(latestSummary.reporting_date) : (currentLang === 'ja' ? '最新報告日' : 'latest reporting date');
-  const latestPublished = latestSummary?.publication_date ? displayDateLabel(latestSummary.publication_date) : (currentLang === 'ja' ? '最新公開日' : 'latest publication date');
+  const latestReporting = latestSummary?.reporting_date ? displayDateLabel(latestSummary.reporting_date) : textByLang('最新報告日', 'latest reporting date', 'dernière date de rapport');
+  const latestPublished = latestSummary?.publication_date ? displayDateLabel(latestSummary.publication_date) : textByLang('最新公開日', 'latest publication date', 'dernière date de publication');
   const ugLatest = latestUgandaEvdSummary();
   if (currentLang === 'ja') {
     statusEl.textContent = `SitRep ${firstReport.replace(/^N/i, 'N')}–${latestReport}まで更新済み（最新 ${latestReport}）`;
     const ugMsg = ugLatest ? `ウガンダ症例はUganda Ministry of Health EVD daily page（${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}）から自動取得し、最新は${displayDateLabel(ugLatest.as_of_date)}時点です。` : 'ウガンダ症例はUganda Ministry of Health EVD daily page（https://evd-daily.health.go.ug/）から自動取得する設定です。';
     updatedEl.textContent = `DRCはINSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新は${latestReport}（報告 ${latestReporting}、公開 ${latestPublished}）。${ugMsg}`;
+  } else if (currentLang === 'fr') {
+    statusEl.textContent = `Mis à jour jusqu’aux SitRep ${firstReport.replace(/^N/i, 'N')}–${latestReport} (dernier ${latestReport})`;
+    const ugMsg = ugLatest ? `Les cas en Ouganda sont récupérés automatiquement depuis la page quotidienne EVD du ministère de la Santé de l’Ouganda (${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}); dernière mise à jour au ${displayDateLabel(ugLatest.as_of_date)}.` : 'Les cas en Ouganda sont configurés pour être récupérés depuis la page quotidienne EVD du ministère de la Santé de l’Ouganda (https://evd-daily.health.go.ug/).';
+    updatedEl.textContent = `Pour la RDC, la page SitRep de l’INSP est vérifiée toutes les 6 heures; le dernier PDF est récupéré, extrait et intégré. Dernier : ${latestReport} (rapport ${latestReporting}, publication ${latestPublished}). ${ugMsg}`;
   } else {
     statusEl.textContent = `Updated through SitRep ${firstReport.replace(/^N/i, 'N')}–${latestReport} (latest ${latestReport})`;
     const ugMsg = ugLatest ? `Uganda case counts are automatically retrieved from the Uganda Ministry of Health EVD daily page (${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}); latest as of ${displayDateLabel(ugLatest.as_of_date)}.` : 'Uganda case counts are configured to be retrieved from the Uganda Ministry of Health EVD daily page (https://evd-daily.health.go.ug/).';
     updatedEl.textContent = `For DRC, the INSP SitRep page is checked every 6 hours and the latest PDF is retrieved, extracted and incorporated. Latest: ${latestReport} (reporting ${latestReporting}, published ${latestPublished}). ${ugMsg}`;
   }
 }
-
 
 function toNumber(x) {
   const n = Number(x);
@@ -1247,24 +1312,24 @@ function setEpiKpis() {
   if (caseDisplayMode === 'recent') {
     kpiTotal.textContent = fmt.format(Math.round(mappedCases));
     kpiKinshasa.textContent = fmt.format(Math.round(mappedDeaths));
-    kpiKinshasaShare.textContent = currentLang === 'ja' ? `地図化可能なhealth-zone増加分；${displayDateLabel(comparisonCaseDate(d))}〜${displayDateLabel(d)}` : `Mappable health-zone increase; ${displayDateLabel(comparisonCaseDate(d))} to ${displayDateLabel(d)}`;
+    kpiKinshasaShare.textContent = textByLang(`地図化可能なhealth-zone増加分；${displayDateLabel(comparisonCaseDate(d))}〜${displayDateLabel(d)}`, `Mappable health-zone increase; ${displayDateLabel(comparisonCaseDate(d))} to ${displayDateLabel(d)}`, `Augmentation mappable par zone de santé ; ${displayDateLabel(comparisonCaseDate(d))} au ${displayDateLabel(d)}`);
   } else {
     kpiTotal.textContent = fmt.format(toNumber(meta?.drc_confirmed_cases) || Math.round(mappedCases));
     kpiKinshasa.textContent = fmt.format(toNumber(meta?.drc_confirmed_deaths) || Math.round(mappedDeaths));
     const cfr = (toNumber(meta?.drc_confirmed_deaths) || mappedDeaths) / Math.max((toNumber(meta?.drc_confirmed_cases) || mappedCases), 1);
-    kpiKinshasaShare.textContent = currentLang === 'ja' ? `確定例におけるCFR ${pct(cfr)}；${meta?.report_no || ''}` : `${pct(cfr)} CFR among confirmed; ${meta?.report_no || ''}`;
+    kpiKinshasaShare.textContent = textByLang(`確定例におけるCFR ${pct(cfr)}；${meta?.report_no || ''}`, `${pct(cfr)} CFR among confirmed; ${meta?.report_no || ''}`, `CFR parmi les cas confirmés ${pct(cfr)} ; ${meta?.report_no || ''}`);
   }
   const ug = latestUgandaEvdSummary();
   const ugCases = toNumber(ug?.cumulative_confirmed_cases);
   const ugDeaths = toNumber(ug?.cumulative_deaths);
   kpiBorder.textContent = fmt.format(ugCases || toNumber(meta?.uganda_confirmed_cases) || 7);
   kpiBorderShare.textContent = ug
-    ? (currentLang === 'ja' ? `Uganda MoH EVD daily page；輸入例 ${fmt.format(toNumber(ug.imported_cases) || 0)}、国内例 ${fmt.format(toNumber(ug.local_cases) || 0)}；${displayDateLabel(ug.as_of_date)}時点` : `Uganda MoH EVD daily page; imported ${fmt.format(toNumber(ug.imported_cases) || 0)}, local ${fmt.format(toNumber(ug.local_cases) || 0)}; as of ${displayDateLabel(ug.as_of_date)}`)
-    : (currentLang === 'ja' ? 'ウガンダ確定症例；最新の利用可能なIOM DTM EVD snapshot' : 'Uganda confirmed cases; latest available IOM DTM EVD snapshot');
+    ? textByLang(`Uganda MoH EVD daily page；輸入例 ${fmt.format(toNumber(ug.imported_cases) || 0)}、国内例 ${fmt.format(toNumber(ug.local_cases) || 0)}；${displayDateLabel(ug.as_of_date)}時点`, `Uganda MoH EVD daily page; imported ${fmt.format(toNumber(ug.imported_cases) || 0)}, local ${fmt.format(toNumber(ug.local_cases) || 0)}; as of ${displayDateLabel(ug.as_of_date)}`, `Page quotidienne EVD du MoH Ouganda ; importés ${fmt.format(toNumber(ug.imported_cases) || 0)}, locaux ${fmt.format(toNumber(ug.local_cases) || 0)} ; au ${displayDateLabel(ug.as_of_date)}`)
+    : textByLang('ウガンダ確定症例；最新の利用可能なIOM DTM EVD snapshot', 'Uganda confirmed cases; latest available IOM DTM EVD snapshot', 'Cas confirmés en Ouganda ; dernier snapshot IOM DTM EVD disponible');
   kpiUganda.textContent = fmt.format(ugDeaths || toNumber(meta?.uganda_confirmed_deaths) || 1);
   kpiScenario.textContent = ug
-    ? (currentLang === 'ja' ? `ウガンダ確定死亡例；出典 ${ugandaEvdSourceLabel(ug)}` : `Uganda confirmed deaths; source ${ugandaEvdSourceLabel(ug)}`)
-    : (currentLang === 'ja' ? `ウガンダ確定死亡例；DRCデータ ${caseDisplayLabel()}` : `Uganda confirmed death; DRC data ${caseDisplayLabel()}`);
+    ? textByLang(`ウガンダ確定死亡例；出典 ${ugandaEvdSourceLabel(ug)}`, `Uganda confirmed deaths; source ${ugandaEvdSourceLabel(ug)}`, `Décès confirmés en Ouganda ; source ${ugandaEvdSourceLabel(ug)}`)
+    : textByLang(`ウガンダ確定死亡例；DRCデータ ${caseDisplayLabel()}`, `Uganda confirmed death; DRC data ${caseDisplayLabel()}`, `Décès confirmés en Ouganda ; données RDC ${caseDisplayLabel()}`);
 }
 
 
@@ -1743,6 +1808,37 @@ function updateLatestSituationSummary() {
     return;
   }
 
+  if (currentLang === 'fr') {
+    const summaryRows = (reportSummary || []).slice().sort((a, b) => String(a.reporting_date || '').localeCompare(String(b.reporting_date || '')));
+    const latest = summaryRows[summaryRows.length - 1] || null;
+    const previous = latest ? summaryRows.slice(0, -1).reverse().find(r => String(r.report_no || '') !== String(latest.report_no || '')) : null;
+    if (!latest) {
+      if (drcEl) drcEl.textContent = 'Le résumé des changements sera affiché après la prochaine mise à jour automatique du SitRep.';
+      if (ugandaEl) ugandaEl.textContent = 'Les informations de mise à jour pour l’Ouganda seront affichées après la prochaine mise à jour automatique.';
+      if (metaEl) metaEl.textContent = 'Résumé des changements par SitRep';
+      return;
+    }
+    const latestCases = toNumber(latest.drc_confirmed_cases);
+    const latestDeaths = toNumber(latest.drc_confirmed_deaths);
+    const prevCases = previous ? toNumber(previous.drc_confirmed_cases) : NaN;
+    const prevDeaths = previous ? toNumber(previous.drc_confirmed_deaths) : NaN;
+    const dCases = Number.isFinite(prevCases) ? latestCases - prevCases : NaN;
+    const dDeaths = Number.isFinite(prevDeaths) ? latestDeaths - prevDeaths : NaN;
+    if (drcEl) {
+      drcEl.textContent = previous
+        ? `De ${previous.report_no} à ${latest.report_no}, les cas confirmés cumulés en RDC sont passés de ${fmt.format(prevCases)} à ${fmt.format(latestCases)} (${dCases >= 0 ? '+' : ''}${fmt.format(dCases)} cas), et les décès confirmés sont passés de ${fmt.format(prevDeaths)} à ${fmt.format(latestDeaths)} (${dDeaths >= 0 ? '+' : ''}${fmt.format(dDeaths)} décès).`
+        : `${latest.report_no} : la RDC rapporte ${fmt.format(latestCases)} cas confirmés et ${fmt.format(latestDeaths)} décès confirmés.`;
+    }
+    const ug = latestUgandaEvdSummary();
+    if (ugandaEl) {
+      ugandaEl.textContent = ug
+        ? `L’Ouganda rapporte ${fmt.format(toNumber(ug.cumulative_confirmed_cases))} cas confirmés et ${fmt.format(toNumber(ug.cumulative_deaths))} décès (${fmt.format(toNumber(ug.imported_cases))} importés, ${fmt.format(toNumber(ug.local_cases))} locaux) au ${displayDateLabel(ug.as_of_date)}.`
+        : 'Les informations sur les cas côté Ouganda ne sont pas disponibles dans les fichiers de données locaux actuels.';
+    }
+    if (metaEl) metaEl.textContent = previous ? `${previous.report_no}→${latest.report_no}, date de rapport ${displayDateLabel(latest.reporting_date)}.` : `${latest.report_no}, date de rapport ${displayDateLabel(latest.reporting_date)}.`;
+    return;
+  }
+
   if (!row) {
     if (drcEl) drcEl.textContent = 'SitRep更新ごとの差分要約は、次回の自動更新後に表示されます。';
     if (ugandaEl) ugandaEl.textContent = 'ウガンダ側の更新情報は、次回の自動更新後に表示されます。';
@@ -1786,7 +1882,8 @@ function displayDateLabel(dateStr) {
   if (!dateStr) return '—';
   const d = new Date(dateStr + 'T00:00:00Z');
   if (Number.isNaN(d.getTime())) return dateStr;
-  return d.toLocaleDateString('en-GB', { day:'2-digit', month:'short', year:'numeric', timeZone:'UTC' });
+  const locale = currentLang === 'ja' ? 'ja-JP' : (currentLang === 'fr' ? 'fr-FR' : 'en-GB');
+  return d.toLocaleDateString(locale, { day:'2-digit', month:'short', year:'numeric', timeZone:'UTC' });
 }
 
 function caseDisplayLabel() {
@@ -1794,6 +1891,10 @@ function caseDisplayLabel() {
   if (currentLang === 'ja') {
     if (caseDisplayMode === 'recent') return `直近増加（${displayDateLabel(comparisonCaseDate(date))}から${displayDateLabel(date)}）`;
     return `${displayDateLabel(date)}時点の累積`;
+  }
+  if (currentLang === 'fr') {
+    if (caseDisplayMode === 'recent') return `augmentation récente (${displayDateLabel(comparisonCaseDate(date))} au ${displayDateLabel(date)})`;
+    return `cumul au ${displayDateLabel(date)}`;
   }
   if (caseDisplayMode === 'recent') return `recent increase (${displayDateLabel(comparisonCaseDate(date))} to ${displayDateLabel(date)})`;
   return `cumulative as of ${displayDateLabel(date)}`;
@@ -1977,20 +2078,26 @@ function updateCasesMap() {
   const mappedRows = rows.filter(r => r.map_location_known && toNumber(r.cases) > 0);
   const maxCases = Math.max(...rows.map(r => toNumber(r.cases)), 1);
 
-  document.getElementById('mapTitle').textContent = currentLang === 'ja' ? 'Health zone別のエボラ確定例' : 'Confirmed Ebola cases by health zone';
-  document.getElementById('mapDescription').textContent = currentLang === 'ja'
-    ? (caseDisplayMode === 'recent' ? '直近の確定例増加を、health zone重心上の比例バブルで表示します。症例バブルを見やすくするため、このレイヤーでは境界線を非表示にしています。' : '累積確定例を、health zone重心上の比例バブルで表示します。症例バブルを見やすくするため、このレイヤーでは境界線を非表示にしています。')
-    : (caseDisplayMode === 'recent' ? 'Recent increase in confirmed cases is shown as proportional red bubbles at health-zone centroids. Boundary outlines are hidden in this layer to keep the case bubbles readable.' : 'Cumulative confirmed cases are shown as proportional red bubbles at health-zone centroids. Boundary outlines are hidden in this layer to keep the case bubbles readable.');
-  document.getElementById('rankingTitle').textContent = currentLang === 'ja' ? '症例数ランキング' : 'Case-count ranking';
-  document.getElementById('rankingDescription').textContent = currentLang === 'ja'
-    ? (caseDisplayMode === 'recent' ? 'Health zone別の直近の確定例増加です。' : '選択したSitRep時点のhealth zone別累積確定例と死亡例です。')
-    : (caseDisplayMode === 'recent' ? 'Recent increase in confirmed cases by health zone.' : 'Cumulative confirmed cases and deaths by health zone from the selected SitRep.');
+  document.getElementById('mapTitle').textContent = textByLang('Health zone別のエボラ確定例', 'Confirmed Ebola cases by health zone', 'Cas confirmés d’Ebola par zone de santé');
+  document.getElementById('mapDescription').textContent = textByLang(
+    caseDisplayMode === 'recent' ? '直近の確定例増加を、health zone重心上の比例バブルで表示します。症例バブルを見やすくするため、このレイヤーでは境界線を非表示にしています。' : '累積確定例を、health zone重心上の比例バブルで表示します。症例バブルを見やすくするため、このレイヤーでは境界線を非表示にしています。',
+    caseDisplayMode === 'recent' ? 'Recent increase in confirmed cases is shown as proportional red bubbles at health-zone centroids. Boundary outlines are hidden in this layer to keep the case bubbles readable.' : 'Cumulative confirmed cases are shown as proportional red bubbles at health-zone centroids. Boundary outlines are hidden in this layer to keep the case bubbles readable.',
+    caseDisplayMode === 'recent' ? 'L’augmentation récente des cas confirmés est affichée par des bulles proportionnelles au centroïde des zones de santé. Les limites sont masquées dans cette couche pour améliorer la lisibilité.' : 'Les cas confirmés cumulés sont affichés par des bulles proportionnelles au centroïde des zones de santé. Les limites sont masquées dans cette couche pour améliorer la lisibilité.'
+  );
+  document.getElementById('rankingTitle').textContent = textByLang('症例数ランキング', 'Case-count ranking', 'Classement par nombre de cas');
+  document.getElementById('rankingDescription').textContent = textByLang(
+    caseDisplayMode === 'recent' ? 'Health zone別の直近の確定例増加です。' : '選択したSitRep時点のhealth zone別累積確定例と死亡例です。',
+    caseDisplayMode === 'recent' ? 'Recent increase in confirmed cases by health zone.' : 'Cumulative confirmed cases and deaths by health zone from the selected SitRep.',
+    caseDisplayMode === 'recent' ? 'Augmentation récente des cas confirmés par zone de santé.' : 'Cas confirmés cumulés et décès par zone de santé au SitRep sélectionné.'
+  );
   notice.style.display = 'block';
   notice.className = 'population-notice';
   const hiddenUnmapped = rows.filter(r => toNumber(r.cases) > 0 && !r.map_location_known).reduce((sum, r) => sum + toNumber(r.cases), 0);
-  notice.innerHTML = currentLang === 'ja'
-    ? `Case layer: バブルサイズは${caseDisplayLabel()}のhealth zone別${caseDisplayMode === 'recent' ? '直近確定例増加' : '累積確定例'}を表します。Unventilated / unknown-health-zone casesは特定のhealth zoneに割り当てられないため地図上には表示していません。${hiddenUnmapped > 0 ? ` さらに${formatCaseCount(hiddenUnmapped)}は合計には含まれますが、信頼できる地理的対応がないため地図上では非表示です。` : ''}`
-    : `Case layer: bubble size represents ${caseDisplayMode === 'recent' ? 'recent increase in confirmed cases' : 'cumulative confirmed cases'} by health zone for ${caseDisplayLabel()}. Unventilated / unknown-health-zone cases are not shown because they cannot be assigned to a specific health zone.${hiddenUnmapped > 0 ? ` An additional ${fmt.format(Math.round(hiddenUnmapped))} case${hiddenUnmapped === 1 ? '' : 's'} from mapped health-zone records are retained in the totals but hidden on the map because no reliable geographic match is available.` : ''}`;
+  notice.innerHTML = textByLang(
+    `Case layer: バブルサイズは${caseDisplayLabel()}のhealth zone別${caseDisplayMode === 'recent' ? '直近確定例増加' : '累積確定例'}を表します。Unventilated / unknown-health-zone casesは特定のhealth zoneに割り当てられないため地図上には表示していません。${hiddenUnmapped > 0 ? ` さらに${formatCaseCount(hiddenUnmapped)}は合計には含まれますが、信頼できる地理的対応がないため地図上では非表示です。` : ''}`,
+    `Case layer: bubble size represents ${caseDisplayMode === 'recent' ? 'recent increase in confirmed cases' : 'cumulative confirmed cases'} by health zone for ${caseDisplayLabel()}. Unventilated / unknown-health-zone cases are not shown because they cannot be assigned to a specific health zone.${hiddenUnmapped > 0 ? ` An additional ${fmt.format(Math.round(hiddenUnmapped))} case${hiddenUnmapped === 1 ? '' : 's'} from mapped health-zone records are retained in the totals but hidden on the map because no reliable geographic match is available.` : ''}`,
+    `Couche des cas : la taille des bulles représente ${caseDisplayMode === 'recent' ? 'l’augmentation récente des cas confirmés' : 'les cas confirmés cumulés'} par zone de santé pour ${caseDisplayLabel()}. Les cas non ventilés ou sans zone de santé connue ne sont pas affichés car ils ne peuvent pas être attribués à une zone de santé spécifique.${hiddenUnmapped > 0 ? ` ${formatCaseCount(hiddenUnmapped)} supplémentaires sont conservés dans les totaux mais masqués sur la carte faute de correspondance géographique fiable.` : ''}`
+  );
 
   // Do not draw health-zone polygon outlines in the Cases layer.
   // The proportional case bubbles are the primary visual encoding here;
@@ -2006,7 +2113,11 @@ function updateCasesMap() {
       fillOpacity: 0.54,
       opacity: 0.95
     })
-      .bindPopup(currentLang === 'ja' ? `<strong>${r.zone_name}</strong><br>${r.province}<br>確定例: ${formatCaseCount(r.cases)}<br>死亡例: ${formatDeathCount(r.deaths)}<br>Source date: ${latestCaseDate() || '—'}` : `<strong>${r.zone_name}</strong><br>${r.province}<br>Confirmed cases: ${fmt.format(Math.round(r.cases))}<br>Confirmed deaths: ${fmt.format(Math.round(r.deaths))}<br>Source date: ${latestCaseDate() || '—'}`)
+      .bindPopup(textByLang(
+        `<strong>${r.zone_name}</strong><br>${r.province}<br>確定例: ${formatCaseCount(r.cases)}<br>死亡例: ${formatDeathCount(r.deaths)}<br>Source date: ${latestCaseDate() || '—'}`,
+        `<strong>${r.zone_name}</strong><br>${r.province}<br>Confirmed cases: ${fmt.format(Math.round(r.cases))}<br>Confirmed deaths: ${fmt.format(Math.round(r.deaths))}<br>Source date: ${latestCaseDate() || '—'}`,
+        `<strong>${r.zone_name}</strong><br>${r.province}<br>Cas confirmés: ${fmt.format(Math.round(r.cases))}<br>Décès confirmés: ${fmt.format(Math.round(r.deaths))}<br>Date source: ${latestCaseDate() || '—'}`
+      ))
       .addTo(layerGroup);
 
     if (toNumber(r.cases) >= Math.max(10, maxCases * 0.12)) {
@@ -2508,7 +2619,7 @@ function updateKpis(destRows) {
     document.getElementById('kpiBorderShare').textContent = `${mapped} rows with mappable zone ID`;
     document.getElementById('kpiUganda').textContent = top ? top.health_zone : '—';
     document.getElementById('kpiScenario').textContent = top ? `${fmt.format(Math.round(top.confirmed_cases))} confirmed cases; source ${latestCaseDate()}` : 'No case data';
-    document.getElementById('scenarioText').innerHTML = currentLang === 'ja' ? `<strong>症例数レイヤー</strong><br>確定例と死亡例は、選択したSitRep報告日の値を用いています。直近増加モードでは、少なくとも7日前に最も近いSitRepとの差分を表示します。Unventilated / unknown-health-zone casesは特定のhealth zoneに割り当てられないため、症例バブル地図には表示していません。` : `<strong>Case-count layer</strong><br>Confirmed cases and deaths are taken from the selected SitRep reporting date. In recent-increase mode, values are differences from the closest available SitRep at least seven days earlier. Unventilated / unknown-health-zone cases are intentionally not shown on the case-bubble map because they cannot be assigned to a specific health zone.`;
+    document.getElementById('scenarioText').innerHTML = textByLang(`<strong>症例数レイヤー</strong><br>確定例と死亡例は、選択したSitRep報告日の値を用いています。直近増加モードでは、少なくとも7日前に最も近いSitRepとの差分を表示します。Unventilated / unknown-health-zone casesは特定のhealth zoneに割り当てられないため、症例バブル地図には表示していません。`, `<strong>Case-count layer</strong><br>Confirmed cases and deaths are taken from the selected SitRep reporting date. In recent-increase mode, values are differences from the closest available SitRep at least seven days earlier. Unventilated / unknown-health-zone cases are intentionally not shown on the case-bubble map because they cannot be assigned to a specific health zone.`, `<strong>Couche des cas</strong><br>Les cas confirmés et les décès proviennent de la date de rapport SitRep sélectionnée. En mode augmentation récente, les valeurs correspondent à la différence avec le SitRep disponible le plus proche situé au moins sept jours plus tôt. Les cas non ventilés ou sans zone de santé connue ne sont pas affichés sur la carte des bulles car ils ne peuvent pas être attribués à une zone de santé spécifique.`);
     return;
   }
 
@@ -3189,27 +3300,27 @@ function updateEpiTimelineChart() {
     {
       type: 'scatter',
       mode: 'lines+markers',
-      name: currentLang === 'ja' ? '累積確定症例数' : 'Cumulative confirmed cases',
+      name: textByLang('累積確定症例数', 'Cumulative confirmed cases', 'Cas confirmés cumulés'),
       x,
       y,
       customdata: rows.map((r, i) => [reports[i], r.reporting_date, deaths[i]]),
-      hovertemplate: currentLang === 'ja' ? '%{customdata[0]}<br>%{x}<br>確定症例数: %{y:,.0f}<br>確定死亡例数: %{customdata[2]:,.0f}<extra></extra>' : '%{customdata[0]}<br>%{x}<br>Confirmed cases: %{y:,.0f}<br>Confirmed deaths: %{customdata[2]:,.0f}<extra></extra>'
+      hovertemplate: textByLang('%{customdata[0]}<br>%{x}<br>確定症例数: %{y:,.0f}<br>確定死亡例数: %{customdata[2]:,.0f}<extra></extra>', '%{customdata[0]}<br>%{x}<br>Confirmed cases: %{y:,.0f}<br>Confirmed deaths: %{customdata[2]:,.0f}<extra></extra>', '%{customdata[0]}<br>%{x}<br>Cas confirmés: %{y:,.0f}<br>Décès confirmés: %{customdata[2]:,.0f}<extra></extra>')
     },
     {
       type: 'scatter',
       mode: 'markers+text',
-      name: currentLang === 'ja' ? '選択中の報告日' : 'Selected reporting date',
+      name: textByLang('選択中の報告日', 'Selected reporting date', 'Date de rapport sélectionnée'),
       x: [selectedLabel],
       y: [selectedCases],
       text: [selectedReport],
       textposition: 'top center',
       marker: { size: 13, symbol: 'circle-open', line: { width: 3 } },
-      hovertemplate: currentLang === 'ja' ? `${selectedReport}<br>${selectedLabel}<br>選択中の症例数: ${fmt.format(selectedCases)}<br>選択中の死亡例数: ${fmt.format(selectedDeaths)}<extra></extra>` : `${selectedReport}<br>${selectedLabel}<br>Selected cases: ${fmt.format(selectedCases)}<br>Selected deaths: ${fmt.format(selectedDeaths)}<extra></extra>`
+      hovertemplate: textByLang(`${selectedReport}<br>${selectedLabel}<br>選択中の症例数: ${fmt.format(selectedCases)}<br>選択中の死亡例数: ${fmt.format(selectedDeaths)}<extra></extra>`, `${selectedReport}<br>${selectedLabel}<br>Selected cases: ${fmt.format(selectedCases)}<br>Selected deaths: ${fmt.format(selectedDeaths)}<extra></extra>`, `${selectedReport}<br>${selectedLabel}<br>Cas sélectionnés: ${fmt.format(selectedCases)}<br>Décès sélectionnés: ${fmt.format(selectedDeaths)}<extra></extra>`)
     }
   ], {
     margin: { l: 62, r: 24, t: 18, b: 150 },
-    xaxis: { title: { text: currentLang === 'ja' ? '報告日' : 'Reporting date', standoff: 24 }, tickangle: -42, gridcolor: '#eef3f8', automargin: true },
-    yaxis: { title: currentLang === 'ja' ? '確定症例数' : 'Confirmed cases', gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
+    xaxis: { title: { text: textByLang('報告日', 'Reporting date', 'Date de rapport'), standoff: 24 }, tickangle: -42, gridcolor: '#eef3f8', automargin: true },
+    yaxis: { title: textByLang('確定症例数', 'Confirmed cases', 'Cas confirmés'), gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
     legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.82, yanchor: 'top' },
     shapes: selectedIdx >= 0 ? [{
       type: 'line', xref: 'x', yref: 'y', x0: selectedLabel, x1: selectedLabel, y0: 0, y1: maxY,
@@ -3275,6 +3386,7 @@ function formatDateLong(dateStr) {
   const d = new Date(String(dateStr) + 'T00:00:00Z');
   if (!Number.isFinite(d.getTime())) return dateStr || '—';
   if (currentLang === 'ja') return d.toLocaleDateString('ja-JP', { year: 'numeric', month: 'numeric', day: 'numeric', timeZone: 'UTC' });
+  if (currentLang === 'fr') return d.toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric', timeZone: 'UTC' });
   return d.toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric', timeZone: 'UTC' });
 }
 
@@ -3307,13 +3419,15 @@ function updateFinalSizeProjectionChart() {
   if (!record || !proj || !Array.isArray(proj.trajectory) || !proj.trajectory.length) {
     if (summaryEl) summaryEl.innerHTML = '';
     if (statsEl) {
-      statsEl.textContent = currentLang === 'ja'
-        ? '最終サイズ推定JSONがまだ生成されていないか、このSitRep時点では十分な観測点がありません。'
-        : 'Final-size projection JSON has not been generated yet, or there are insufficient observations for this SitRep time point.';
+      statsEl.textContent = textByLang(
+        '最終サイズ推定JSONがまだ生成されていないか、このSitRep時点では十分な観測点がありません。',
+        'Final-size projection JSON has not been generated yet, or there are insufficient observations for this SitRep time point.',
+        'Le JSON de projection de la taille finale n’a pas encore été généré, ou les observations sont insuffisantes pour ce point SitRep.'
+      );
     }
     Plotly.newPlot('finalSizeChart', [], {
       margin: { l: 62, r: 24, t: 18, b: 64 },
-      annotations: [{ text: currentLang === 'ja' ? '最終サイズ推定データなし' : 'No final-size projection data', x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', showarrow: false, font: { size: 13, color: '#667085' } }],
+      annotations: [{ text: textByLang('最終サイズ推定データなし', 'No final-size projection data', 'Données de projection indisponibles'), x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', showarrow: false, font: { size: 13, color: '#667085' } }],
       paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
     }, { responsive: true, displayModeBar: false });
     return;
@@ -3326,11 +3440,17 @@ function updateFinalSizeProjectionChart() {
     const topMatches = Array.isArray(proj.matches) ? proj.matches.slice(0, 3).map(m => m.outbreak_label).filter(Boolean) : [];
     const matchCardJa = topMatches.length ? `<div class="final-size-stat-card"><span>類似した過去流行</span><strong>${topMatches[0]}</strong><small>${topMatches.slice(1).join(' / ')}</small></div>` : '';
     const matchCardEn = topMatches.length ? `<div class="final-size-stat-card"><span>Closest historical analogs</span><strong>${topMatches[0]}</strong><small>${topMatches.slice(1).join(' / ')}</small></div>` : '';
+    const matchCardFr = topMatches.length ? `<div class="final-size-stat-card"><span>Analogues historiques les plus proches</span><strong>${topMatches[0]}</strong><small>${topMatches.slice(1).join(' / ')}</small></div>` : '';
     if (currentLang === 'ja') {
       summaryEl.innerHTML = `
         <div class="final-size-stat-card"><span>推定最終累積症例数</span><strong>${formatCaseCount(fs.median)}</strong><small>90%予測区間 ${formatCaseCount(fs.pi90?.[0])}–${formatCaseCount(fs.pi90?.[1])}</small></div>
         <div class="final-size-stat-card"><span>推定終息日</span><strong>${formatDateLong(ed.median)}</strong><small>90%予測区間 ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>
         ${matchCardJa}`;
+    } else if (currentLang === 'fr') {
+      summaryEl.innerHTML = `
+        <div class="final-size-stat-card"><span>Cas cumulés finaux estimés</span><strong>${formatCaseCount(fs.median)}</strong><small>IP 90 % ${formatCaseCount(fs.pi90?.[0])}–${formatCaseCount(fs.pi90?.[1])}</small></div>
+        <div class="final-size-stat-card"><span>Date de fin estimée</span><strong>${formatDateLong(ed.median)}</strong><small>IP 90 % ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>
+        ${matchCardFr}`;
     } else {
       summaryEl.innerHTML = `
         <div class="final-size-stat-card"><span>Estimated final cumulative cases</span><strong>${formatCaseCount(fs.median)}</strong><small>90% PI ${formatCaseCount(fs.pi90?.[0])}–${formatCaseCount(fs.pi90?.[1])}</small></div>
@@ -3348,27 +3468,27 @@ function updateFinalSizeProjectionChart() {
   const x = pred.map(r => r.date);
 
   const traces = [
-    { type: 'scatter', mode: 'lines+markers', name: currentLang === 'ja' ? '観測累積症例数' : 'Observed cumulative cases', x: obsDates, y: obsCum, line: { width: 2 }, marker: { size: 5 }, hovertemplate: currentLang === 'ja' ? '%{x}<br>観測累積: %{y:,.0f}例<extra></extra>' : '%{x}<br>Observed cumulative: %{y:,.0f} cases<extra></extra>' },
+    { type: 'scatter', mode: 'lines+markers', name: textByLang('観測累積症例数', 'Observed cumulative cases', 'Cas cumulés observés'), x: obsDates, y: obsCum, line: { width: 2 }, marker: { size: 5 }, hovertemplate: textByLang('%{x}<br>観測累積: %{y:,.0f}例<extra></extra>', '%{x}<br>Observed cumulative: %{y:,.0f} cases<extra></extra>', '%{x}<br>Cumul observé: %{y:,.0f} cas<extra></extra>') },
     { type: 'scatter', mode: 'lines', name: '90% PI lower', x, y: pred.map(r => r.q05), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
-    { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '90%予測区間' : '90% prediction interval', x, y: pred.map(r => r.q95), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.12)', hoverinfo: 'skip' },
+    { type: 'scatter', mode: 'lines', name: textByLang('90%予測区間', '90% prediction interval', 'Intervalle de prédiction 90 %'), x, y: pred.map(r => r.q95), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.12)', hoverinfo: 'skip' },
     { type: 'scatter', mode: 'lines', name: '50% PI lower', x, y: pred.map(r => r.q25), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
-    { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '50%予測区間' : '50% prediction interval', x, y: pred.map(r => r.q75), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.22)', hoverinfo: 'skip' },
-    { type: 'scatter', mode: 'lines', name: currentLang === 'ja' ? '中央値' : 'Median trajectory', x, y: pred.map(r => r.median), line: { width: 2.5, color: '#175cd3' }, hovertemplate: currentLang === 'ja' ? '%{x}<br>中央値: %{y:,.0f}例<extra></extra>' : '%{x}<br>Median: %{y:,.0f} cases<extra></extra>' }
+    { type: 'scatter', mode: 'lines', name: textByLang('50%予測区間', '50% prediction interval', 'Intervalle de prédiction 50 %'), x, y: pred.map(r => r.q75), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.22)', hoverinfo: 'skip' },
+    { type: 'scatter', mode: 'lines', name: textByLang('中央値', 'Median trajectory', 'Trajectoire médiane'), x, y: pred.map(r => r.median), line: { width: 2.5, color: '#175cd3' }, hovertemplate: textByLang('%{x}<br>中央値: %{y:,.0f}例<extra></extra>', '%{x}<br>Median: %{y:,.0f} cases<extra></extra>', '%{x}<br>Médiane: %{y:,.0f} cas<extra></extra>') }
   ];
 
   const maxY = Math.max(...obsCum, ...pred.map(r => toNumber(r.q95)), 1);
   const chartEndDate = pred.length ? pred[pred.length - 1].date : projectionDate;
   const finalShapes = [{ type: 'line', xref: 'x', yref: 'y', x0: projectionDate, x1: projectionDate, y0: 0, y1: maxY, line: { width: 2, dash: 'dot', color: '#667085' } }];
-  const finalAnnotations = [{ x: projectionDate, y: maxY, xref: 'x', yref: 'y', text: currentLang === 'ja' ? '推定開始' : 'projection start', showarrow: false, yshift: 8, font: { size: 10, color: '#667085' } }];
+  const finalAnnotations = [{ x: projectionDate, y: maxY, xref: 'x', yref: 'y', text: textByLang('推定開始', 'projection start', 'début de projection'), showarrow: false, yshift: 8, font: { size: 10, color: '#667085' } }];
   if (ed.median && String(ed.median) <= String(chartEndDate)) {
     finalShapes.push({ type: 'line', xref: 'x', yref: 'y', x0: ed.median, x1: ed.median, y0: 0, y1: maxY, line: { width: 2, dash: 'dash', color: '#12b76a' } });
-    finalAnnotations.push({ x: ed.median, y: maxY * 0.82, xref: 'x', yref: 'y', text: currentLang === 'ja' ? '推定終息日' : 'estimated end', showarrow: false, yshift: 8, font: { size: 10, color: '#027a48' } });
+    finalAnnotations.push({ x: ed.median, y: maxY * 0.82, xref: 'x', yref: 'y', text: textByLang('推定終息日', 'estimated end', 'fin estimée'), showarrow: false, yshift: 8, font: { size: 10, color: '#027a48' } });
   }
 
   Plotly.newPlot('finalSizeChart', traces, {
     margin: { l: 68, r: 24, t: 18, b: 124 },
-    xaxis: { title: { text: currentLang === 'ja' ? '日付' : 'Date', standoff: 12 }, tickangle: -35, gridcolor: '#eef3f8', automargin: true, nticks: window.innerWidth < 700 ? 5 : 7 },
-    yaxis: { title: currentLang === 'ja' ? '累積確定症例数' : 'Cumulative confirmed cases', gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
+    xaxis: { title: { text: textByLang('日付', 'Date', 'Date'), standoff: 12 }, tickangle: -35, gridcolor: '#eef3f8', automargin: true, nticks: window.innerWidth < 700 ? 5 : 7 },
+    yaxis: { title: textByLang('累積確定症例数', 'Cumulative confirmed cases', 'Cas confirmés cumulés'), gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
     legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.56, yanchor: 'top' },
     shapes: finalShapes,
     annotations: finalAnnotations,
@@ -3383,6 +3503,8 @@ function updateFinalSizeProjectionChart() {
     const rtTextEn = Number.isFinite(rt.median) ? `Rt median <strong>${rt.median.toFixed(2)}</strong> (95% CrI ${Number.isFinite(rt.q025) ? rt.q025.toFixed(2) : '—'}–${Number.isFinite(rt.q975) ? rt.q975.toFixed(2) : '—'}). ` : '';
     const weightTextJa = weights ? `Ensemble重みはBranching process ${Math.round((weights.branching_process || 0) * 100)}%、AI支援過去流行マッチング ${Math.round((weights.ai_assisted_historical_matching || 0) * 100)}%です。` : '';
     const weightTextEn = weights ? `Ensemble weights: branching process ${Math.round((weights.branching_process || 0) * 100)}%, AI-assisted historical matching ${Math.round((weights.ai_assisted_historical_matching || 0) * 100)}%. ` : '';
+    const rtTextFr = Number.isFinite(rt.median) ? `Rt médian <strong>${rt.median.toFixed(2)}</strong> (ICr 95 % ${Number.isFinite(rt.q025) ? rt.q025.toFixed(2) : '—'}–${Number.isFinite(rt.q975) ? rt.q975.toFixed(2) : '—'}). ` : '';
+    const weightTextFr = weights ? `Poids de l’ensemble : processus de branchement ${Math.round((weights.branching_process || 0) * 100)} %, appariement historique assisté par IA ${Math.round((weights.ai_assisted_historical_matching || 0) * 100)} %. ` : '';
     if (currentLang === 'ja') {
       if (scenario === 'historical_ai') {
         statsEl.innerHTML = `モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例の累積曲線を、過去DRCエボラ流行曲線にスケーリングして照合します。近い過去流行：<strong>${topMatches || '—'}</strong>。これはAI支援によるアナログ推定であり、都市部侵入、医療機関内伝播、制御活動の変化により大きく外れる可能性があります。`;
@@ -3390,6 +3512,14 @@ function updateFinalSizeProjectionChart() {
         statsEl.innerHTML = `モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例を用い、Branching processとAI支援による過去流行マッチングを統合した推奨表示です。${weightTextJa}${rtTextJa}推定終息日は、モデル上で日別新規確定例が42日間連続して0となる最初の日です。これは確定的な予測ではありません。`;
       } else {
         statsEl.innerHTML = `モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例を用い、GitHub Actions側で事前計算したrenewal / branching-process negative-binomialモデルです。${rtTextJa}推定終息日は、シミュレーション上で日別新規確定例が42日間連続して0となる最初の日です。これは確定的な予測ではありません。`;
+      }
+    } else if (currentLang === 'fr') {
+      if (scenario === 'historical_ai') {
+        statsEl.innerHTML = `Modèle : <strong>${finalSizeScenarioLabel(scenario)}</strong>. La trajectoire cumulée jusqu’au ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''} est mise à l’échelle et appariée aux courbes des épidémies précédentes d’Ebola en RDC. Analogues les plus proches : <strong>${topMatches || '—'}</strong>. Il s’agit d’une prévision analogue assistée par IA; la diffusion urbaine, la transmission nosocomiale et les changements de réponse peuvent modifier fortement la projection.`;
+      } else if (scenario === 'ensemble') {
+        statsEl.innerHTML = `Modèle : <strong>${finalSizeScenarioLabel(scenario)}</strong>. Affichage recommandé combinant le processus de branchement et l’appariement historique assisté par IA à partir des cas confirmés rapportés jusqu’au ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${weightTextFr}${rtTextFr}La date de fin estimée est la première date suivie de 42 jours consécutifs sans nouveau cas confirmé dans le modèle. Il ne s’agit pas d’une prédiction déterministe.`;
+      } else {
+        statsEl.innerHTML = `Modèle : <strong>${finalSizeScenarioLabel(scenario)}</strong>. Pré-calculé dans GitHub Actions avec un modèle renewal / processus de branchement binomial négatif utilisant les cas confirmés rapportés jusqu’au ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${rtTextFr}La date de fin estimée est la première date suivie de 42 jours consécutifs sans nouveau cas confirmé dans les simulations. Il ne s’agit pas d’une prédiction déterministe.`;
       }
     } else {
       if (scenario === 'historical_ai') {
@@ -3767,26 +3897,36 @@ function localTrajectoryAssessment(fc) {
   const rt = fc?.rtMedian;
   const prob = fc?.probRtAbove1;
   let level = 'uncertain';
-  let category = currentLang === 'en' ? 'Insufficient information' : '評価困難';
+  let category = textByLang('評価困難', 'Insufficient information', 'Informations insuffisantes');
   if (fc) {
     if ((rt > 1.2 && prob > 0.65) || prob > 0.80 || w.ratio > 1.25) {
       level = 'high';
-      category = currentLang === 'en' ? 'Increasing / high concern' : '拡大傾向／高い懸念';
+      category = textByLang('拡大傾向／高い懸念', 'Increasing / high concern', 'Augmentation / préoccupation élevée');
     } else if (rt < 0.8 && prob < 0.30 && w.ratio < 0.85) {
       level = 'low';
-      category = currentLang === 'en' ? 'Decreasing / lower concern' : '減少傾向／低めの懸念';
+      category = textByLang('減少傾向／低めの懸念', 'Decreasing / lower concern', 'Diminution / préoccupation plus faible');
     } else {
       level = 'moderate';
-      category = currentLang === 'en' ? 'Stable or mixed / moderate concern' : '横ばいまたは混在／中程度の懸念';
+      category = textByLang('横ばいまたは混在／中程度の懸念', 'Stable or mixed / moderate concern', 'Stable ou mixte / préoccupation modérée');
     }
     if (Number.isFinite(contactGap) && contactGap >= 0.30 && level !== 'high') {
       level = 'moderate_high';
-      category = currentLang === 'en' ? 'Moderate-to-high concern' : '中〜高程度の懸念';
+      category = textByLang('中〜高程度の懸念', 'Moderate-to-high concern', 'Préoccupation modérée à élevée');
     }
   }
   const responsePhrase = Number.isFinite(contactGap)
-    ? (currentLang === 'en' ? `the contact-tracing gap is ${pct(contactGap)}` : `接触者追跡ギャップは${pct(contactGap)}です`)
-    : (currentLang === 'en' ? 'response-coverage data are incomplete' : '対応カバレッジのデータは不完全です');
+    ? textByLang(`接触者追跡ギャップは${pct(contactGap)}です`, `the contact-tracing gap is ${pct(contactGap)}`, `l’écart de suivi des contacts est de ${pct(contactGap)}`)
+    : textByLang('対応カバレッジのデータは不完全です', 'response-coverage data are incomplete', 'les données de couverture de la réponse sont incomplètes');
+  if (currentLang === 'fr') {
+    const trendPhrase = w.recent >= w.previous ? 'les cas récemment rapportés ne diminuent pas clairement' : 'les cas récemment rapportés sont inférieurs à ceux de la semaine précédente';
+    return {
+      level, category,
+      text: fc
+        ? `La situation dans les zones touchées est évaluée à partir des cas SitRep récents, du Rt estimé et des indicateurs de réponse. ${trendPhrase}. Le Rt estimé est ${rt.toFixed(2)} et ${responsePhrase}.`
+        : 'Les observations sont insuffisantes pour que le modèle de projection à court terme évalue la trajectoire locale de l’épidémie.',
+      drivers: fc ? `Rt ${rt.toFixed(2)}, P(Rt>1) ${pct(prob)}, 7 derniers jours ${formatCaseCount(w.recent)} vs 7 jours précédents ${formatCaseCount(w.previous)}, ${responsePhrase}.` : 'Projection à court terme indisponible.'
+    };
+  }
   if (currentLang === 'en') {
     const trendPhrase = w.recent >= w.previous ? 'recent reported case counts are not clearly decreasing' : 'recent reported case counts are lower than the previous week';
     return {
@@ -3820,11 +3960,20 @@ function capitalRiskAssessment() {
   const kin = kinRows.reduce((a, r) => a + toNumber(r.air_adjusted), 0);
   const share = total > 0 ? kin / total : 0;
   const kCases = kinshasaCaseCount();
-  let level = 'low', category = currentLang === 'en' ? 'Low' : '低い';
-  if (kCases > 0) { level = 'high'; category = currentLang === 'en' ? 'High' : '高い'; }
-  else if (share >= 0.15) { level = 'moderate_high'; category = currentLang === 'en' ? 'Moderate-to-high' : '中〜高程度'; }
-  else if (share >= 0.05) { level = 'moderate'; category = currentLang === 'en' ? 'Moderate' : '中程度'; }
-  else if (share < 0.01) { level = 'very_low'; category = currentLang === 'en' ? 'Very low' : '非常に低い'; }
+  let level = 'low', category = textByLang('低い', 'Low', 'Faible');
+  if (kCases > 0) { level = 'high'; category = textByLang('高い', 'High', 'Élevé'); }
+  else if (share >= 0.15) { level = 'moderate_high'; category = textByLang('中〜高程度', 'Moderate-to-high', 'Modéré à élevé'); }
+  else if (share >= 0.05) { level = 'moderate'; category = textByLang('中程度', 'Moderate', 'Modéré'); }
+  else if (share < 0.01) { level = 'very_low'; category = textByLang('非常に低い', 'Very low', 'Très faible'); }
+  if (currentLang === 'fr') {
+    return {
+      level, category,
+      text: kCases > 0
+        ? 'Des cas confirmés ayant été rapportés dans la capitale, le risque de diffusion vers la capitale est considéré comme élevé et nécessite une vérification immédiate.'
+        : `Le risque vers la capitale est évalué à partir de l’indicateur de mobilité pondérée par les cas et ajusté pour les vols. L’indicateur actuel suggère une pression d’entrée « ${category.toLowerCase()} » vers la capitale, mais le risque n’est pas nul et dépend du dépistage des voyageurs et de l’exhaustivité des rapports.`,
+      drivers: `Cas confirmés à Kinshasa ${formatCaseCount(kCases)}, part air-adjusted ${pct(share)}, destinations liées à Kinshasa ${fmt.format(kinRows.length)}.`
+    };
+  }
   if (currentLang === 'en') {
     return {
       level, category,
@@ -3853,10 +4002,17 @@ function crossBorderRiskAssessment() {
   const ugRows = ugandaImportationRowsForMonth(f.month).filter(r => toNumber(r.importation_pressure) > 0);
   const poe = responseMetricValue('poe_screening_coverage');
   const ituriCases = caseRowsLatest().filter(r => normalizedString(r.province) === 'ituri').reduce((a, r) => a + toNumber(r.confirmed_cases), 0);
-  let level = 'moderate', category = currentLang === 'en' ? 'Moderate' : '中程度';
-  if (share >= 0.25 || ituriCases >= 400) { level = 'moderate_high'; category = currentLang === 'en' ? 'Moderate-to-high' : '中〜高程度'; }
-  if (share >= 0.40 && (!Number.isFinite(poe) || poe < 0.90)) { level = 'high'; category = currentLang === 'en' ? 'High' : '高い'; }
-  if (share < 0.08 && Number.isFinite(poe) && poe >= 0.95) { level = 'low'; category = currentLang === 'en' ? 'Low' : '低い'; }
+  let level = 'moderate', category = textByLang('中程度', 'Moderate', 'Modéré');
+  if (share >= 0.25 || ituriCases >= 400) { level = 'moderate_high'; category = textByLang('中〜高程度', 'Moderate-to-high', 'Modéré à élevé'); }
+  if (share >= 0.40 && (!Number.isFinite(poe) || poe < 0.90)) { level = 'high'; category = textByLang('高い', 'High', 'Élevé'); }
+  if (share < 0.08 && Number.isFinite(poe) && poe >= 0.95) { level = 'low'; category = textByLang('低い', 'Low', 'Faible'); }
+  if (currentLang === 'fr') {
+    return {
+      level, category,
+      text: `Le risque de diffusion vers l’Ouganda et les pays voisins est évalué à partir de la pression d’importation vers les routes frontalières, des cas dans l’est de la RDC et des indicateurs de dépistage PoE/PoC. Les indicateurs actuels suggèrent un risque « ${category.toLowerCase()} », et les mouvements transfrontaliers se poursuivent malgré le dépistage.`,
+      drivers: `Cas en Ituri ${formatCaseCount(ituriCases)}, part de pression frontalière ${pct(share)}, destinations en Ouganda ${fmt.format(ugRows.length)}, dépistage PoE ${Number.isFinite(poe) ? pct(poe) : 'pas de données'}.`
+    };
+  }
   if (currentLang === 'en') {
     return {
       level, category,
@@ -3879,7 +4035,7 @@ function updateAssessmentPanel() {
   const u = document.getElementById('assessmentUpdated');
   if (u) {
     const meta = reportSummaryForDate(selectedCaseDate());
-    u.textContent = currentLang === 'en' ? `Assessment as of ${displayDateLabel(selectedCaseDate())}${meta?.report_no ? ' (' + meta.report_no + ')' : ''}` : `${displayDateLabel(selectedCaseDate())}時点の評価${meta?.report_no ? '（' + meta.report_no + '）' : ''}`;
+    u.textContent = textByLang(`${displayDateLabel(selectedCaseDate())}時点の評価${meta?.report_no ? '（' + meta.report_no + '）' : ''}`, `Assessment as of ${displayDateLabel(selectedCaseDate())}${meta?.report_no ? ' (' + meta.report_no + ')' : ''}`, `Évaluation au ${displayDateLabel(selectedCaseDate())}${meta?.report_no ? ' (' + meta.report_no + ')' : ''}`);
   }
 }
 
