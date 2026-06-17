@@ -1723,3 +1723,146 @@ main > .grid-two:first-of-type .right-analysis-panel {
     min-height: 360px !important;
   }
 }
+
+/* 2026-06-18 overlap-safe six-panel layout and stronger assessment status labels */
+.dashboard-six-grid {
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  grid-auto-rows: auto !important;
+  align-items: stretch !important;
+  gap: 24px !important;
+}
+
+.dashboard-six-grid > .dashboard-card {
+  height: auto !important;
+  min-height: 720px !important;
+  max-height: none !important;
+  overflow: visible !important;
+  display: flex !important;
+  flex-direction: column !important;
+  box-sizing: border-box !important;
+}
+
+.map-dashboard-card {
+  min-height: 760px !important;
+}
+
+.map-dashboard-card #map {
+  height: 430px !important;
+  min-height: 430px !important;
+  flex: 0 0 430px !important;
+}
+
+.dashboard-card.chart-card .chart,
+.dashboard-card.chart-card .compact-chart {
+  flex: 0 0 auto !important;
+}
+
+.timeline-chart-block #epiTimelineChart {
+  height: 500px !important;
+  min-height: 500px !important;
+}
+
+.forecast-chart-block #forecastChart,
+.response-chart-block #responseTimelineChart,
+.rwi-chart-block #rwiScatterChart {
+  height: 430px !important;
+  min-height: 430px !important;
+}
+
+.final-size-chart-block #finalSizeChart {
+  height: 330px !important;
+  min-height: 330px !important;
+}
+
+.dashboard-card .chart-note,
+#forecastStats,
+#finalSizeStats,
+#responseStats,
+#rwiStats {
+  position: static !important;
+  margin-top: 18px !important;
+  padding-top: 10px !important;
+  max-height: none !important;
+  overflow: visible !important;
+  background: transparent !important;
+}
+
+/* Make public-health assessment status chips larger and visually more salient. */
+.assessment-category {
+  display: inline-flex !important;
+  align-items: center !important;
+  justify-content: center !important;
+  min-width: 92px !important;
+  padding: 8px 14px !important;
+  border-radius: 999px !important;
+  font-size: 0.98rem !important;
+  font-weight: 900 !important;
+  letter-spacing: .02em !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.14) !important;
+}
+
+.assessment-high .assessment-category {
+  background: #b42318 !important;
+  color: #fff !important;
+  border: 1px solid #912018 !important;
+}
+.assessment-moderate-high .assessment-category {
+  background: #dc6803 !important;
+  color: #fff !important;
+  border: 1px solid #b54708 !important;
+}
+.assessment-moderate .assessment-category {
+  background: #f79009 !important;
+  color: #111827 !important;
+  border: 1px solid #dc6803 !important;
+}
+.assessment-low .assessment-category {
+  background: #039855 !important;
+  color: #fff !important;
+  border: 1px solid #027a48 !important;
+}
+.assessment-very-low .assessment-category {
+  background: #1570ef !important;
+  color: #fff !important;
+  border: 1px solid #175cd3 !important;
+}
+.assessment-uncertain .assessment-category {
+  background: #667085 !important;
+  color: #fff !important;
+  border: 1px solid #475467 !important;
+}
+
+.assessment-card {
+  border-left-width: 7px !important;
+}
+
+@media (max-width: 900px) {
+  .dashboard-six-grid {
+    grid-template-columns: 1fr !important;
+    gap: 18px !important;
+  }
+  .dashboard-six-grid > .dashboard-card,
+  .map-dashboard-card {
+    height: auto !important;
+    min-height: 0 !important;
+    max-height: none !important;
+    overflow: visible !important;
+  }
+  .map-dashboard-card #map {
+    height: 420px !important;
+    min-height: 420px !important;
+    flex-basis: 420px !important;
+  }
+  .timeline-chart-block #epiTimelineChart,
+  .forecast-chart-block #forecastChart,
+  .response-chart-block #responseTimelineChart,
+  .rwi-chart-block #rwiScatterChart,
+  .final-size-chart-block #finalSizeChart {
+    height: 360px !important;
+    min-height: 360px !important;
+  }
+  .assessment-category {
+    font-size: 0.94rem !important;
+    padding: 7px 12px !important;
+  }
+}
