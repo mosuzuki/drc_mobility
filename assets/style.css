@@ -1866,3 +1866,30 @@ main > .grid-two:first-of-type .right-analysis-panel {
     padding: 7px 12px !important;
   }
 }
+
+/* Latest situation body text: enlarge only the main DRC/Uganda update text.
+   Keep the small right-side meta line (#latestSituationMeta) unchanged. */
+.latest-situation-list .latest-situation-item {
+  font-size: 1.12rem !important;
+  line-height: 1.75 !important;
+}
+.latest-situation-list .latest-situation-item > div,
+.latest-situation-list .latest-situation-item > div span,
+.latest-situation-list .latest-situation-item > div strong {
+  font-size: inherit !important;
+  line-height: inherit !important;
+}
+.latest-situation-list .latest-situation-bullet {
+  font-size: 1.18rem !important;
+  line-height: 1.65 !important;
+}
+.latest-situation-block p {
+  font-size: 1.12rem !important;
+  line-height: 1.75 !important;
+}
+@media (max-width: 768px) {
+  .latest-situation-list .latest-situation-item {
+    font-size: 1.05rem !important;
+    line-height: 1.7 !important;
+  }
+}
