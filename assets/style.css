@@ -1238,3 +1238,183 @@ main > .grid-two:first-of-type .right-analysis-panel {
     font-size: 1.7rem;
   }
 }
+
+/* 2026-06 revision: six equal dashboard panels, simplified map controls, hidden legacy hooks */
+.hidden-control,
+.legacy-hidden {
+  display: none !important;
+}
+
+.dashboard-six-grid {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-auto-rows: minmax(600px, 600px);
+  gap: 20px;
+  margin-bottom: 20px;
+}
+
+.dashboard-card {
+  min-width: 0;
+  height: 600px;
+  min-height: 600px;
+  max-height: 600px;
+  overflow: hidden;
+  display: flex;
+  flex-direction: column;
+  box-sizing: border-box;
+}
+
+.dashboard-card > p,
+.dashboard-card .chart-block-head p,
+.dashboard-card .panel-head p {
+  margin-bottom: 8px;
+}
+
+.dashboard-card .chart-block-head,
+.dashboard-card .panel-head {
+  flex: 0 0 auto;
+}
+
+.dashboard-card .chart,
+.dashboard-card .compact-chart {
+  flex: 1 1 auto;
+  min-height: 0 !important;
+  height: auto !important;
+}
+
+.map-dashboard-card #map {
+  flex: 1 1 auto;
+  min-height: 250px;
+  height: auto !important;
+}
+
+.map-dashboard-card .map-layer-toolbar {
+  flex: 0 0 auto;
+  margin: 10px 0;
+  padding: 10px 12px;
+}
+
+.map-dashboard-card .timeline-controls-title,
+.map-dashboard-card .report-date-slider,
+.map-dashboard-card .map-legend,
+.map-dashboard-card .population-notice {
+  flex: 0 0 auto;
+}
+
+.simplified-map-toggle-group {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  width: min(100%, 680px);
+  border-radius: 16px;
+}
+
+.simplified-map-toggle-group .layer-toggle:not(.hidden-control) {
+  min-width: 0;
+  padding: 9px 10px;
+  font-size: 13px;
+  white-space: normal;
+  line-height: 1.15;
+}
+
+.simplified-map-legend {
+  max-height: 44px;
+  overflow: hidden;
+  font-size: 12px;
+  gap: 10px;
+}
+
+.response-chart-block,
+.rwi-chart-block,
+.timeline-chart-block,
+.forecast-chart-block,
+.final-size-chart-block {
+  border-top: 0 !important;
+  border-bottom: 0 !important;
+  padding-top: 20px;
+  padding-bottom: 20px;
+  margin-top: 0 !important;
+}
+
+.chart-card .chart-note {
+  flex: 0 0 auto;
+  max-height: 74px;
+  overflow: auto;
+}
+
+.final-size-summary-grid {
+  flex: 0 0 auto;
+}
+
+.sources {
+  margin-top: 20px;
+}
+
+@media (max-width: 1100px) {
+  .dashboard-six-grid {
+    grid-template-columns: 1fr;
+    grid-auto-rows: auto;
+  }
+  .dashboard-card {
+    height: auto;
+    min-height: 0;
+    max-height: none;
+    overflow: visible;
+  }
+  .dashboard-card .chart,
+  .dashboard-card .compact-chart,
+  .forecast-chart,
+  .final-size-chart,
+  .response-timeline-chart,
+  .rwi-scatter-chart {
+    min-height: 360px !important;
+    height: 360px !important;
+  }
+  .map-dashboard-card #map {
+    height: 420px !important;
+    min-height: 420px;
+  }
+  .simplified-map-toggle-group {
+    display: flex;
+    overflow-x: auto;
+    flex-wrap: nowrap;
+    width: 100%;
+  }
+  .simplified-map-toggle-group .layer-toggle:not(.hidden-control) {
+    min-width: 130px;
+    white-space: nowrap;
+  }
+  .simplified-map-legend {
+    max-height: none;
+  }
+}
+
+@media (max-width: 640px) {
+  .dashboard-card .chart,
+  .dashboard-card .compact-chart,
+  .forecast-chart,
+  .final-size-chart,
+  .response-timeline-chart,
+  .rwi-scatter-chart {
+    min-height: 320px !important;
+    height: 320px !important;
+  }
+  .map-dashboard-card #map {
+    height: 380px !important;
+    min-height: 380px;
+  }
+  .report-date-actions,
+  .forecast-control-stack,
+  .final-size-control-stack,
+  .response-control-stack,
+  .rwi-control-stack {
+    width: 100%;
+  }
+  .report-date-actions select,
+  .forecast-control-stack select,
+  .final-size-control-stack select,
+  .response-control-stack select,
+  .rwi-control-stack select {
+    min-width: 0;
+    width: 100%;
+  }
+}

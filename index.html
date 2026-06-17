@@ -14,7 +14,6 @@
     <div>
       <div id="pageEyebrow" class="eyebrow">疫学・移動・対応状況の統合ダッシュボード</div>
       <h1 id="pageTitle">DRC・ウガンダ Bundibugyo型エボラ流行ダッシュボード</h1>
-      <p id="pageSubtitle" class="subtitle">DRC東部のhealth zone別症例、人口移動、ウガンダ国境フロー、対応指標を統合し、流行状況と拡大リスクを把握するためのダッシュボードです。</p>
     </div>
     <div class="header-actions">
       <div class="language-toggle" aria-label="Language selector">
@@ -91,9 +90,9 @@
       <article class="kpi-card"><span id="kpiUgandaDeathsLabel">Uganda confirmed deaths</span><strong id="kpiUganda">2</strong><small id="kpiScenario">Uganda confirmed deaths; source Uganda Ministry of Health EVD daily page, 11 Jun 2026</small></article>
     </section>
 
-    <section class="grid-two">
-      <article class="panel map-panel">
-        <div class="panel-head">
+    <section class="dashboard-six-grid" aria-label="Main dashboard panels">
+      <article class="panel map-panel dashboard-card map-dashboard-card">
+        <div class="panel-head compact-panel-head">
           <div>
             <h2 id="mapTitle">Confirmed Ebola cases by health zone</h2>
             <p id="mapDescription">Confirmed cases are shown as proportional bubbles at health-zone centroids. Use the reporting-date slider to change the cumulative time point or show the recent 1-week increase.</p>
@@ -108,25 +107,25 @@
             <span id="mapLayerLabel" class="toolbar-label">Map layer</span>
             <strong id="activeLayerLabel">Cases</strong>
           </div>
-          <div class="toggle-group map-toggle-group" role="group" aria-label="Map layer">
+          <div class="toggle-group map-toggle-group simplified-map-toggle-group" role="group" aria-label="Map layer">
             <button id="modeCases" type="button" class="toggle layer-toggle active">Cases</button>
-            <button id="modeRisk" type="button" class="toggle layer-toggle">Spread risk</button>
-            <button id="modeWeighted" type="button" class="toggle layer-toggle">Weighted risk</button>
-            <button id="modeContact" type="button" class="toggle layer-toggle">Contact-adjusted risk</button>
+            <button id="modeRisk" type="button" class="toggle layer-toggle hidden-control">Spread risk</button>
+            <button id="modeWeighted" type="button" class="toggle layer-toggle hidden-control">Weighted risk</button>
+            <button id="modeContact" type="button" class="toggle layer-toggle hidden-control">Contact-adjusted risk</button>
             <button id="modeAir" type="button" class="toggle layer-toggle">Air-adjusted risk</button>
-            <button id="modeUganda" type="button" class="toggle layer-toggle">Uganda projection</button>
-            <button id="modeUgandaBorder" type="button" class="toggle layer-toggle">Uganda border flow</button>
-            <button id="modeUgandaImport" type="button" class="toggle layer-toggle">Uganda importation pressure</button>
+            <button id="modeUganda" type="button" class="toggle layer-toggle hidden-control">Uganda projection</button>
+            <button id="modeUgandaBorder" type="button" class="toggle layer-toggle hidden-control">Uganda border flow</button>
+            <button id="modeUgandaImport" type="button" class="toggle layer-toggle">Uganda Importation pressure</button>
             <button id="modePopulation" type="button" class="toggle layer-toggle">Population</button>
-            <button id="modeDensity" type="button" class="toggle layer-toggle">Density</button>
-            <button id="modeRwi" type="button" class="toggle layer-toggle">Relative wealth percentile</button>
-            <button id="modeContactGap" type="button" class="toggle layer-toggle">Contact gap</button>
-            <button id="modeResponseIntensity" type="button" class="toggle layer-toggle">Response intensity</button>
-            <button id="modeMovement" type="button" class="toggle layer-toggle">Movement</button>
+            <button id="modeDensity" type="button" class="toggle layer-toggle hidden-control">Density</button>
+            <button id="modeRwi" type="button" class="toggle layer-toggle hidden-control">Relative wealth percentile</button>
+            <button id="modeContactGap" type="button" class="toggle layer-toggle hidden-control">Contact gap</button>
+            <button id="modeResponseIntensity" type="button" class="toggle layer-toggle hidden-control">Response intensity</button>
+            <button id="modeMovement" type="button" class="toggle layer-toggle hidden-control">Movement</button>
           </div>
         </div>
 
-        <section class="controls panel map-controls">
+        <section class="controls panel map-controls hidden-control" aria-hidden="true">
           <div class="control">
             <label id="originSelectLabel" for="originSelect">Origin set</label>
             <select id="originSelect"></select>
@@ -170,127 +169,119 @@
           <div class="slider-months"><span id="reportDateStartLabel">—</span><span id="reportDateEndLabel">—</span></div>
         </div>
         <div id="populationNotice" class="population-notice" style="display:none"></div>
-        <div class="map-legend" aria-label="Map legend">
+        <div class="map-legend simplified-map-legend" aria-label="Map legend">
           <span><i class="legend-dot outbreak"></i>Current outbreak health zone</span>
           <span><i class="legend-dot cases"></i>Confirmed cases</span>
-          <span><i class="legend-dot risk"></i>Spread / weighted risk</span>
-          <span><i class="legend-dot kinshasa"></i>Kinshasa destination</span>
-          <span><i class="legend-dot border"></i>Uganda-border proxy zone</span>
           <span><i class="legend-dot air"></i>Air-adjusted risk</span>
-          <span><i class="legend-dot uganda"></i>Projected Uganda destination</span>
-          <span><i class="legend-dot population"></i>Population / density</span>
-          <span><i class="legend-dot rwi"></i>Relative wealth percentile</span>
-          <span><i class="legend-dot response"></i>Response indicators</span>
-          <span><i class="legend-line"></i>Movement direction</span>
+          <span><i class="legend-dot population"></i>Population</span>
+          <span><i class="legend-dot uganda"></i>Uganda importation pressure</span>
         </div>
       </article>
 
-      <article class="panel right-analysis-panel">
-        <div class="timeline-chart-block">
-          <h2 id="reportedCasesTitle">Reported cumulative cases</h2>
-          <p id="reportedCasesDesc">DRC confirmed cases by SitRep reporting date. The selected slider date is highlighted.</p>
-          <div id="epiTimelineChart" class="chart compact-chart"></div>
-        </div>
-        <div class="forecast-chart-block">
-          <div class="chart-block-head">
-            <div>
-              <h2 id="forecastTitle">Short-term projection</h2>
-              <p id="forecastDesc">Renewal / branching-process projection based on recent reported confirmed cases. The projection starts from the selected SitRep date.</p>
-            </div>
-            <div class="forecast-control-stack">
-              <select id="forecastHorizonSelect" aria-label="Forecast horizon">
-                <option value="7" selected>7 days</option>
-                <option value="14">14 days</option>
-              </select>
-              <select id="forecastSiSelect" aria-label="Generation interval assumption">
-                <option value="9">Short GI mean 9d</option>
-                <option value="12" selected>Baseline GI mean 12d</option>
-                <option value="15">Long GI mean 15d</option>
-              </select>
-            </div>
-          </div>
-          <div id="forecastChart" class="chart compact-chart forecast-chart"></div>
-          <div id="forecastStats" class="chart-note"></div>
-        </div>
+      <article class="panel chart-card dashboard-card timeline-chart-block">
+        <h2 id="reportedCasesTitle">Reported cumulative cases</h2>
+        <p id="reportedCasesDesc">DRC confirmed cases by SitRep reporting date. The selected slider date is highlighted.</p>
+        <div id="epiTimelineChart" class="chart compact-chart"></div>
+      </article>
 
-        <div class="final-size-chart-block">
-          <div class="chart-block-head">
-            <div>
-              <h2 id="finalSizeTitle">アウトブレイク最終サイズ推定</h2>
-              <p id="finalSizeDesc">Branching processとAI支援による過去流行マッチングを組み合わせた推定です。これは確定的な予測ではありません。</p>
-            </div>
-            <div class="final-size-control-stack">
-              <select id="finalSizeScenarioSelect" aria-label="Final size model">
-                <option value="ensemble" selected>Ensemble（推奨）</option>
-                <option value="branching">Branching process</option>
-                <option value="historical_ai">AI支援による過去流行マッチング</option>
-              </select>
-            </div>
+      <article class="panel chart-card dashboard-card forecast-chart-block">
+        <div class="chart-block-head">
+          <div>
+            <h2 id="forecastTitle">Short-term projection</h2>
+            <p id="forecastDesc">Renewal / branching-process projection based on recent reported confirmed cases. The projection starts from the selected SitRep date.</p>
           </div>
-          <div id="finalSizeSummary" class="final-size-summary-grid"></div>
-          <div id="finalSizeChart" class="chart compact-chart final-size-chart"></div>
-          <div id="finalSizeStats" class="chart-note"></div>
+          <div class="forecast-control-stack">
+            <select id="forecastHorizonSelect" aria-label="Forecast horizon">
+              <option value="7" selected>7 days</option>
+              <option value="14">14 days</option>
+            </select>
+            <select id="forecastSiSelect" aria-label="Generation interval assumption">
+              <option value="9">Short GI mean 9d</option>
+              <option value="12" selected>Baseline GI mean 12d</option>
+              <option value="15">Long GI mean 15d</option>
+            </select>
+          </div>
         </div>
+        <div id="forecastChart" class="chart compact-chart forecast-chart"></div>
+        <div id="forecastStats" class="chart-note"></div>
+      </article>
 
-        <div class="response-chart-block">
-          <div class="chart-block-head">
-            <div>
-              <h2 id="responseTimelineTitle">Response timeline</h2>
-              <p id="responseTimelineDesc">Selected response indicators extracted from SitReps. Values may be national, province-level, or operational-site summaries depending on what was reported.</p>
-            </div>
-            <div class="response-control-stack">
-              <select id="responseMetricSelect" aria-label="Response metric">
-                <option value="contact_followup_rate" selected>Contact follow-up rate</option>
-                <option value="contact_gap">Contact tracing gap</option>
-                <option value="alert_investigation_rate">Alert investigation coverage</option>
-                <option value="poe_screening_coverage">PoE/PoC screening coverage</option>
-                <option value="samples_analysed">Samples analysed</option>
-                <option value="travellers_screened">Travellers screened</option>
-              </select>
-            </div>
+      <article class="panel chart-card dashboard-card final-size-chart-block">
+        <div class="chart-block-head">
+          <div>
+            <h2 id="finalSizeTitle">アウトブレイク最終サイズ推定</h2>
+            <p id="finalSizeDesc">Branching processとAI支援による過去流行マッチングを組み合わせた推定です。これは確定的な予測ではありません。</p>
           </div>
-          <div id="responseTimelineChart" class="chart compact-chart response-timeline-chart"></div>
-          <div id="responseStats" class="chart-note"></div>
-        </div>
-        <div class="rwi-chart-block">
-          <div class="chart-block-head">
-            <div>
-              <h2 id="rwiTitle">RWI vs Ebola cases</h2>
-              <p id="rwiDesc">Health-zone ecological comparison. RWI is shown as a within-DRC percentile; selected reporting date and case mode are used.</p>
-            </div>
-            <div class="rwi-control-stack">
-              <select id="rwiOutcomeSelect" aria-label="RWI chart outcome">
-                <option value="per100k" selected>Cases per 100,000</option>
-                <option value="cases">Confirmed cases</option>
-              </select>
-              <select id="rwiDisplaySelect" aria-label="RWI chart display mode">
-                <option value="affected" selected>Affected only</option>
-                <option value="all">All health zones</option>
-                <option value="top25">Top 25 affected</option>
-              </select>
-              <select id="rwiScaleSelect" aria-label="RWI chart y-axis scale">
-                <option value="linear" selected>Linear scale</option>
-                <option value="log1p">log1p scale</option>
-              </select>
-            </div>
-          </div>
-          <div id="rwiScatterChart" class="chart compact-chart rwi-scatter-chart"></div>
-          <div id="rwiStats" class="chart-note"></div>
-        </div>
-        <div class="ranking-chart-block">
-          <h2 id="rankingTitle">Destination ranking</h2>
-          <p id="rankingDescription">Top destination health zones by estimated monthly movement.</p>
-          <div id="barChart" class="chart compact-chart"></div>
-          <div class="control ranking-count-control">
-            <label id="topNLabel" for="topN">Top ranked areas shown</label>
-            <input id="topN" type="range" min="5" max="20" step="1" value="12" />
-            <span id="topNValue">12</span>
+          <div class="final-size-control-stack">
+            <select id="finalSizeScenarioSelect" aria-label="Final size model">
+              <option value="ensemble" selected>Ensemble（推奨）</option>
+              <option value="branching">Branching process</option>
+              <option value="historical_ai">AI支援による過去流行マッチング</option>
+            </select>
           </div>
         </div>
+        <div id="finalSizeSummary" class="final-size-summary-grid"></div>
+        <div id="finalSizeChart" class="chart compact-chart final-size-chart"></div>
+        <div id="finalSizeStats" class="chart-note"></div>
+      </article>
+
+      <article class="panel chart-card dashboard-card response-chart-block">
+        <div class="chart-block-head">
+          <div>
+            <h2 id="responseTimelineTitle">Response timeline</h2>
+            <p id="responseTimelineDesc">Selected response indicators extracted from SitReps. Values may be national, province-level, or operational-site summaries depending on what was reported.</p>
+          </div>
+          <div class="response-control-stack">
+            <select id="responseMetricSelect" aria-label="Response metric">
+              <option value="contact_followup_rate" selected>Contact follow-up rate</option>
+              <option value="contact_gap">Contact tracing gap</option>
+              <option value="alert_investigation_rate">Alert investigation coverage</option>
+              <option value="poe_screening_coverage">PoE/PoC screening coverage</option>
+              <option value="samples_analysed">Samples analysed</option>
+              <option value="travellers_screened">Travellers screened</option>
+            </select>
+          </div>
+        </div>
+        <div id="responseTimelineChart" class="chart compact-chart response-timeline-chart"></div>
+        <div id="responseStats" class="chart-note"></div>
+      </article>
+
+      <article class="panel chart-card dashboard-card rwi-chart-block">
+        <div class="chart-block-head">
+          <div>
+            <h2 id="rwiTitle">RWI vs Ebola cases</h2>
+            <p id="rwiDesc">Health-zone ecological comparison. RWI is shown as a within-DRC percentile; selected reporting date and case mode are used.</p>
+          </div>
+          <div class="rwi-control-stack">
+            <select id="rwiOutcomeSelect" aria-label="RWI chart outcome">
+              <option value="per100k" selected>Cases per 100,000</option>
+              <option value="cases">Confirmed cases</option>
+            </select>
+            <select id="rwiDisplaySelect" aria-label="RWI chart display mode">
+              <option value="affected" selected>Affected only</option>
+              <option value="all">All health zones</option>
+              <option value="top25">Top 25 affected</option>
+            </select>
+            <select id="rwiScaleSelect" aria-label="RWI chart y-axis scale">
+              <option value="linear" selected>Linear scale</option>
+              <option value="log1p">log1p scale</option>
+            </select>
+          </div>
+        </div>
+        <div id="rwiScatterChart" class="chart compact-chart rwi-scatter-chart"></div>
+        <div id="rwiStats" class="chart-note"></div>
       </article>
     </section>
 
-    <section class="panel scenario-panel">
+    <section class="legacy-hidden" aria-hidden="true">
+      <h2 id="rankingTitle">Destination ranking</h2>
+      <p id="rankingDescription">Top destination health zones by estimated monthly movement.</p>
+      <div id="barChart" class="chart compact-chart"></div>
+      <div class="control ranking-count-control">
+        <label id="topNLabel" for="topN">Top ranked areas shown</label>
+        <input id="topN" type="range" min="5" max="20" step="1" value="12" />
+        <span id="topNValue">12</span>
+      </div>
       <h2 id="scenarioTitle">Scenario interpretation</h2>
       <div id="scenarioText" class="note"></div>
     </section>
