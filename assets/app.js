@@ -15,11 +15,13 @@ const files = {
   rwi: 'data/health_zone_rwi.csv',
   response: 'data/response_indicators.csv',
   ugandaEvd: 'data/uganda_evd_summary.csv',
+  ugandaEvdDaily: 'data/uganda_evd_daily_cases.csv',
+  ugandaEvdHistory: 'data/uganda_evd_history.csv',
   aiSummary: 'data/ai_sitrep_summary.csv',
   finalProjection: 'data/final_size_projection.json'
 };
 
-let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], aiSitrepSummary = [];
+let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], ugandaEvdDailyCases = [], ugandaEvdHistory = [], aiSitrepSummary = [];
 let finalSizeProjectionData = null;
 let healthZoneBoundaries = null;
 let mapMode = 'cases';
@@ -55,7 +57,7 @@ const UI_TEXT = {
   ja: {
     pageEyebrow: '疫学・移動・対応状況の統合ダッシュボード',
     pageTitle: 'DRC・ウガンダ Bundibugyo型エボラ流行ダッシュボード',
-    pageSubtitle: 'DRC東部のhealth zone別症例、人口移動、ウガンダ国境フロー、対応指標を統合し、流行状況と拡大リスクを把握するためのダッシュボードです。',
+    pageSubtitle: '',
     dataStatusLabel: 'データ更新状況',
     assessmentEyebrow: 'AI-assisted situational intelligence',
     assessmentTitle: 'AI支援による状況評価',
@@ -104,7 +106,7 @@ const UI_TEXT = {
   en: {
     pageEyebrow: 'Integrated epidemiology, mobility and response dashboard',
     pageTitle: 'DRC–Uganda Bundibugyo Ebola outbreak dashboard',
-    pageSubtitle: 'This dashboard integrates health-zone case counts in eastern DRC, population mobility, Uganda border flows and response indicators to support situational awareness and spread-risk assessment.',
+    pageSubtitle: '',
     dataStatusLabel: 'Data status',
     assessmentEyebrow: 'AI-assisted situational intelligence',
     assessmentTitle: 'AI-assisted situational assessment',
@@ -153,7 +155,7 @@ const UI_TEXT = {
   fr: {
     pageEyebrow: 'Tableau intégré épidémiologie, mobilité et réponse',
     pageTitle: 'Tableau de bord Ebola Bundibugyo RDC–Ouganda',
-    pageSubtitle: 'Ce tableau intègre les cas par zone de santé dans l’est de la RDC, la mobilité de la population, les flux frontaliers vers l’Ouganda et les indicateurs de réponse afin d’appuyer la compréhension de la situation et l’évaluation du risque de diffusion.',
+    pageSubtitle: '',
     dataStatusLabel: 'État des données',
     assessmentEyebrow: 'Veille situationnelle assistée par IA',
     assessmentTitle: 'Évaluation situationnelle assistée par IA',
@@ -264,7 +266,7 @@ function refreshFinalSizeScenarioOptions() {
 
 function applyStaticLanguage() {
   document.documentElement.lang = currentLang === 'ja' ? 'ja' : (currentLang === 'fr' ? 'fr' : 'en');
-  const ids = ['pageEyebrow','pageTitle','pageSubtitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','finalSizeTitle','finalSizeDesc','responseTimelineTitle','responseTimelineDesc','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiUgandaDeathsLabel'];
+  const ids = ['pageEyebrow','pageTitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','finalSizeTitle','finalSizeDesc','responseTimelineTitle','responseTimelineDesc','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiUgandaDeathsLabel'];
   ids.forEach(id => setTextById(id, uiText(id)));
   setTextById('limitationText', uiText('limitationText'), true);
   const ja = document.getElementById('langJa');
@@ -734,7 +736,7 @@ function updateResponseMap() {
   const metric = responseLayerMetricForMode();
   const notice = document.getElementById('populationNotice');
   document.getElementById('mapTitle').textContent = responseMetricLabel(metric);
-  document.getElementById('mapDescription').textContent = 'Response indicators are extracted from SitRep response sections. Where health-zone values are unavailable, the latest province or national value available by the selected reporting date is shown.';
+  document.getElementById('mapDescription').textContent = 'Response indicators from SitReps.';
   document.getElementById('rankingTitle').textContent = responseMetricLabel(metric);
   document.getElementById('rankingDescription').textContent = 'Latest available response indicator by province or national summary at the selected SitRep date.';
   notice.style.display = 'block';
@@ -803,11 +805,11 @@ function updateResponseTimelineChart() {
     traces.push({ type:'scatter', mode:'markers+text', name:'Selected / latest available', x:[selectedRow.date], y:[isRate ? selectedRow.value*100 : selectedRow.value], text:[selectedRow.report_no || 'selected'], textposition:'top center', marker:{ size:12, symbol:'diamond' }, hoverinfo:'skip' });
   }
   Plotly.newPlot('responseTimelineChart', traces, {
-    margin: { l: 52, r: 18, t: 18, b: 58 },
-    xaxis: { title: 'Reporting date', gridcolor: '#e7eef7' },
+    margin: { l: 52, r: 18, t: 32, b: 82 },
+    xaxis: { title: { text: 'Reporting date', standoff: 14 }, gridcolor: '#e7eef7' },
     yaxis: { title: yTitle, gridcolor: '#e7eef7', rangemode: 'tozero' },
     shapes: selected ? [{ type:'line', x0:selected, x1:selected, y0:0, y1:1, xref:'x', yref:'paper', line:{ color:'#667085', width:1.5, dash:'dot' } }] : [],
-    legend: { orientation:'h', y:-0.32 },
+    legend: { orientation:'h', x:0.5, xanchor:'center', y:1.12, yanchor:'bottom' },
     paper_bgcolor:'rgba(0,0,0,0)', plot_bgcolor:'rgba(0,0,0,0)'
   }, { responsive:true, displayModeBar:false });
   const stat = document.getElementById('responseStats');
@@ -986,7 +988,7 @@ function updateRwiMap() {
   layerGroup.clearLayers();
   const notice = document.getElementById('populationNotice');
   document.getElementById('mapTitle').textContent = 'Relative wealth percentile by health zone';
-  document.getElementById('mapDescription').textContent = 'Health-zone polygons are colored by Relative Wealth Index percentile within DRC, derived from median RWI values aggregated to each health zone. Higher percentiles indicate relatively wealthier areas within DRC.';
+  document.getElementById('mapDescription').textContent = 'Health-zone RWI percentile within DRC.';
   document.getElementById('rankingTitle').textContent = 'Relative wealth percentile ranking';
   document.getElementById('rankingDescription').textContent = 'Top health zones by Relative Wealth Index percentile within DRC.';
   notice.style.display = 'block';
@@ -1089,10 +1091,10 @@ function updateRwiScatterChart() {
   const selected = displayDateLabel(selectedCaseDate());
   const displayLabel = display === 'all' ? 'all health zones' : (display === 'top25' ? 'top 25 affected health zones' : 'affected health zones only');
   Plotly.newPlot('rwiScatterChart', traces, {
-    margin: { l: 74, r: 18, t: 14, b: 78 },
-    xaxis: { title: 'Relative wealth percentile within DRC', range: [-2, 102], ticksuffix: '', gridcolor: '#eef3f8', zeroline: false },
+    margin: { l: 74, r: 18, t: 34, b: 88 },
+    xaxis: { title: { text: 'Relative wealth percentile within DRC', standoff: 14 }, range: [-2, 102], ticksuffix: '', gridcolor: '#eef3f8', zeroline: false },
     yaxis: { title: plotYTitle, gridcolor: '#e7eef7', rangemode: 'tozero' },
-    legend: { orientation: 'h', y: -0.34 },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.12, yanchor: 'bottom' },
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)',
     annotations: analysisRows.length ? [] : [{ text:'No health zones match the selected display mode', x:0.5, y:0.5, xref:'paper', yref:'paper', showarrow:false }]
@@ -1670,7 +1672,7 @@ function updateUgandaProjectionMap() {
   const totalProjected = border * scenarioFraction;
 
   document.getElementById('mapTitle').textContent = 'Projected Uganda-side movement pressure';
-  document.getElementById('mapDescription').textContent = 'Scenario-based projection of potential Uganda-side destinations. It combines DRC-side movement toward Uganda-border proxy health zones with historical IOM DTM Uganda–DRC border FMP destination profiles from Jan–Mar 2020.';
+  document.getElementById('mapDescription').textContent = 'Uganda-side destination pressure.';
   document.getElementById('rankingTitle').textContent = 'Uganda-side projected destination ranking';
   document.getElementById('rankingDescription').textContent = 'Projected Uganda-side destinations. These are not observed 2026 cross-border movements.';
   notice.style.display = 'block';
@@ -1750,6 +1752,31 @@ function reportSummaryForDate(date = selectedCaseDate()) {
 
 function latestUgandaEvdSummary() {
   return (ugandaEvdSummary || []).slice().sort((a, b) => String(a.as_of_date || '').localeCompare(String(b.as_of_date || ''))).slice(-1)[0] || null;
+}
+
+function ugandaRecentDailyRows(days = 14) {
+  const rows = (ugandaEvdDailyCases || [])
+    .filter(r => r.date)
+    .map(r => ({ date: String(r.date), confirmed_cases: toNumber(r.confirmed_cases) }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  return rows.slice(Math.max(0, rows.length - days));
+}
+
+function ugandaZeroNewCaseStreak() {
+  const rows = (ugandaEvdDailyCases || [])
+    .filter(r => r.date)
+    .map(r => ({ date: String(r.date), confirmed_cases: toNumber(r.confirmed_cases) }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  let streak = 0;
+  for (let i = rows.length - 1; i >= 0; i -= 1) {
+    if (toNumber(rows[i].confirmed_cases) === 0) streak += 1;
+    else break;
+  }
+  return streak;
+}
+
+function ugandaRecentNewCases(days = 7) {
+  return ugandaRecentDailyRows(days).reduce((a, r) => a + toNumber(r.confirmed_cases), 0);
 }
 
 function ugandaEvdSourceLabel(row = latestUgandaEvdSummary()) {
@@ -2080,9 +2107,9 @@ function updateCasesMap() {
 
   document.getElementById('mapTitle').textContent = textByLang('Health zone別のエボラ確定例', 'Confirmed Ebola cases by health zone', 'Cas confirmés d’Ebola par zone de santé');
   document.getElementById('mapDescription').textContent = textByLang(
-    caseDisplayMode === 'recent' ? '直近の確定例増加を、health zone重心上の比例バブルで表示します。症例バブルを見やすくするため、このレイヤーでは境界線を非表示にしています。' : '累積確定例を、health zone重心上の比例バブルで表示します。症例バブルを見やすくするため、このレイヤーでは境界線を非表示にしています。',
-    caseDisplayMode === 'recent' ? 'Recent increase in confirmed cases is shown as proportional red bubbles at health-zone centroids. Boundary outlines are hidden in this layer to keep the case bubbles readable.' : 'Cumulative confirmed cases are shown as proportional red bubbles at health-zone centroids. Boundary outlines are hidden in this layer to keep the case bubbles readable.',
-    caseDisplayMode === 'recent' ? 'L’augmentation récente des cas confirmés est affichée par des bulles proportionnelles au centroïde des zones de santé. Les limites sont masquées dans cette couche pour améliorer la lisibilité.' : 'Les cas confirmés cumulés sont affichés par des bulles proportionnelles au centroïde des zones de santé. Les limites sont masquées dans cette couche pour améliorer la lisibilité.'
+    caseDisplayMode === 'recent' ? '直近1週間の増加例をバブルで表示します。' : '累積確定例をバブルで表示します。',
+    caseDisplayMode === 'recent' ? 'Recent 1-week increases are shown as bubbles.' : 'Cumulative confirmed cases are shown as bubbles.',
+    caseDisplayMode === 'recent' ? 'Les augmentations sur 1 semaine sont affichées par bulles.' : 'Les cas confirmés cumulés sont affichés par bulles.'
   );
   document.getElementById('rankingTitle').textContent = textByLang('症例数ランキング', 'Case-count ranking', 'Classement par nombre de cas');
   document.getElementById('rankingDescription').textContent = textByLang(
@@ -2094,9 +2121,9 @@ function updateCasesMap() {
   notice.className = 'population-notice';
   const hiddenUnmapped = rows.filter(r => toNumber(r.cases) > 0 && !r.map_location_known).reduce((sum, r) => sum + toNumber(r.cases), 0);
   notice.innerHTML = textByLang(
-    `Case layer: バブルサイズは${caseDisplayLabel()}のhealth zone別${caseDisplayMode === 'recent' ? '直近確定例増加' : '累積確定例'}を表します。Unventilated / unknown-health-zone casesは特定のhealth zoneに割り当てられないため地図上には表示していません。${hiddenUnmapped > 0 ? ` さらに${formatCaseCount(hiddenUnmapped)}は合計には含まれますが、信頼できる地理的対応がないため地図上では非表示です。` : ''}`,
-    `Case layer: bubble size represents ${caseDisplayMode === 'recent' ? 'recent increase in confirmed cases' : 'cumulative confirmed cases'} by health zone for ${caseDisplayLabel()}. Unventilated / unknown-health-zone cases are not shown because they cannot be assigned to a specific health zone.${hiddenUnmapped > 0 ? ` An additional ${fmt.format(Math.round(hiddenUnmapped))} case${hiddenUnmapped === 1 ? '' : 's'} from mapped health-zone records are retained in the totals but hidden on the map because no reliable geographic match is available.` : ''}`,
-    `Couche des cas : la taille des bulles représente ${caseDisplayMode === 'recent' ? 'l’augmentation récente des cas confirmés' : 'les cas confirmés cumulés'} par zone de santé pour ${caseDisplayLabel()}. Les cas non ventilés ou sans zone de santé connue ne sont pas affichés car ils ne peuvent pas être attribués à une zone de santé spécifique.${hiddenUnmapped > 0 ? ` ${formatCaseCount(hiddenUnmapped)} supplémentaires sont conservés dans les totaux mais masqués sur la carte faute de correspondance géographique fiable.` : ''}`
+    `症例バブル：${caseDisplayLabel()}。${hiddenUnmapped > 0 ? ` 地理対応不明の${formatCaseCount(hiddenUnmapped)}は地図非表示。` : ''}`,
+    `Case bubbles: ${caseDisplayLabel()}.${hiddenUnmapped > 0 ? ` ${fmt.format(Math.round(hiddenUnmapped))} unmapped case${hiddenUnmapped === 1 ? '' : 's'} hidden.` : ''}`,
+    `Bulles de cas : ${caseDisplayLabel()}.${hiddenUnmapped > 0 ? ` ${formatCaseCount(hiddenUnmapped)} sans localisation fiable masqués.` : ''}`
   );
 
   // Do not draw health-zone polygon outlines in the Cases layer.
@@ -2267,7 +2294,7 @@ function updateContactAdjustedRiskMap() {
   const breaks = weightedRiskBreaksForMonth(f.month);
 
   document.getElementById('mapTitle').textContent = 'Contact-adjusted case-weighted risk';
-  document.getElementById('mapDescription').textContent = 'Health zones are colored by case-weighted incoming movement adjusted upward when contact follow-up in the origin province is below the 95% target.';
+  document.getElementById('mapDescription').textContent = 'Case-weighted movement adjusted by contact follow-up.';
   document.getElementById('rankingTitle').textContent = 'Contact-adjusted risk ranking';
   document.getElementById('rankingDescription').textContent = `Top health zones by contact-follow-up adjusted score. Origins: ${originFilterText()}.`;
   notice.style.display = 'block';
@@ -2320,7 +2347,7 @@ function updateAirAdjustedRiskMap() {
   const breaks = weightedRiskBreaksForMonth(f.month);
 
   document.getElementById('mapTitle').textContent = 'Air-adjusted case-weighted risk';
-  document.getElementById('mapDescription').textContent = 'Scenario-based layer: long-distance air-plausible destinations are down-weighted to reflect suspension/reopening of Bunia passenger flights under screening measures. Local/road-dominant movement is not reduced.';
+  document.getElementById('mapDescription').textContent = 'Air-adjusted movement risk layer.';
   document.getElementById('rankingTitle').textContent = 'Air-adjusted risk ranking';
   document.getElementById('rankingDescription').textContent = 'Top health zones by case-weighted movement score after applying the air-travel suppression scenario. Color classes use the same breaks as Weighted risk.';
   notice.style.display = 'block';
@@ -2502,7 +2529,7 @@ function updateUgandaBorderFlowMap() {
   const maxDistrict = Math.max(...districtRows.map(r => r.observed_movements), 1);
 
   document.getElementById('mapTitle').textContent = 'Uganda border flow — observed DTM FMP data';
-  document.getElementById('mapDescription').textContent = 'Observed cross-border movements at selected Uganda–DRC flow monitoring points during 15–24 May 2026, with Uganda destination districts shown as brown bubbles.';
+  document.getElementById('mapDescription').textContent = 'Observed Uganda–DRC border-flow summary.';
   document.getElementById('rankingTitle').textContent = 'Uganda destination ranking';
   document.getElementById('rankingDescription').textContent = 'Observed movements from Ituri and Nord-Kivu to Uganda districts in the IOM DTM EVD flow monitoring snapshot.';
   notice.style.display = 'block';
@@ -2536,7 +2563,7 @@ function updateUgandaImportationMap() {
   const base = selectedCaseWeightedBorderPressure(f.month);
 
   document.getElementById('mapTitle').textContent = 'Uganda importation pressure';
-  document.getElementById('mapDescription').textContent = 'Scenario indicator combining DRC case-weighted movement toward Uganda-border proxy zones with the 2026 IOM DTM Uganda destination profile.';
+  document.getElementById('mapDescription').textContent = 'Uganda importation pressure indicator.';
   document.getElementById('rankingTitle').textContent = 'Uganda importation-pressure ranking';
   document.getElementById('rankingDescription').textContent = `Uganda districts ranked by case-weighted border-pressure allocation. Origins: ${originFilterText()}.`;
   notice.style.display = 'block';
@@ -2847,7 +2874,7 @@ function updateRiskMap() {
   const breaks = [0.2, 0.4, 0.6, 0.8].map(q => quantile(values, q));
 
   document.getElementById('mapTitle').textContent = 'Mobility-based Ebola spread risk';
-  document.getElementById('mapDescription').textContent = 'Health zones are colored by estimated monthly arrivals from selected outbreak health zone(s). This is a mobility-pressure indicator, not a predicted probability of transmission.';
+  document.getElementById('mapDescription').textContent = 'Monthly mobility pressure indicator.';
   document.getElementById('rankingTitle').textContent = 'Spread-risk ranking';
   document.getElementById('rankingDescription').textContent = 'Top destination health zones by mobility-based spread pressure for the selected month.';
   notice.style.display = 'block';
@@ -2904,7 +2931,7 @@ function updateMap(destRows) {
   layerGroup.clearLayers();
   document.getElementById('populationNotice').style.display = 'none';
   document.getElementById('mapTitle').textContent = 'Flow map';
-  document.getElementById('mapDescription').textContent = 'Directed lines show monthly movement from outbreak health zones. Outbreak origins are highlighted in red, Kinshasa destinations in blue, and Uganda-border proxy zones in orange.';
+  document.getElementById('mapDescription').textContent = 'Monthly movement lines from outbreak zones.';
   document.getElementById('rankingTitle').textContent = 'Destination ranking';
   document.getElementById('rankingDescription').textContent = 'Top destination health zones by estimated monthly movement.';
   const f = currentFilters();
@@ -3486,10 +3513,10 @@ function updateFinalSizeProjectionChart() {
   }
 
   Plotly.newPlot('finalSizeChart', traces, {
-    margin: { l: 68, r: 24, t: 18, b: 124 },
-    xaxis: { title: { text: textByLang('日付', 'Date', 'Date'), standoff: 12 }, tickangle: -35, gridcolor: '#eef3f8', automargin: true, nticks: window.innerWidth < 700 ? 5 : 7 },
+    margin: { l: 68, r: 24, t: 34, b: 92 },
+    xaxis: { title: { text: textByLang('日付', 'Date', 'Date'), standoff: 16 }, tickangle: -35, gridcolor: '#eef3f8', automargin: true, nticks: window.innerWidth < 700 ? 5 : 7 },
     yaxis: { title: textByLang('累積確定症例数', 'Cumulative confirmed cases', 'Cas confirmés cumulés'), gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
-    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.56, yanchor: 'top' },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.12, yanchor: 'bottom' },
     shapes: finalShapes,
     annotations: finalAnnotations,
     paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
@@ -3825,10 +3852,10 @@ function updateForecastChart() {
     }
   ];
   Plotly.newPlot('forecastChart', traces, {
-    margin: { l: 62, r: 24, t: 18, b: 120 },
-    xaxis: { title: { text: 'Date', standoff: 12 }, tickangle: -35, gridcolor: '#eef3f8', automargin: true },
+    margin: { l: 62, r: 24, t: 32, b: 92 },
+    xaxis: { title: { text: 'Date', standoff: 16 }, tickangle: -35, gridcolor: '#eef3f8', automargin: true },
     yaxis: { title: 'Daily reported confirmed cases', gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
-    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.66, yanchor: 'top' },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.12, yanchor: 'bottom' },
     shapes: [{
       type: 'line', xref: 'x', yref: 'y', x0: selectedDate, x1: selectedDate, y0: 0, y1: maxY,
       line: { width: 2, dash: 'dot', color: '#667085' }
@@ -4002,28 +4029,39 @@ function crossBorderRiskAssessment() {
   const ugRows = ugandaImportationRowsForMonth(f.month).filter(r => toNumber(r.importation_pressure) > 0);
   const poe = responseMetricValue('poe_screening_coverage');
   const ituriCases = caseRowsLatest().filter(r => normalizedString(r.province) === 'ituri').reduce((a, r) => a + toNumber(r.confirmed_cases), 0);
+  const ugZeroStreak = ugandaZeroNewCaseStreak();
+  const ugRecent7 = ugandaRecentNewCases(7);
+
+  // Baseline public-health judgement: current cross-border risk is moderate.
+  // Continued zero newly imported/reported Uganda cases should gradually lower the assessment.
   let level = 'moderate', category = textByLang('中程度', 'Moderate', 'Modéré');
   if (share >= 0.25 || ituriCases >= 400) { level = 'moderate_high'; category = textByLang('中〜高程度', 'Moderate-to-high', 'Modéré à élevé'); }
   if (share >= 0.40 && (!Number.isFinite(poe) || poe < 0.90)) { level = 'high'; category = textByLang('高い', 'High', 'Élevé'); }
-  if (share < 0.08 && Number.isFinite(poe) && poe >= 0.95) { level = 'low'; category = textByLang('低い', 'Low', 'Faible'); }
+  if (ugRecent7 === 0 && ugZeroStreak >= 7) { level = 'moderate'; category = textByLang('中程度', 'Moderate', 'Modéré'); }
+  if (ugRecent7 === 0 && ugZeroStreak >= 14 && Number.isFinite(poe) && poe >= 0.80) { level = 'low'; category = textByLang('低〜中程度', 'Low-to-moderate', 'Faible à modéré'); }
+  if (share < 0.08 && Number.isFinite(poe) && poe >= 0.95 && ugRecent7 === 0) { level = 'low'; category = textByLang('低い', 'Low', 'Faible'); }
+
+  const zeroJa = ugZeroStreak > 0 ? `ウガンダでは新規報告例ゼロが${fmt.format(ugZeroStreak)}日続いており、この傾向が続く場合は拡大リスクを低下方向に評価します。` : 'ウガンダの直近日別報告例データは限定的です。';
+  const zeroEn = ugZeroStreak > 0 ? `Uganda has reported zero new cases for ${fmt.format(ugZeroStreak)} consecutive days; if this continues, the cross-border risk assessment is shifted downward.` : 'Recent Uganda daily case data are limited.';
+  const zeroFr = ugZeroStreak > 0 ? `L’Ouganda rapporte zéro nouveau cas depuis ${fmt.format(ugZeroStreak)} jours consécutifs; si cette tendance se poursuit, l’évaluation du risque transfrontalier est abaissée.` : 'Les données quotidiennes récentes pour l’Ouganda sont limitées.';
   if (currentLang === 'fr') {
     return {
       level, category,
-      text: `Le risque de diffusion vers l’Ouganda et les pays voisins est évalué à partir de la pression d’importation vers les routes frontalières, des cas dans l’est de la RDC et des indicateurs de dépistage PoE/PoC. Les indicateurs actuels suggèrent un risque « ${category.toLowerCase()} », et les mouvements transfrontaliers se poursuivent malgré le dépistage.`,
-      drivers: `Cas en Ituri ${formatCaseCount(ituriCases)}, part de pression frontalière ${pct(share)}, destinations en Ouganda ${fmt.format(ugRows.length)}, dépistage PoE ${Number.isFinite(poe) ? pct(poe) : 'pas de données'}.`
+      text: `Le risque de diffusion vers l’Ouganda et les pays voisins est actuellement évalué comme « ${category.toLowerCase()} ». ${zeroFr} L’évaluation combine la pression d’importation vers les routes frontalières, les cas dans l’est de la RDC et les indicateurs de dépistage PoE/PoC.`,
+      drivers: `Cas en Ituri ${formatCaseCount(ituriCases)}, part de pression frontalière ${pct(share)}, destinations en Ouganda ${fmt.format(ugRows.length)}, nouveaux cas Ouganda 7 j ${fmt.format(ugRecent7)}, dépistage PoE ${Number.isFinite(poe) ? pct(poe) : 'pas de données'}.`
     };
   }
   if (currentLang === 'en') {
     return {
       level, category,
-      text: `Risk of spread to Uganda and neighbouring countries is assessed using importation pressure toward Uganda-border routes, case counts in eastern DRC and PoE/PoC screening indicators. Current indicators suggest ${category.toLowerCase()} risk, and cross-border movement continues even with screening in place.`,
-      drivers: `Ituri cases ${formatCaseCount(ituriCases)}, border-pressure share ${pct(share)}, Uganda destinations ${fmt.format(ugRows.length)}, PoE screening ${Number.isFinite(poe) ? pct(poe) : 'no data'}.`
+      text: `Risk of spread to Uganda and neighbouring countries is currently assessed as ${category.toLowerCase()}. ${zeroEn} The assessment combines importation pressure toward Uganda-border routes, case counts in eastern DRC and PoE/PoC screening indicators.`,
+      drivers: `Ituri cases ${formatCaseCount(ituriCases)}, border-pressure share ${pct(share)}, Uganda destinations ${fmt.format(ugRows.length)}, Uganda new cases last 7d ${fmt.format(ugRecent7)}, PoE screening ${Number.isFinite(poe) ? pct(poe) : 'no data'}.`
     };
   }
   return {
     level, category,
-    text: `ウガンダ・周辺国への拡大リスクは、ウガンダ国境方向のimportation pressure、DRC東部の症例数、PoE/PoCスクリーニング指標に基づき評価しています。現在の指標では「${category}」のリスクが示唆され、スクリーニング下でも国境を越える移動は継続しています。`,
-    drivers: `Ituri症例 ${formatCaseCount(ituriCases)}、border-pressure share ${pct(share)}、Uganda destination ${ugRows.length}件、PoE screening ${Number.isFinite(poe) ? pct(poe) : 'データなし'}。`
+    text: `ウガンダ・周辺国への拡大リスクは現状で「${category}」と評価します。${zeroJa} 評価には、ウガンダ国境方向のimportation pressure、DRC東部の症例数、PoE/PoCスクリーニング指標を用いています。`,
+    drivers: `Ituri症例 ${formatCaseCount(ituriCases)}、border-pressure share ${pct(share)}、Uganda destination ${ugRows.length}件、ウガンダ直近7日新規例 ${fmt.format(ugRecent7)}、PoE screening ${Number.isFinite(poe) ? pct(poe) : 'データなし'}。`
   };
 }
 
@@ -4085,8 +4123,8 @@ function updateDashboard() {
 
 async function main() {
   initLanguageControls();
-  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, aiSitrepSummary, finalSizeProjectionData] = await Promise.all([
-    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.aiSummary), loadJsonOptional(files.finalProjection)
+  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, finalSizeProjectionData] = await Promise.all([
+    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.finalProjection)
   ]);
   buildIndexes();
   initMap();

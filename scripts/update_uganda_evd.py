@@ -165,6 +165,67 @@ def upsert_by_key(existing: list[dict[str, object]], new_rows: list[dict[str, ob
         out[tuple(str(r.get(k, "")) for k in keys)] = dict(r)
     return list(out.values())
 
+def iso_date_range(start_exclusive: str, end_inclusive: str) -> list[str]:
+    try:
+        start = date.fromisoformat(start_exclusive)
+        end = date.fromisoformat(end_inclusive)
+    except ValueError:
+        return []
+    out: list[str] = []
+    cur = start
+    while cur < end:
+        cur = date.fromordinal(cur.toordinal() + 1)
+        out.append(cur.isoformat())
+    return out
+
+
+def derive_daily_rows_from_cumulative(row: dict[str, object], existing_history: list[dict[str, object]]) -> list[dict[str, object]]:
+    """Derive daily Uganda new-case rows when the page only provides cumulative totals.
+
+    If the as-of date advances but cumulative confirmed cases stay unchanged, each
+    missing day is recorded as zero new confirmed cases. If the cumulative total
+    increases, the conservative fallback places the observed cumulative difference
+    on the current as-of date and sets intervening days to zero. When the page chart
+    parser succeeds, those chart-derived rows take precedence via upsert.
+    """
+    current_date = str(row.get("as_of_date") or "")
+    if not current_date:
+        return []
+    current_cum = to_int(row.get("cumulative_confirmed_cases"))
+    if current_cum is None:
+        return []
+    previous = None
+    for h in sorted(existing_history, key=lambda r: str(r.get("as_of_date", ""))):
+        d = str(h.get("as_of_date") or "")
+        if d and d < current_date:
+            previous = h
+    if not previous:
+        return []
+    prev_date = str(previous.get("as_of_date") or "")
+    prev_cum = to_int(previous.get("cumulative_confirmed_cases"))
+    if not prev_date or prev_cum is None or prev_date >= current_date:
+        return []
+    dates = iso_date_range(prev_date, current_date)
+    if not dates:
+        return []
+    diff = max(0, current_cum - prev_cum)
+    rows: list[dict[str, object]] = []
+    for d in dates:
+        val = 0
+        note = "Derived from unchanged cumulative Uganda MoH totals."
+        if diff > 0 and d == current_date:
+            val = diff
+            note = "Derived from cumulative Uganda MoH totals; increase assigned to as-of date because daily chart was unavailable."
+        rows.append({
+            "date": d,
+            "date_label": datetime.fromisoformat(d).strftime("%d-%b-%y"),
+            "confirmed_cases": val,
+            "source_url": URL,
+            "notes": note,
+        })
+    return rows
+
+
 
 def value_before_label(text: str, label: str) -> int | None:
     # The Uganda page generally renders as "19 Cumulative confirmed cases".
@@ -273,16 +334,24 @@ def main() -> None:
 
     daily_out = DATA / "uganda_evd_daily_cases.csv"
     daily_fields = ["date", "date_label", "confirmed_cases", "source_url", "notes"]
+    existing_daily = read_csv_rows(daily_out)
+    derived_daily = derive_daily_rows_from_cumulative(row, read_csv_rows(history_out))
+    combined_daily = existing_daily
+    if derived_daily:
+        combined_daily = upsert_by_key(combined_daily, derived_daily, ["date"])
     if daily_cases:
-        daily_rows = upsert_by_key(read_csv_rows(daily_out), daily_cases, ["date"])
-        daily_rows.sort(key=lambda r: str(r.get("date", "")))
-        write_csv_rows(daily_out, daily_fields, daily_rows)
+        # Parsed chart rows take precedence over derived rows for the same date.
+        combined_daily = upsert_by_key(combined_daily, daily_cases, ["date"])
+    if derived_daily or daily_cases or existing_daily:
+        combined_daily.sort(key=lambda r: str(r.get("date", "")))
+        write_csv_rows(daily_out, daily_fields, combined_daily)
 
     meta = {
         "updated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
         "source_url": URL,
         "parsed": row,
         "daily_cases_rows_parsed": len(daily_cases),
+        "daily_cases_rows_derived_from_cumulative": len(derived_daily),
     }
     STATUS.write_text("# ✅ Uganda EVD daily update completed\n\n" + json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 

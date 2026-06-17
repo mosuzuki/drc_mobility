@@ -28,3 +28,8 @@ date,date_label,confirmed_cases,source_url,notes
 2026-06-10,10-Jun-26,0,https://evd-daily.health.go.ug/,Parsed from Uganda MoH Cases by date of confirmation chart; initial rows seeded from user-provided 12 Jun 2026 screenshot.
 2026-06-11,11-Jun-26,0,https://evd-daily.health.go.ug/,Parsed from Uganda MoH Cases by date of confirmation chart; initial rows seeded from user-provided 12 Jun 2026 screenshot.
 2026-06-12,12-Jun-26,0,https://evd-daily.health.go.ug/,Parsed from Uganda MoH Cases by date of confirmation chart; initial rows seeded from user-provided 12 Jun 2026 screenshot.
+2026-06-13,13-Jun-26,0,https://evd-daily.health.go.ug/,Derived from unchanged Uganda MoH cumulative confirmed-case total; no increase means zero new reported cases for this date.
+2026-06-14,14-Jun-26,0,https://evd-daily.health.go.ug/,Derived from unchanged Uganda MoH cumulative confirmed-case total; no increase means zero new reported cases for this date.
+2026-06-15,15-Jun-26,0,https://evd-daily.health.go.ug/,Derived from unchanged Uganda MoH cumulative confirmed-case total; no increase means zero new reported cases for this date.
+2026-06-16,16-Jun-26,0,https://evd-daily.health.go.ug/,Derived from unchanged Uganda MoH cumulative confirmed-case total; no increase means zero new reported cases for this date.
+2026-06-17,17-Jun-26,0,https://evd-daily.health.go.ug/,Derived from unchanged Uganda MoH cumulative confirmed-case total; no increase means zero new reported cases for this date.
