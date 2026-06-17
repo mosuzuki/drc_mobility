@@ -1779,6 +1779,59 @@ function ugandaRecentNewCases(days = 7) {
   return ugandaRecentDailyRows(days).reduce((a, r) => a + toNumber(r.confirmed_cases), 0);
 }
 
+function ugandaLastPositiveCaseDate() {
+  const rows = (ugandaEvdDailyCases || [])
+    .filter(r => r.date)
+    .map(r => ({ date: String(r.date), confirmed_cases: toNumber(r.confirmed_cases) }))
+    .sort((a, b) => a.date.localeCompare(b.date));
+  for (let i = rows.length - 1; i >= 0; i -= 1) {
+    if (toNumber(rows[i].confirmed_cases) > 0) return rows[i].date;
+  }
+  return '';
+}
+
+function displayMonthDayLabel(dateStr) {
+  if (!dateStr) return '—';
+  const d = new Date(dateStr + 'T00:00:00Z');
+  if (Number.isNaN(d.getTime())) return dateStr;
+  const locale = currentLang === 'ja' ? 'ja-JP' : (currentLang === 'fr' ? 'fr-FR' : 'en-GB');
+  return d.toLocaleDateString(locale, { day:'numeric', month:'short', timeZone:'UTC' });
+}
+
+function formatUgandaLatestSituation(row = latestUgandaEvdSummary()) {
+  if (!row) {
+    return textByLang(
+      'ウガンダ側の症例情報は、現在のローカルデータファイルでは利用できません。',
+      'Uganda-side case information is not available in the current local data files.',
+      'Les informations sur les cas côté Ouganda ne sont pas disponibles dans les fichiers de données locaux actuels.'
+    );
+  }
+  const cases = fmt.format(toNumber(row.cumulative_confirmed_cases) || 0);
+  const deaths = fmt.format(toNumber(row.cumulative_deaths) || 0);
+  const imported = fmt.format(toNumber(row.imported_cases) || 0);
+  const local = fmt.format(toNumber(row.local_cases) || 0);
+  const latestDate = displayDateLabel(row.as_of_date);
+  const zeroDays = ugandaZeroNewCaseStreak();
+  const lastPositive = ugandaLastPositiveCaseDate();
+  const lastPositiveLabel = lastPositive ? displayMonthDayLabel(lastPositive) : '';
+  if (currentLang === 'ja') {
+    const zeroText = zeroDays > 0 && lastPositiveLabel
+      ? `${lastPositiveLabel}以降、${fmt.format(zeroDays)}日間連続で新規症例は報告されていません。`
+      : `過去24時間の新規症例は${fmt.format(toNumber(row.new_cases_last_24h) || 0)}例です。`;
+    return `ウガンダでは、${latestDate}時点で累計確定例${cases}例、死亡例${deaths}例が報告されています。輸入例が${imported}例、国内感染例が${local}例です。${zeroText}`;
+  }
+  if (currentLang === 'fr') {
+    const zeroText = zeroDays > 0 && lastPositiveLabel
+      ? `Aucun nouveau cas n’a été rapporté pendant ${fmt.format(zeroDays)} jours consécutifs depuis le ${lastPositiveLabel}.`
+      : `${fmt.format(toNumber(row.new_cases_last_24h) || 0)} nouveau cas a été rapporté au cours des dernières 24 heures.`;
+    return `En Ouganda, ${cases} cas confirmés cumulés et ${deaths} décès ont été rapportés au ${latestDate}. Parmi eux, ${imported} cas sont importés et ${local} cas sont locaux. ${zeroText}`;
+  }
+  const zeroText = zeroDays > 0 && lastPositiveLabel
+    ? `No new cases have been reported for ${fmt.format(zeroDays)} consecutive days since ${lastPositiveLabel}.`
+    : `${fmt.format(toNumber(row.new_cases_last_24h) || 0)} new cases were reported in the last 24 hours.`;
+  return `As of ${latestDate}, Uganda has reported ${cases} cumulative confirmed cases and ${deaths} deaths. Imported cases account for ${imported}, and local cases for ${local}. ${zeroText}`;
+}
+
 function ugandaEvdSourceLabel(row = latestUgandaEvdSummary()) {
   if (!row) return 'Uganda Ministry of Health EVD daily page';
   const date = row.as_of_date ? displayDateLabel(row.as_of_date) : (row.as_of_label || 'latest available date');
@@ -1825,11 +1878,8 @@ function updateLatestSituationSummary() {
         ? `From ${previous.report_no} to ${latest.report_no}, cumulative confirmed cases in DRC increased from ${fmt.format(prevCases)} to ${fmt.format(latestCases)} (${dCases >= 0 ? '+' : ''}${fmt.format(dCases)}), and confirmed deaths increased from ${fmt.format(prevDeaths)} to ${fmt.format(latestDeaths)} (${dDeaths >= 0 ? '+' : ''}${fmt.format(dDeaths)}).`
         : `${latest.report_no}: DRC has ${fmt.format(latestCases)} confirmed cases and ${fmt.format(latestDeaths)} confirmed deaths.`;
     }
-    const ug = latestUgandaEvdSummary();
     if (ugandaEl) {
-      ugandaEl.textContent = ug
-        ? `Uganda reports ${fmt.format(toNumber(ug.cumulative_confirmed_cases))} confirmed cases and ${fmt.format(toNumber(ug.cumulative_deaths))} deaths (${fmt.format(toNumber(ug.imported_cases))} imported, ${fmt.format(toNumber(ug.local_cases))} local) as of ${displayDateLabel(ug.as_of_date)}.`
-        : 'Uganda-side case information is not available in the current local data files.';
+      ugandaEl.textContent = formatUgandaLatestSituation();
     }
     if (metaEl) metaEl.textContent = previous ? `${previous.report_no}→${latest.report_no}, reporting date ${displayDateLabel(latest.reporting_date)}.` : `${latest.report_no}, reporting date ${displayDateLabel(latest.reporting_date)}.`;
     return;
@@ -1856,11 +1906,8 @@ function updateLatestSituationSummary() {
         ? `De ${previous.report_no} à ${latest.report_no}, les cas confirmés cumulés en RDC sont passés de ${fmt.format(prevCases)} à ${fmt.format(latestCases)} (${dCases >= 0 ? '+' : ''}${fmt.format(dCases)} cas), et les décès confirmés sont passés de ${fmt.format(prevDeaths)} à ${fmt.format(latestDeaths)} (${dDeaths >= 0 ? '+' : ''}${fmt.format(dDeaths)} décès).`
         : `${latest.report_no} : la RDC rapporte ${fmt.format(latestCases)} cas confirmés et ${fmt.format(latestDeaths)} décès confirmés.`;
     }
-    const ug = latestUgandaEvdSummary();
     if (ugandaEl) {
-      ugandaEl.textContent = ug
-        ? `L’Ouganda rapporte ${fmt.format(toNumber(ug.cumulative_confirmed_cases))} cas confirmés et ${fmt.format(toNumber(ug.cumulative_deaths))} décès (${fmt.format(toNumber(ug.imported_cases))} importés, ${fmt.format(toNumber(ug.local_cases))} locaux) au ${displayDateLabel(ug.as_of_date)}.`
-        : 'Les informations sur les cas côté Ouganda ne sont pas disponibles dans les fichiers de données locaux actuels.';
+      ugandaEl.textContent = formatUgandaLatestSituation();
     }
     if (metaEl) metaEl.textContent = previous ? `${previous.report_no}→${latest.report_no}, date de rapport ${displayDateLabel(latest.reporting_date)}.` : `${latest.report_no}, date de rapport ${displayDateLabel(latest.reporting_date)}.`;
     return;
@@ -1885,14 +1932,14 @@ function updateLatestSituationSummary() {
   if (drcEl && ugandaEl) {
     if (drcText || ugandaText) {
       drcEl.textContent = formatJapaneseCaseUnits(drcText) || 'DRC側の差分要約を作成できませんでした。';
-      ugandaEl.textContent = formatJapaneseCaseUnits(ugandaText) || 'ウガンダ側の差分要約を作成できませんでした。';
+      ugandaEl.textContent = formatUgandaLatestSituation();
     } else {
       const summary = row.summary_ja || '差分要約を作成できませんでした。';
       const parts = summary.split(/•\s*ウガンダ：/);
       const drc = parts[0].replace(/^•\s*DRC：/, '').trim();
       const ug = (parts[1] || '').trim();
       drcEl.textContent = formatJapaneseCaseUnits(drc || summary);
-      ugandaEl.textContent = formatJapaneseCaseUnits(ug) || 'ウガンダ側の個別要約はありません。';
+      ugandaEl.textContent = formatUgandaLatestSituation();
     }
   } else {
     wrapperEl.textContent = formatJapaneseCaseUnits(row.summary_ja) || '差分要約を作成できませんでした。';
