@@ -1,0 +1,225 @@
+{
+  "report_no": 33,
+  "reporting_date": "2026-06-16",
+  "publication_date": "2026-06-17",
+  "total_confirmed": 875,
+  "total_deaths": 202,
+  "health_zone_rows": [
+    {
+      "province": "Ituri",
+      "health_zone": "Bunia",
+      "confirmed_cases": 226,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Rwampara",
+      "confirmed_cases": 172,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mongbwalu",
+      "confirmed_cases": 189,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nyankunde",
+      "confirmed_cases": 45,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nizi",
+      "confirmed_cases": 16,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Bambu",
+      "confirmed_cases": 7,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Komanda",
+      "confirmed_cases": 7,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Lita",
+      "confirmed_cases": 9,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mangala",
+      "confirmed_cases": 5,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Tchomia",
+      "confirmed_cases": 5,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Kilo",
+      "confirmed_cases": 4,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Damas",
+      "confirmed_cases": 4,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Rimba",
+      "confirmed_cases": 3,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Aru",
+      "confirmed_cases": 3,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Aungba",
+      "confirmed_cases": 2,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mambasa",
+      "confirmed_cases": 2,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Logo",
+      "confirmed_cases": 2,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Fataki",
+      "confirmed_cases": 1,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Gety",
+      "confirmed_cases": 1,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Kambala",
+      "confirmed_cases": 1,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nia-Nia",
+      "confirmed_cases": 1,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Katwa",
+      "confirmed_cases": 23,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Butembo",
+      "confirmed_cases": 24,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Beni",
+      "confirmed_cases": 14,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Oicha",
+      "confirmed_cases": 3,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Kyondo",
+      "confirmed_cases": 2,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Kalunguta",
+      "confirmed_cases": 2,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Goma",
+      "confirmed_cases": 1,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Masereka",
+      "confirmed_cases": 1,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Vuhovi",
+      "confirmed_cases": 1,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Mabalako",
+      "confirmed_cases": 1,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Musienene",
+      "confirmed_cases": 1,
+      "confirmed_deaths": null
+    },
+    {
+      "province": "Sud-Kivu",
+      "health_zone": "Miti-Murhesa",
+      "confirmed_cases": 3,
+      "confirmed_deaths": null
+    }
+  ],
+  "unassigned_cases": 94,
+  "unassigned_deaths": null,
+  "response_indicators": {
+    "contact_followup_rate": 0.716,
+    "contacts_under_followup": 6856,
+    "contacts_seen": 4910,
+    "alerts_reported": 737,
+    "alerts_investigated": 475,
+    "alert_investigation_rate": 0.645,
+    "samples_received": null,
+    "samples_analysed": null,
+    "positive_samples": null,
+    "travellers_total": 54660,
+    "travellers_screened": 53567,
+    "poe_screening_coverage": 0.98
+  },
+  "notes": "Extraction from SitRep N°33 dated 16 June 2026. Total confirmed cases 875 with 202 deaths. Health zone confirmed cases sum to 781; 94 cases unassigned as per report. Deaths by health zone not detailed. Response indicators extracted from tables and narrative.",
+  "_openai_model": "gpt-4.1-mini"
+}
