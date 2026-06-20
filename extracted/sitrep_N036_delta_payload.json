@@ -1,0 +1,75 @@
+{
+  "from_report": "N35",
+  "to_report": "N36",
+  "from_reporting_date": "2026-06-18",
+  "to_reporting_date": "2026-06-19",
+  "confirmed_cases": {
+    "previous": 933,
+    "latest": 956,
+    "change": 23
+  },
+  "confirmed_deaths": {
+    "previous": 245,
+    "latest": 247,
+    "change": 2
+  },
+  "health_zones": {
+    "previous_count": 33,
+    "latest_count": 33,
+    "new_health_zones": [],
+    "largest_increases": [
+      {
+        "health_zone": "Mongbwalu",
+        "change": 11,
+        "latest": 209
+      },
+      {
+        "health_zone": "Bunia",
+        "change": 6,
+        "latest": 259
+      },
+      {
+        "health_zone": "Nyankunde",
+        "change": 2,
+        "latest": 79
+      },
+      {
+        "health_zone": "Rwampara",
+        "change": 2,
+        "latest": 201
+      },
+      {
+        "health_zone": "Katwa",
+        "change": 2,
+        "latest": 26
+      }
+    ]
+  },
+  "response": {
+    "contact_followup_rate_previous": null,
+    "contact_followup_rate_latest": null,
+    "contacts_under_followup_latest": 0,
+    "contacts_seen_latest": 0,
+    "alerts_reported_latest": 0,
+    "alerts_investigated_latest": 0,
+    "alert_investigation_rate_latest": null,
+    "samples_analysed_latest": 0,
+    "positive_samples_latest": 0,
+    "travellers_total_latest": 0,
+    "travellers_screened_latest": 98,
+    "poe_screening_coverage_latest": null
+  },
+  "uganda": {
+    "as_of_date": "2026-06-17",
+    "confirmed_cases": 19,
+    "confirmed_deaths": 2,
+    "imported_cases": 14,
+    "local_cases": 5,
+    "new_cases_last_24h": 0,
+    "no_reported_increase_days": 12,
+    "last_reported_increase_date": "2026-06-05",
+    "trend_basis": "daily_confirmation_chart",
+    "trend_status": "no_recent_increase",
+    "source_url": "https://evd-daily.health.go.ug/"
+  }
+}

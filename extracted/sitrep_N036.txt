@@ -1,0 +1,964 @@
+
+--- PAGE 1 ---
+
+² 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+1. FAITS SAILLANTS 
+• Vingt-trois (23) nouveaux cas confirmés dont 2 décès, ont été rapportés au cours de la journée du 19 
+juin 2026, dans les provinces de l’Ituri (21 dont 2 décès) et Nord-Kivu (2). Ces cas confirmés sont 
+répartis dans les zones de santé de Mongbwalu (11), Bunia (6), Nyankunde (2) et Rwampara (2), dans 
+la province d’Ituri ainsi que celles de Katwa (2) dans la province du Nord-Kivu.  
+• Douze (12) patients atteints de la maladie à virus Ebola ont été déclarés guéris après avoir obtenu des 
+tests de contrôles négatifs. 
+• Tenue d’une session de travail entre la délégation ministérielle du niveau national, le gouverneur de 
+province et le SGI MVE pour évaluer les activités de la riposte. 
+ 
+2. CONTEXTE ÉPIDÉMIOLOGIQUE ET OPÉRATIONNEL 
+La province de l'Ituri, située au Nord-Est de la République Démocratique du Congo, partage une frontière 
+longue et poreuse avec l'Ouganda et le Soudan du Sud. Depuis plus de deux décennies, elle est confrontée 
+à une crise humanitaire chronique liée aux conflits armés et aux déplacements récurrents de populations. Sa 
+population est estimée à plus de 8 millions d'habitants, dont plus d'un million de déplacés internes. La zone 
+de santé de Mongbwalu, considérée comme le point de départ de l'épidémie, est située dans le territoire de 
+Djugu à 70 km de Bunia. Cette zone se caractérise par la présence de groupes armés, des mouvements 
+fréquents de population vers l'Ouganda, et de nombreux chantiers miniers artisanaux attirant des travailleurs 
+migrants. En septembre 2018, la province de l'Ituri avait déjà été touchée par la 10ème épidémie de MVE qui 
+sévissait alors au Nord-Kivu. L'épidémie actuelle, due au Bundibugyo ebolavirus, a été déclarée officiellement 
+le 15 mai 2026 par le ministre de la Santé Publique. Les trois provinces touchées comptent une population 
+Provinces touchées (3) 
+ITURI, NORD-KIVU & SUD-KIVU 
+Zones de Santé touchées 
+(34) 
+• Ituri (22/36) : Aru, Aungba, Bambu, Bunia, Damas, Drodro, Gety, Kilo, Komanda, Lita, 
+Logo, Mambasa, Mangala, Mongbwalu, Nizi, Nyankunde, Rimba, Rwampara, Tchomia, 
+Kambala, Nia-Nia et Fataki. 
+• Nord-Kivu (11/34) : Beni, Butembo, Goma, Kalunguta, Katwa, Kyondo, Oicha, 
+Masereka, Vuhovi, Mabalako et Musienene. 
+• Sud-Kivu (1/34) : Miti-Murhesa 
+Date de rapportage  
+19 juin 2026 
+Date de publication  
+20 juin 2026 
+ 
+Centre d’Opérations d’Urgence de Santé Publique 
+« COUSP RDC » 
+Système de Gestion de l’Incident MVE-17 
+Rapport de Situation de la 17ème Epidémie de la Maladie à Virus EBOLA /RDC 
+SitRep N°36/MVB_19/06/2026 
+ 
+Cumul cas confirmés 
+pour les 3 provinces  
+Cumul décès parmi 
+les confirmés et taux 
+de létalité 
+361(88,3%) 
+ 
+Patients en 
+isolement - 
+hospitalisation 
+92 
+ 
+Nombre cumulé 
+des guéris 
+ 
+ 
+ 
+ 
+ 
+ 
+69,3% 
+ 
+ 
+247(25,8%) 
+ 
+Taux de suivi des 
+contacts pour les 
+3 provinces  
+956* 
+ 
+162(47 décès) ** 
+Cas suspects du 
+jour 
+* Données réactualisées à la suite du processus de nettoyage et d’harmonisation de la base DHIS2, incluant la 
+consolidation des informations issues des zones de santé, des laboratoires et des structures de prise en charge des cas. 
+ 
+**Les décès suspects survenus en communauté font l’objet d’une investigation 
+approfondie en vue d’une éventuelle reclassification (Non-cas, cas probables). 
+
+
+--- PAGE 2 ---
+
+2 
+ 
+totale estimée à près de 15 millions d'habitants, avec des déplacements internes massifs et des flux 
+transfrontaliers vers les pays voisins. 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+  
+ 
+ 
+ 
+ 
+Figure 1. Chronologie des faits de l’épidémie de la maladie à virus Ebola-Bundibugyo. 
+ 
+3. ANALYSE ÉPIDÉMIOLOGIQUE DÉTAILLÉE 
+3.1 Distribution spatiale et foyers actifs au 19 juin 2026 
+Tableau 1. Répartition des cas et décès confirmés par province touchée en date du 19 juin 2026. 
+Province 
+Cas 
+confirmés 
+Décès 
+(confirmés) 
+Létalité 
+Zones de santé 
+touchées 
+Nouveaux 
+cas 
+confirmés 
+(24h) 
+Ituri 
+874 
+201 
+23,0% 
+22 sur 36 (61,1 %) 
+21 
+Nord-Kivu 
+79 
+45 
+57,0% 
+11 sur 34 (32,3 %) 
+2 
+Sud-Kivu 
+3 
+1 
+33,3% 
+1 sur 34 (2,9 %) 
+0 
+Total 
+956 
+247 
+25,8% 
+34 sur 104 (32,7 %) 
+23 
+ 
+Au décours de la journée du 19 juin 2026, aucune nouvelle zone de santé touchée. Le nombre des zones de 
+santé affectées reste à 34/104 (section 3.1). D’autre part, la province du Sud-Kivu n’a pas notifié de cas 
+confirmé depuis le 26 mai 2026 (Tableau 1). Absence de transmission récente au Sud-Kivu. Cependant, une 
+surveillance reste nécessaire. 
+3.2 Répartition par zone de santé (Cumul au 19/06/2026) 
+• Province de l'Ituri (874 cas) : Bunia (259), Rwampara (201), Mongbwalu (209), Nyankunde (79), Nizi 
+(26), Lita (20), Komanda (10), Bambu (9), Kilo (7), Mangala (7), Tchomia (5), Damas (4), Aungba (6), 
+Rimba (3), Aru (3), Mambasa (2), Logo (2), Drodro (1), Gety (1), Kambala (1), Nia-Nia (1) et Fataki (1). 
+Dix-sept (17) cas supplémentaires sont en attente de ventilation précise par zone de santé dans la 
+province.  
+• Province du Nord-Kivu (79 cas) : Butembo (25), Katwa (26), Beni (16), Oicha (3), Kalunguta (2), Kyondo 
+(2), Goma (1), Masereka (1), Vuhovi (1), Mabalako (1) et Musienene (1).  
+• Province du Sud-Kivu (3 cas) : Miti-Murhesa (3). 
+
+
+--- PAGE 3 ---
+
+3 
+ 
+3.3 Analyse temporelle : On observe un nombre croissant de cas confirmés d’une semaine à l’autre, 
+traduisant une transmission continue de la maladie dans la communauté. Une expansion géographique rapide 
+de l’épidémie demeure possible si les actions de santé publique ne sont pas mises en œuvre rapidement. 
+ 
+3.4 Cartographie épidémique 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+ 
+Figures 2 & 3. Spatialisation des cas confirmés de la MVE par zones de santé affectées et dans les 
+trois provinces touchées en date du 19 juin 2026 
+ 
+ 
+ 
+ 
+
+
+--- PAGE 4 ---
+
+4 
+ 
+Tableau 2. Cas confirmés et décès par province et zone de santé (19 juin 2026) 
+Province / Zone de santé 
+Cas 
+confirmés 
+cumulés (n) 
+Décès 
+confirmés 
+cumulés (n) 
+Létalité (CFR, 
+%) 
+ITURI 
+874 
+201 
+23,0% 
+Bunia 
+259 
+42 
+16,2% 
+Rwampara 
+201 
+35 
+17,4% 
+Mongbwalu 
+209 
+89 
+42,6% 
+Nyankunde 
+79 
+7 
+8,9% 
+Nizi 
+26 
+5 
+19,2% 
+Lita 
+20 
+6 
+30,0% 
+Komanda 
+10 
+3 
+30,0% 
+Bambu 
+9 
+2 
+22,2% 
+Kilo 
+7 
+1 
+14,3% 
+Mangala 
+7 
+4 
+57,1% 
+Tchomia 
+5 
+0 
+0,0% 
+Damas 
+4 
+0 
+0,0% 
+Aungba 
+6 
+2 
+33,3% 
+Rimba 
+3 
+0 
+0,0% 
+Aru 
+3 
+1 
+33,3% 
+Mambasa 
+2 
+1 
+50,0% 
+Logo 
+2 
+0 
+0,0% 
+Drodro 
+1 
+1 
+100,0% 
+Gety 
+1 
+0 
+0,0% 
+Kambala 
+1 
+1 
+100,0% 
+Nia-Nia 
+1 
+1 
+100,0% 
+Fataki 
+1 
+0 
+0,0% 
+Autres zones non encore identifiées 
+17 
+0 
+0,0% 
+NORD-KIVU 
+79 
+45 
+57,0% 
+Butembo 
+25 
+11 
+44,0% 
+Katwa 
+26 
+16 
+61,5% 
+Beni 
+16 
+12 
+75,0% 
+Oicha 
+3 
+2 
+66,7% 
+Kalunguta 
+2 
+1 
+50,0% 
+Kyondo 
+2 
+1 
+50,0% 
+Goma 
+1 
+0 
+0,0% 
+Masereka 
+1 
+0 
+0,0% 
+Vuhovi 
+1 
+1 
+100,0% 
+Mabalako 
+1 
+0 
+0,0% 
+Musienene 
+1 
+1 
+100,0% 
+SUD-KIVU 
+3 
+1 
+33,3% 
+Miti-Murhesa 
+3 
+1 
+33,3% 
+TOTAL 
+956 
+247 
+25,8% 
+ 
+
+
+--- PAGE 5 ---
+
+5 
+ 
+La situation épidémiologique de la 17ème épidémie de Maladie à Virus Ebola (MVE) en République 
+Démocratique du Congo est en progression, 23 nouveaux cas confirmés incluant 2 décès ont été 
+enregistrés au cours des dernières 24h. Ainsi, on atteint un cumul de 956 cas confirmés et 247 décès, 
+exprimant un taux de létalité global de 25,8%. 
+Dynamique provinciale et concentration des cas 
+La province de l'Ituri demeure l'épicentre absolu de l'épidémie, concentrant 91,4% des cas (n=874) et 81,4% 
+des décès (n=201), soit une létalité de 23,0%. Les zones de santé les plus affectées sont Bunia (259 cas), 
+Rwampara (201 cas) et Mongbwalu (209 cas), englobant un peu plus de trois-quarts des cas rapportés (n=669) 
+dans la province. Les ZS de Bunia et Rwampara présentent des taux de létalité modérés (16,2% et 17,4% 
+respectivement), la zone de Mongbwalu affiche une sévérité marquée, avec une létalité de 42,6% (89 décès 
+pour 209 cas), suggérant des défis persistants dans la prise en charge précoce ou l'accès aux soins. Par 
+ailleurs, 17 cas supplémentaires ont été signalés dans des zones de santé non encore identifiées, sans décès 
+associé, ce qui pourrait indiquer une extension géographique nécessitant une investigation renforcée. 
+ 
+Sévérité de l'épidémie au Nord-Kivu 
+Cumulativement, 79 cas confirmés et 45 décès, le taux de létalité provincial atteint 57,0%, La province du 
+Nord-Kivu présente le profil le plus préoccupant en termes de gravité, plus élevé que la moyenne nationale. 
+Cette létalité élevée est portée par les zones de santé de Beni (75,0%), Katwa (61,5%) et Oicha (66,7%). La 
+zone de santé de Butembo, bien que cumulant un grand nombre de cas (n=25), présente une létalité 
+légèrement inférieure (44,0%). La présence de cas avec une létalité de 100% dans les zones à faible effectif 
+(Vuhovi, Musienene) est un indicateur de la dangerosité du virus dans cette région et de la nécessité d'une 
+riposte clinique immédiate. 
+4. ACTIONS DE RIPOSTE PAR PILIER 
+4.1 Coordination 
+Nationale / Ituri :  
+• 
+Tenue de la réunion de coordination axée sur le suivi des activités menées sur terrain, présidée par le 
+ministre de la Santé Hygiène et Prévoyance sociale en présence du gouverneur de province. 
+• 
+Tenue d’une réunion technique avec les partenaires techniques et financiers. 
+• 
+Organisation de la cérémonie de décharge d’un patient guéri de la maladie à virus Ebola au CTE 
+Rwampara. 
+• 
+Mise à disposition de 6 ambulances pour renforcer le référencement des malades vers les différents CTE. 
+ 
+4.2 Surveillance épidémiologique 
+Tableau 3. Gestion des alertes épidémiologiques (24h) au 19 juin 2026 
+Indicateur 
+  
+Ituri 
+Nord-Kivu 
+Sud-Kivu 
+Total 
+Alertes remontées 
+  
+233 
+500 
+ND 
+733 
+Alertes 
+investiguées 
+ 
+233 
+500 
+ND 
+733 
+Taux d'investigation   
+100,0% 
+100,0% 
+ND 
+100,0% 
+Alertes validées 
+Vivantes 
+75 
+40 
+ND 
+115 
+Décédées 
+21 
+26 
+ND 
+47 
+Total des cas suspects du jour 
+96 
+66 
+ND 
+162 
+ 
+
+
+--- PAGE 6 ---
+
+6 
+ 
+En date du 19 juin 2026, 733 alertes ont été remontées uniquement dans les provinces de l’Ituri et Nord-
+Kivu, 733 (100,0%) ont été investiguées, 162 cas suspects (4 décès) ont été identifiés.  
+Tableau 4. Suivi des contacts des cas confirmés au 19 juin 2026 
+Province 
+Contacts sous suivi (n) 
+Contacts vus (n) 
+Taux de suivi (%) 
+Ituri 
+4 688 
+3 649 
+77,8% 
+Nord-Kivu 
+1 698 
+778 
+45,8% 
+Sud-Kivu 
+ND  
+ND 
+NA 
+Total 
+6 386 
+4 427 
+69,3% 
+ND : Non disponible     NA : Non Applicable 
+ 
+• 
+Poursuite des investigations approfondies et du listage exhaustif et suivi des contacts autour des cas 
+confirmés dans les ZS (narratifs des cas confirmés, nombre de contacts listés et suivis par cas).  
+• 
+333 nouveaux contacts ont été listés dans 9 ZS de la province de l’Ituri. Ces contacts sont répartis dans 
+les ZS de Rwampara (155), Bunia (54), Nyankunde (39), Mongbwalu (29), Lita (20), Aungba (15), Tchomia 
+(13), Nizi (4), Mambasa (4). 
+ 
+Point sur les activités de points de contrôle et points d’entrées (PoC/PoE) 
+ 
+• 
+Trois (3) alertes ont été notifiées dont 1 alerte vivante évadée du CTE de l’HGR Mongbwalu, interceptée, 
+au PoC PLUTO (la famille a refusée de la retourner au CTE) qui a été validée et 2 alertes vivantes au 
+PoC Foner Mambasa ont été invalidées.  
+ 
+Tableau 5. Suivi des indicateurs au Points d’entrées et Points de contrôle (PoE/PoC) dans la province 
+de l’Ituri, en date du 19 juin 2026 
+Indicateurs 
+Résultats 
+Proportion de PoC activés 
+80,0% (44/55) 
+Nombre des voyageurs passés 
+69 261 
+% des voyageurs screenés 
+98,0% 
+% des voyageurs ayant lavé les mains 
+97,0% 
+% des voyageurs sensibilisés 
+97,0% 
+Nombre d’alertes notifiées 
+3 
+Nombre d'alertes validées 
+1 
+% de résultats disponibles dans 24h 
+0% 
+Nombre d’alertes transférées au CT/CTE ou pour EDS  
+0 
+Nombre de contacts interceptés ce jour 
+0 
+ 
+4.3. Laboratoire 
+• 
+Ituri :  101 échantillons collectés et analysés (positivité 20,8% ; n=21). 
+• 
+Nord-Kivu : 16 nouveaux échantillons collectés dont 15 ont été analysés (positivité 13,3% ; n=2). 
+• 
+Sud-Kivu : Aucune mise à jour n’a été partagée. 
+ 
+ 
+ 
+ 
+
+
+--- PAGE 7 ---
+
+7 
+ 
+4.4. Prévention et Contrôle de l'Infection (PCI) 
+Ituri :  Briefing de 114 prestataires a été organisé dans les ZS Bambu et Bunia, Komanda, Mambasa 
+et Rwampara sur les précautions standards (le lavage correct des mains, le port et le retrait des EPI, 
+ainsi que le bionettoyage) ; 9 rings et 9 décontaminations réalisés autour des cas confirmés dans les 
+ZS de Bunia et Rwampara ; réalisation des EDS dans les ZS de Rwampara (4/5), Bunia (13/13), 
+Mongbwalu (8/8) et Komanda (3/3). 
+Nord-Kivu : Évaluation de 16 prestataires exposés : 8 dans la ZS de Katwa (8 classés à haut risque) 
+et 8 dans la ZS de Butembo (6 classés à haut risque et 2 à faible risque) ; décontamination de 2 ESS 
+(triage du CS Makerere) après transfert d’un cas confirmé et un cas suspect ; briefing de 104 
+prestataires sur la définition des cas et les précautions standards PCI (triage et isolement, hygiène 
+des mains, nettoyage et désinfection, gestion des déchets) dans les ZS de Butembo, Katwa, Beni, 
+Karisimbi et Nyiragongo ; appui au briefing de 18 prestataires des morgues en PCI/WASH organisé 
+par la Croix rouge dans la ZS de Katwa ; dotation des intrants PCI/WASH dans 27/42 ESS de la ZS 
+de Butembo avec l’appui de l’OMS ; suivi et accompagnement PCI de 22 ESS prioritaires ; évaluation 
+PCI Scorecard de 11 ESS, dont 10 à Beni et 1 à Butembo (score PCI moyen est de 45,4%) ;  Au cours 
+des dernières 24 heures, 4 EDS ont été réalisés et 21 prélèvements post-mortem effectués avant 
+l’inhumation. 
+ 
+4.5 Prise en charge holistique 
+• 
+Douze (12) patients atteints de la maladie à virus Ebola ont été déclarés guéris après avoir obtenu 
+des tests de contrôles négatifs. 
+• 
+Poursuite de suivi nutritionnel des malades dans les CTE : 435 repas chauds ont été servis dont 88 
+auprès des cas confirmés, 109 suspects, 192 PPL, 46 accompagnants.   
+ 
+Tableau 6. Mouvement des patients dans les établissements de soins (CTE/CT/CI) au 19 juin 2026 
+ Indicateur 
+Ituri 
+Nord-Kivu 
+Sud-Kivu 
+Ensemble 
+Patients au lit (J-1) 
+286 
+56 
+ND 
+342 
+Total admissions (24h) 
+59 
+6 
+ND 
+65 
+Sorties (24h) 
+  
+  
+ 
+  
+Décédés (Suspects/Conf.) 
+5 
+0 
+ND 
+5 
+Non-cas  
+16 
+8 
+ND 
+24 
+Guéris 
+12 
+0 
+ND 
+12 
+Évadés (Suspects/Conf.) 
+5 
+0 
+ND 
+5 
+Transférés à l'HGR 
+0 
+0 
+ND 
+0 
+Total sorties 
+38 
+8 
+ND 
+46 
+Patients en isolement (Fin J) 
+307 
+54 
+ND 
+361 
+dont confirmés (NC+AC) 
+124 
+24 
+ND 
+148 
+dont suspects 
+183 
+30 
+ND 
+213 
+Taux d'occupation global 
+90,8% 
+76,1% 
+NA 
+88,3% 
+          ND : Non disponible   NA : Non applicable 
+ 
+ 
+ 
+ 
+ 
+
+
+--- PAGE 8 ---
+
+8 
+ 
+Activités de santé mentale et soutien psychosocial 
+ 
+Tableau 7. Indicateurs clés des activités de santé mentale et soutien psychosocial au 19 juin 2026 
+INDICATEURS CLES  
+ITURI 
+SUD-KIVU 
+NORD-KIVU 
+Nouveaux cas confirmés admis au CTE ayant bénéficié 
+d'interventions SMSPS 
+8 (40%) 
+1 
+0 
+Cas confirmés en cours de suivi ayant bénéficié d'interventions 
+SMSPS 
+47 (37,6%) 
+5 (100%) 
+0 
+Nouveaux cas suspects ayant bénéficié d'interventions SMSPS 
+2 (2,7%) 
+3 (100%) 
+2(100%) 
+Cas suspects en cours de suivi ayant bénéficié d'interventions 
+SMSPS 
+36 (20,7%) 
+11 (100%) 
+8 (100%) 
+Résultats de laboratoire ayant été annoncés  
+25 
+5 
+0 
+Dont positifs  
+10 
+1 
+0 
+Nb Enfants séparés en crèche ayant bénéficié d'interventions 
+SMSPS 
+3 
+0 
+0 
+Nb Enfants séparés en communauté ayant bénéficié 
+d'interventions SMSPS 
+0 
+0 
+16 
+ Nb Accompagnants au CTE ayant bénéficié d'interventions 
+SMSPS 
+42 
+12 
+0 
+ Nb PPL ayant bénéficié d'interventions SMSPS 
+16 
+5 
+21 
+ Nb Membres des ménages et communautés ayant bénéficié 
+d'interventions SMSPS 
+35 
+32 
+0 
+Nbre d'EDS appuyés 
+1 
+0 
+0 
+ 
+4.6 Continuité des soins 
+• 
+20 accoucheuses et infirmiers de la zone de santé de NYAKUNDE ont été formés en santé sexuelle 
+et reproductive dans le contexte de la MVE. 
+ 
+4.7 Communication sur les risques et engagement communautaire 
+ 
+ 
+Ituri : Dialogue communautaire avec 22 personnes dont 19 hommes et 3 femmes sur respect des mesures 
+préventives de la MVE, la prise en charge, la remontée des alertes communautaires et les EDS dans la ZS de 
+Bunia ; 5 801 personnes touchées dont  3 075 hommes et 2 726  femmes ; diffusion des spots et messages 
+dans les 18 médias sur  les mesures préventives de la  MVE ; animation de 4 émissions radio sur les  mesures 
+préventives à la MVE et la surveillance à base communautaire dans 4 différents médias. 
+Appui aux autres piliers :  PCI :  réalisation de 8 EDS au CTE/CME et CTE Elikya. 
+ 
+Nord-Kivu : 11 735 personnes sensibilisées, 7 732 ménages visités et le déploiement de 1 631 relais 
+communautaires ; l’implication de 564 leaders communautaires et la réalisation de 18 émissions radio et 
+dialogues communautaires contribuent au renforcement de la diffusion des messages de prévention et à 
+l’amélioration de l’acceptation des interventions de riposte. 
+ 
+4.8. Logistique 
+• 
+Réception des kits PCI. 
+• 
+Livraison des intrants PCI et MEG aux ZS de Bambu, Kilo, Mongbwalu ainsi qu’au CTE HGR Bunia, 
+CTE CME Bunia et au CSR SOTA/ZS Nyankunde. 
+
+
+--- PAGE 9 ---
+
+9 
+ 
+• 
+Livraison des kits PPE à la ZS de Rwampara. 
+• 
+Livraison des intrants PCI au CH Mudzi Maria/ZS Bunia ainsi qu’au pilier PCI Wash. 
+4.9. Sécurité  
+• 
+La situation sécuritaire reste calme mais imprévisible à Bunia et environs. 
+ 
+4.10. PSEA (Prévention contre l'Exploitation et les Abus Sexuels) 
+Ituri : Sensibilisation de 1 254 (567 femmes et 687 hommes) sur la PEAHS avec les fidèles de l’église 
+anglicane dans la ZS de Bunia ; 43 participants (22 femmes et 21 hommes) membres du comité local de 
+sécurité de la commune de Shari. 
+Sud-Kivu : Sensibilisation de 31 participants (6 femmes et 25 hommes) de la communauté de Kahungu, 
+Buhandahanda et Kavumu dans la ZS de Miti-Murhesa. 
+ 
+ 
+5. PRINCIPAUX DÉFIS, IMPACTS ET ACTIONS REQUISES 
+ 
+N° Défis 
+Impact 
+Actions requises 
+1 
+Réticence aux prélèvements post 
+mortem (EDS / swabs) et 
+résistance communautaire 
+Retard de confirmation, 
+sous-estimation des cas, 
+perturbation des activités 
+clés 
+Intensifier la CREC, implication des leaders 
+religieux et communautaires, renforcement de 
+la sécurité des équipes 
+2 
+Capacité insuffisante en CTE et 
+saturation en Ituri (88,3%) 
+Retards d’admission, 
+augmentation du risque 
+de transmission 
+nosocomiale 
+Accélérer la construction et l’expansion des 
+CTE, déployer des structures temporaires 
+supplémentaires 
+3 
+Faible performance du suivi des 
+contacts (69,3% vs cible 95%) 
+Chaînes de transmission 
+non interrompues 
+Former, déployer et motiver les relais 
+communautaires (RECO), supervision 
+renforcée 
+4 
+Faible remontée des alertes dans 
+certaines ZS affectées 
+Transmission non 
+détectée, expansion 
+silencieuse de l’épidémie 
+Renforcer la surveillance communautaire, 
+améliorer la remontée et l’investigation rapide 
+des alertes 
+5 
+Cas confirmés non localisés ou 
+non classifiés (~17 cas) 
+Lacunes majeures dans 
+la reconstruction des 
+chaînes de transmission 
+Conduire une réconciliation des données, 
+élaguer les possibles doublons, et reclassifier 
+ou préciser la zone de santé et le statut 
+(décès, guéris, actifs, etc.)  Vérification active 
+sur le terrain 
+6 
+Insuffisance d’approvisionnement 
+en MEG et intrants médicaux 
+Fragilisation de la prise 
+en charge globale 
+Plaidoyer et approvisionnement urgent en 
+médicaments essentiels 
+7 
+Insuffisance des intrants PCI 
+(EPI, chlore) et formation limitée 
+Risque élevé d’infections 
+nosocomiales (78 cas 
+HCW dont 18 décès, 
+létalité 23,1%) 
+Approvisionnement urgent, renforcement des 
+formations en PCI 
+8 
+Stock des échantillons non 
+encore analysés (backlog) au 
+laboratoire au Nord-Kivu et 
+diagnostic tardif 
+Retard de confirmation, 
+létalité élevée (57,0%) 
+Déployer plan de rattrapage laboratoire, 
+renforcer capacités diagnostiques 
+9 
+Insuffisance d’ambulances et de 
+structures d’isolement (gap de 20 
+centres) 
+Retards de transfert et 
+isolement, augmentation 
+du risque de 
+transmission 
+Déploiement urgent de moyens logistiques et 
+infrastructures supplémentaires 
+10 
+Coordination insuffisante et faible 
+utilisation des cadres COUSP 
+Inefficience 
+opérationnelle et 
+décisions retardées 
+Renforcer les mécanismes de coordination à 
+tous les niveaux, opérationnaliser les COUSP 
+
+
+--- PAGE 10 ---
+
+10 
+ 
+11 
+Insuffisance des ressources 
+financières (gap 20 millions USD) 
+Limitation de la mise en 
+œuvre de tous les piliers 
+de la riposte 
+Mobilisation urgente des ressources, 
+plaidoyer auprès des partenaires 
+12 
+Insécurité et accès limité 
+(CODECO, ADF) 
+Restriction des 
+opérations, accès limité 
+aux zones à haut risque 
+Renforcement de la coordination sécuritaire et 
+accès humanitaire 
+13 
+Continuité des services 
+essentiels (CEHS) compromise 
+Augmentation de la 
+mortalité indirecte (non 
+Ebola) 
+Mise en œuvre effective de la gratuité des 
+soins, renforcement CEHS 
+14 
+Forte mobilité des populations 
+Risque élevé 
+d’expansion 
+géographique rapide 
+Renforcer la surveillance aux PoE/PoC et 
+coordination transfrontalière 
+ 
+ 
+ 
+ 
+ 
+ 
+Installation d’un laboratoire mobile dans la zone de santé d’Aru, province de l’Ituri. 
+
+
+--- PAGE 11 ---
+
+11 
+ 
+ 
+ 
+ 
+ 
+Pour l’Institut National de la Santé Publique (INSP) de la RDC 
+Le Directeur Général de l’INSP 
+Dr MWAMBA KAZADI Dieudonné 
+ 
+E-mail : dieudonne.mwamba@insp.cd 
+Tel. : +243 816 040 145 
+ 
+Le Coordonnateur COU-SP 
+Prof NGANDU Christian 
+ 
+E-mail : Christian.ngandu@insp.cd 
+Tél. : +243998091915 
+L’Incident Manager 
+Prof Pierre AKILIMALI 
+ 
+E-mail : pierre.akilimali@insp.cd 
+Tél. : +243815800288 
+ 
+ 
+ 
+ 
+Avec l’appui technique de l’Organisation Mondiale de la Santé (OMS) et 
+de Africa CDC 
+ 
+ 
+ 
+POUR TOUTE 
+INFORMATION 
+SUPPLÉMENTAIRE, 
+VEUILLEZ CONTACTER 
+ 
+ 
