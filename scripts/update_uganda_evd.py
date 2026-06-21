@@ -256,7 +256,7 @@ def scrape() -> tuple[dict[str, object], list[dict[str, object]]]:
     text = norm_text(soup.get_text(" ", strip=True))
 
     date_label = None
-    m = re.search(r"As of\s+((?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+\d{1,2}\s+[A-Za-z]+\s+\d{4})", text, re.I)
+    m = re.search(r"As of\s+((?:Monday|Tuesday|Wednesday|Thursday|Friday|Saturday|Sunday),?\s+\d{1,2}\s+[A-Za-z]+\s+\d{4})(?:\s+Updated today)?", text, re.I)
     if m:
         date_label = norm_text(m.group(1))
     as_of_date = parse_english_date(date_label or "")
@@ -279,9 +279,9 @@ def scrape() -> tuple[dict[str, object], list[dict[str, object]]]:
         "completed_21day_followup": value_before_label(text, r"Completed 21-day follow-up"),
         "total_alerts": value_before_label(text, r"Total alerts"),
         "alerts_verified": value_before_label(text, r"Alerts verified"),
-        "poe_screened_last_24h": value_before_label(text, r"Screened\s*\(last 24 hrs\)"),
-        "poe_inbound_last_24h": value_before_label(text, r"Inbound\s*\(last 24 hrs\)"),
-        "poe_outbound_last_24h": value_before_label(text, r"Outbound\s*\(last 24 hrs\)"),
+        "poe_screened_last_24h": value_before_label(text, r"Screened\s*\(last 24 hrs\)") or value_before_label(text, r"Travellers screened"),
+        "poe_inbound_last_24h": value_before_label(text, r"Inbound\s*\(last 24 hrs\)") or value_before_label(text, r"Inbound travellers"),
+        "poe_outbound_last_24h": value_before_label(text, r"Outbound\s*\(last 24 hrs\)") or value_before_label(text, r"Outbound travellers"),
         "source_url": URL,
         "notes": "Updated from Uganda Ministry of Health Ebola Updates dashboard.",
     }
