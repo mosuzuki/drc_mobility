@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="preconnect" href="https://cdn.plot.ly" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="assets/style.css" />
+  <link rel="stylesheet" href="assets/style.css?v=20260622-loading" />
 </head>
 <body>
   <header class="topbar">
@@ -23,8 +23,8 @@
       </div>
       <div class="status-card">
         <span class="label" id="dataStatusLabel">データ更新状況</span>
-      <strong id="dataStatus">SitRep N26–N28まで更新済み（最新 N28）</strong>
-      <span id="lastUpdated">DRCはINSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新はN28（報告 11 Jun 2026、公開 12 Jun 2026）。ウガンダ症例はUganda Ministry of Health EVD daily page（https://evd-daily.health.go.ug/）から自動取得し、最新は17 Jun 2026時点です。</span>
+      <strong id="dataStatus">データを読み込み中...</strong>
+      <span id="lastUpdated">最新のDRC SitRep、ウガンダEVDデータ、最終サイズ推定を読み込み中です。</span>
       </div>
     </div>
   </header>
@@ -84,10 +84,10 @@
     </section>
 
     <section class="kpi-grid epi-kpi-grid">
-      <article class="kpi-card"><span id="kpiTotalLabel">DRC confirmed cases</span><strong id="kpiTotal">689</strong><small>SitRep N28, reporting 11 Jun 2026</small></article>
-      <article class="kpi-card"><span id="kpiDrcDeathsLabel">DRC confirmed deaths</span><strong id="kpiKinshasa">139</strong><small id="kpiKinshasaShare">20.2% CFR among confirmed; N28</small></article>
-      <article class="kpi-card"><span id="kpiUgandaCasesLabel">Uganda confirmed cases</span><strong id="kpiBorder">19</strong><small id="kpiBorderShare">Uganda MoH EVD daily page; imported 14, local 5; as of 17 Jun 2026</small></article>
-      <article class="kpi-card"><span id="kpiUgandaDeathsLabel">Uganda confirmed deaths</span><strong id="kpiUganda">2</strong><small id="kpiScenario">Uganda confirmed deaths; source Uganda Ministry of Health EVD daily page, 17 Jun 2026</small></article>
+      <article class="kpi-card"><span id="kpiTotalLabel">DRC confirmed cases</span><strong id="kpiTotal">…</strong><small id="kpiTotalMeta">読み込み中</small></article>
+      <article class="kpi-card"><span id="kpiDrcDeathsLabel">DRC confirmed deaths</span><strong id="kpiKinshasa">…</strong><small id="kpiKinshasaShare">読み込み中</small></article>
+      <article class="kpi-card"><span id="kpiUgandaCasesLabel">Uganda confirmed cases</span><strong id="kpiBorder">…</strong><small id="kpiBorderShare">読み込み中</small></article>
+      <article class="kpi-card"><span id="kpiUgandaDeathsLabel">Uganda confirmed deaths</span><strong id="kpiUganda">…</strong><small id="kpiScenario">読み込み中</small></article>
     </section>
 
     <section class="dashboard-six-grid" aria-label="Main dashboard panels">
@@ -303,6 +303,6 @@
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="assets/app.js"></script>
+  <script src="assets/app.js?v=20260622-loading"></script>
 </body>
 </html>

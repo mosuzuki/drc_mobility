@@ -1309,6 +1309,7 @@ function toggleCustomOriginControl() {
 function setEpiKpis() {
   const kpiTotal = document.getElementById('kpiTotal');
   const kpiKinshasa = document.getElementById('kpiKinshasa');
+  const kpiTotalMeta = document.getElementById('kpiTotalMeta');
   const kpiKinshasaShare = document.getElementById('kpiKinshasaShare');
   const kpiBorder = document.getElementById('kpiBorder');
   const kpiBorderShare = document.getElementById('kpiBorderShare');
@@ -1323,10 +1324,12 @@ function setEpiKpis() {
   if (caseDisplayMode === 'recent') {
     kpiTotal.textContent = fmt.format(Math.round(mappedCases));
     kpiKinshasa.textContent = fmt.format(Math.round(mappedDeaths));
+    if (kpiTotalMeta) kpiTotalMeta.textContent = textByLang(`直近1週間の地図化可能な増加分；${displayDateLabel(comparisonCaseDate(d))}〜${displayDateLabel(d)}`, `Mappable increase in the most recent week; ${displayDateLabel(comparisonCaseDate(d))} to ${displayDateLabel(d)}`, `Augmentation mappable de la dernière semaine ; ${displayDateLabel(comparisonCaseDate(d))} au ${displayDateLabel(d)}`);
     kpiKinshasaShare.textContent = textByLang(`地図化可能なhealth-zone増加分；${displayDateLabel(comparisonCaseDate(d))}〜${displayDateLabel(d)}`, `Mappable health-zone increase; ${displayDateLabel(comparisonCaseDate(d))} to ${displayDateLabel(d)}`, `Augmentation mappable par zone de santé ; ${displayDateLabel(comparisonCaseDate(d))} au ${displayDateLabel(d)}`);
   } else {
     kpiTotal.textContent = fmt.format(toNumber(meta?.drc_confirmed_cases) || Math.round(mappedCases));
     kpiKinshasa.textContent = fmt.format(toNumber(meta?.drc_confirmed_deaths) || Math.round(mappedDeaths));
+    if (kpiTotalMeta) kpiTotalMeta.textContent = meta?.report_no ? textByLang(`${meta.report_no}、報告日 ${displayDateLabel(meta.reporting_date || d)}`, `${meta.report_no}, reporting ${displayDateLabel(meta.reporting_date || d)}`, `${meta.report_no}, rapport ${displayDateLabel(meta.reporting_date || d)}`) : textByLang(`報告日 ${displayDateLabel(d)}`, `Reporting ${displayDateLabel(d)}`, `Rapport ${displayDateLabel(d)}`);
     const cfr = (toNumber(meta?.drc_confirmed_deaths) || mappedDeaths) / Math.max((toNumber(meta?.drc_confirmed_cases) || mappedCases), 1);
     kpiKinshasaShare.textContent = textByLang(`確定例におけるCFR ${pct(cfr)}；${meta?.report_no || ''}`, `${pct(cfr)} CFR among confirmed; ${meta?.report_no || ''}`, `CFR parmi les cas confirmés ${pct(cfr)} ; ${meta?.report_no || ''}`);
   }
