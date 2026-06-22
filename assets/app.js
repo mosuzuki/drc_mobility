@@ -434,15 +434,24 @@ function requestDashboardUpdate() {
 }
 
 
+function bustDataUrl(path) {
+  const sep = String(path).includes('?') ? '&' : '?';
+  // GitHub Pages can keep CSV/JSON files in browser/CDN cache. Use a short
+  // cache-busting token so Uganda EVD and final-size JSON updates appear
+  // immediately after the scheduled workflow commits new data.
+  const token = Math.floor(Date.now() / (5 * 60 * 1000));
+  return `${path}${sep}v=${token}`;
+}
+
 async function loadCsv(path) {
-  const res = await fetch(path);
+  const res = await fetch(bustDataUrl(path), { cache: 'no-store' });
   const text = await res.text();
   return Papa.parse(text, { header: true, dynamicTyping: true, skipEmptyLines: true }).data;
 }
 
 async function loadCsvOptional(path) {
   try {
-    const res = await fetch(path, { cache: 'no-store' });
+    const res = await fetch(bustDataUrl(path), { cache: 'no-store' });
     if (!res.ok) return [];
     const text = await res.text();
     return Papa.parse(text, { header: true, dynamicTyping: true, skipEmptyLines: true }).data;
@@ -454,7 +463,7 @@ async function loadCsvOptional(path) {
 
 async function loadGeoJsonOptional(path) {
   try {
-    const res = await fetch(path, { cache: 'no-store' });
+    const res = await fetch(bustDataUrl(path), { cache: 'no-store' });
     if (!res.ok) return null;
     const json = await res.json();
     if (!json || !Array.isArray(json.features) || !json.features.length) return null;
@@ -468,7 +477,7 @@ async function loadGeoJsonOptional(path) {
 
 async function loadJsonOptional(path) {
   try {
-    const res = await fetch(path, { cache: 'no-store' });
+    const res = await fetch(bustDataUrl(path), { cache: 'no-store' });
     if (!res.ok) return null;
     return await res.json();
   } catch (e) {
