@@ -4207,6 +4207,7 @@ function updateDashboard() {
   updateLatestSituationSummary();
   updateAssessmentPanel();
   updateEpiTimelineChart();
+  renderTrueInfectionEstimate();
   updateForecastChart();
   updateFinalSizeProjectionChart();
   updateResponseTimelineChart();
