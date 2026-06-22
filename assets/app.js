@@ -18,11 +18,13 @@ const files = {
   ugandaEvdDaily: 'data/uganda_evd_daily_cases.csv',
   ugandaEvdHistory: 'data/uganda_evd_history.csv',
   aiSummary: 'data/ai_sitrep_summary.csv',
-  finalProjection: 'data/final_size_projection.json'
+  finalProjection: 'data/final_size_projection.json',
+  trueInfectionEstimate: 'data/true_infection_estimate.json'
 };
 
 let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], ugandaEvdDailyCases = [], ugandaEvdHistory = [], aiSitrepSummary = [];
 let finalSizeProjectionData = null;
+let trueInfectionEstimateData = null;
 let healthZoneBoundaries = null;
 let mapMode = 'cases';
 let map, layerGroup;
@@ -3404,10 +3406,10 @@ function updateEpiTimelineChart() {
       hovertemplate: textByLang(`${selectedReport}<br>${selectedLabel}<br>選択中の症例数: ${fmt.format(selectedCases)}<br>選択中の死亡例数: ${fmt.format(selectedDeaths)}<extra></extra>`, `${selectedReport}<br>${selectedLabel}<br>Selected cases: ${fmt.format(selectedCases)}<br>Selected deaths: ${fmt.format(selectedDeaths)}<extra></extra>`, `${selectedReport}<br>${selectedLabel}<br>Cas sélectionnés: ${fmt.format(selectedCases)}<br>Décès sélectionnés: ${fmt.format(selectedDeaths)}<extra></extra>`)
     }
   ], {
-    margin: { l: 62, r: 24, t: 18, b: 150 },
-    xaxis: { title: { text: textByLang('報告日', 'Reporting date', 'Date de rapport'), standoff: 24 }, tickangle: -42, gridcolor: '#eef3f8', automargin: true },
+    margin: { l: 62, r: 24, t: 18, b: 96 },
+    xaxis: { title: { text: textByLang('報告日', 'Reporting date', 'Date de rapport'), standoff: 8 }, tickangle: -42, gridcolor: '#eef3f8', automargin: true },
     yaxis: { title: textByLang('確定症例数', 'Confirmed cases', 'Cas confirmés'), gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
-    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.82, yanchor: 'top' },
+    legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: -0.38, yanchor: 'top' },
     shapes: selectedIdx >= 0 ? [{
       type: 'line', xref: 'x', yref: 'y', x0: selectedLabel, x1: selectedLabel, y0: 0, y1: maxY,
       line: { width: 2, dash: 'dot' }
@@ -3428,6 +3430,53 @@ function updateEpiTimelineChart() {
     paper_bgcolor: 'rgba(0,0,0,0)',
     plot_bgcolor: 'rgba(0,0,0,0)'
   }, { responsive: true, displayModeBar: false });
+}
+
+
+function formatMultiplierValue(x) {
+  const n = Number(x);
+  if (!Number.isFinite(n)) return '—';
+  return currentLang === 'fr' ? n.toFixed(2).replace('.', ',') + '×' : n.toFixed(2) + '×';
+}
+
+function renderTrueInfectionEstimate() {
+  const el = document.getElementById('trueInfectionEstimateCard');
+  if (!el) return;
+  const d = trueInfectionEstimateData;
+  if (!d || d.status !== 'ok' || !d.estimated_infections || !d.multiplier) {
+    el.innerHTML = `<div class="true-infection-card-title">${textByLang('報告補正後の推定感染規模', 'Reporting-adjusted infection size', 'Taille infectieuse estimée ajustée')}</div><div class="true-infection-note">${textByLang('推定データを読み込み中です。', 'Estimate is loading.', 'Estimation en cours de chargement.')}</div>`;
+    return;
+  }
+  const est = d.estimated_infections;
+  const mult = d.multiplier;
+  const median = fmt.format(Math.round(toNumber(est.median)));
+  const pi90 = Array.isArray(est.pi90) ? `${fmt.format(Math.round(toNumber(est.pi90[0])))}–${fmt.format(Math.round(toNumber(est.pi90[1])))}` : '—';
+  const mMed = formatMultiplierValue(mult.median);
+  const mPi = Array.isArray(mult.pi90) ? `${formatMultiplierValue(mult.pi90[0])}–${formatMultiplierValue(mult.pi90[1])}` : '—';
+  const reportLabel = [d.source_sitrep, d.report_date ? displayDateLabel(d.report_date) : ''].filter(Boolean).join(' / ');
+  const external = d.external_reference && d.external_reference.reported_multiplier_pi90 ? d.external_reference.reported_multiplier_pi90 : [3.0, 10.2];
+  const externalRange = `${formatMultiplierValue(external[0])}–${formatMultiplierValue(external[1])}`;
+  const title = textByLang('報告補正後の推定感染規模', 'Reporting-adjusted infection size', 'Taille infectieuse estimée ajustée');
+  const subtitle = textByLang(
+    `確定例・死亡例・ウガンダ輸入例を用いた簡易データストリームモデル（${reportLabel}）。`,
+    `Simple multiple-data-stream model using confirmed cases, deaths and Uganda imports (${reportLabel}).`,
+    `Modèle simplifié multi-flux utilisant les cas confirmés, les décès et les importations en Ouganda (${reportLabel}).`
+  );
+  const note = textByLang(
+    `確認された症例数ではなく、報告補正後の感染規模推定です。ECDC/Epiforecasts参考レンジ: ${externalRange}。`,
+    `This is an estimate of infections after reporting adjustment, not confirmed cases. ECDC/Epiforecasts reference range: ${externalRange}.`,
+    `Il s’agit d’une estimation des infections après ajustement de la notification, et non des cas confirmés. Référence ECDC/Epiforecasts : ${externalRange}.`
+  );
+  el.innerHTML = `
+    <div class="true-infection-card-title">${title}</div>
+    <div class="true-infection-card-subtitle">${subtitle}</div>
+    <div class="true-infection-metrics">
+      <div><span>${textByLang('中央値', 'Median', 'Médiane')}</span><strong>${median}</strong><small>${textByLang('感染相当', 'estimated infections', 'infections estimées')}</small></div>
+      <div><span>90% ${textByLang('区間', 'interval', 'intervalle')}</span><strong>${pi90}</strong><small>${textByLang('感染相当', 'estimated infections', 'infections estimées')}</small></div>
+      <div><span>${textByLang('推定倍率', 'Estimated multiplier', 'Multiplicateur estimé')}</span><strong>${mMed}</strong><small>90% ${textByLang('区間', 'interval', 'intervalle')} ${mPi}</small></div>
+    </div>
+    <div class="true-infection-note">${note}</div>
+  `;
 }
 
 function addDaysIso(dateStr, days) {
@@ -4182,8 +4231,8 @@ function updateDashboard() {
 
 async function main() {
   initLanguageControls();
-  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, finalSizeProjectionData] = await Promise.all([
-    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.finalProjection)
+  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, finalSizeProjectionData, trueInfectionEstimateData] = await Promise.all([
+    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate)
   ]);
   buildIndexes();
   initMap();

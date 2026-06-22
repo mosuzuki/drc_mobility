@@ -1,0 +1,60 @@
+{
+  "updated_at": "2026-06-22T04:15:08.347190+00:00",
+  "source_sitrep": "N36",
+  "report_date": "2026-06-19",
+  "uganda_as_of_date": "2026-06-21",
+  "model": "multiple_data_stream_reporting_adjustment",
+  "status": "ok",
+  "reported_confirmed_cases": 956,
+  "reported_deaths": 247,
+  "uganda_imported_cases": 15,
+  "uganda_deaths": 2,
+  "estimated_infections": {
+    "median": 3840,
+    "pi50": [
+      2975,
+      5138
+    ],
+    "pi90": [
+      2167,
+      8084
+    ]
+  },
+  "multiplier": {
+    "median": 4.02,
+    "pi50": [
+      3.11,
+      5.37
+    ],
+    "pi90": [
+      2.27,
+      8.46
+    ]
+  },
+  "inputs": [
+    "DRC cumulative confirmed cases",
+    "DRC cumulative confirmed deaths",
+    "Uganda cumulative imported confirmed cases",
+    "Uganda cumulative deaths"
+  ],
+  "assumptions": {
+    "drc_confirmed_reporting_probability_prior": "Beta(2.6, 9.0), clipped to 0.055-0.65",
+    "cfr_prior": "Triangular(0.20, 0.42, 0.68), informed by ECDC/Epiforecasts CFR range",
+    "death_observation_fraction_prior": "0.04 + 0.62 * Beta(2.0, 5.5)",
+    "uganda_export_detection_probability_prior": "log-uniform 0.00035-0.018",
+    "likelihood": "overdispersed negative-binomial for deaths and exported cases"
+  },
+  "diagnostics": {
+    "samples": 120000,
+    "effective_sample_size": 28635.0
+  },
+  "external_reference": {
+    "source": "ECDC overview of modelling evidence, 17 June 2026, summarising Epiforecasts estimate as of 13 June 2026",
+    "reported_multiplier_pi90": [
+      3.0,
+      10.2
+    ],
+    "note": "External reference only; not directly used as the dashboard estimate."
+  },
+  "interpretation_note": "Reporting-adjusted estimate of infections, not confirmed cases. It depends on assumptions about reporting delay, CFR, and detection of exported cases in Uganda."
+}
