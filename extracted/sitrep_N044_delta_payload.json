@@ -77,16 +77,16 @@
     "poe_screening_coverage_latest": null
   },
   "uganda": {
-    "as_of_date": "2026-06-21",
+    "as_of_date": "2026-06-28",
     "confirmed_cases": 20,
     "confirmed_deaths": 2,
     "imported_cases": 15,
     "local_cases": 5,
-    "new_cases_last_24h": 1,
-    "no_reported_increase_days": 0,
+    "new_cases_last_24h": 0,
+    "no_reported_increase_days": 7,
     "last_reported_increase_date": "2026-06-21",
     "trend_basis": "daily_confirmation_chart",
-    "trend_status": "increase_on_latest_date",
+    "trend_status": "no_recent_increase",
     "source_url": "https://evd-daily.health.go.ug/"
   }
 }
