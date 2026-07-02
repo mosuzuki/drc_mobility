@@ -537,7 +537,7 @@ code { background:#eef4fb; border:1px solid var(--line); border-radius:6px; padd
 
 .assessment-subhead h3 {
   margin: 0;
-  font-size: 1.08rem;
+  font-size: 1.24rem;
   color: #123b5d;
   letter-spacing: -0.01em;
 }
@@ -551,7 +551,7 @@ code { background:#eef4fb; border:1px solid var(--line); border-radius:6px; padd
 .latest-situation-block p {
   margin: 0;
   color: #1d2939;
-  font-size: 0.94rem;
+  font-size: 1.08rem;
   line-height: 1.65;
 }
 
@@ -580,11 +580,11 @@ code { background:#eef4fb; border:1px solid var(--line); border-radius:6px; padd
 
 .latest-situation-item {
   display: grid;
-  grid-template-columns: 18px minmax(0, 1fr);
-  gap: 6px;
+  grid-template-columns: 20px minmax(0, 1fr);
+  gap: 8px;
   align-items: start;
   color: #1d2939;
-  font-size: 0.94rem;
+  font-size: 1.08rem;
   line-height: 1.65;
 }
 
@@ -592,6 +592,7 @@ code { background:#eef4fb; border:1px solid var(--line); border-radius:6px; padd
   color: #1f5d8c;
   font-weight: 950;
   line-height: 1.65;
+  font-size: 1.18rem;
 }
 
 .latest-situation-item strong {
