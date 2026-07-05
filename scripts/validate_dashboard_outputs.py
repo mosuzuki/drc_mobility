@@ -104,6 +104,31 @@ if hz_rows:
     if math.isfinite(latest_deaths) and abs((hz_deaths + uv_deaths) - latest_deaths) > 1:
         errors.append(f'health-zone + unventilated deaths {(hz_deaths + uv_deaths):.0f} != report_summary latest deaths {latest_deaths:.0f}')
 
+
+# Top-panel latest-situation text must use the corrected summary values and must not
+# contain stale extraction artifacts such as the reporting year as a case count or
+# the isolated/hospitalised count as deaths.
+ls = load_json(DATA/'latest_situation.json')
+if not ls:
+    errors.append('latest_situation.json missing or empty')
+else:
+    if latest_no and ls.get('report_no') != latest_no:
+        errors.append(f'latest_situation.json report_no {ls.get("report_no")} != latest report_summary {latest_no}')
+    if latest_date and ls.get('report_date') != latest_date:
+        errors.append(f'latest_situation.json report_date {ls.get("report_date")} != latest report_summary {latest_date}')
+    drc_text = str(ls.get('drc_summary_ja',''))
+    if math.isfinite(latest_cases) and f'{int(round(latest_cases)):,}' not in drc_text and str(int(round(latest_cases))) not in drc_text:
+        errors.append('latest_situation.json DRC summary does not contain latest confirmed case count')
+    if math.isfinite(latest_deaths) and f'{int(round(latest_deaths)):,}' not in drc_text and str(int(round(latest_deaths))) not in drc_text:
+        errors.append('latest_situation.json DRC summary does not contain latest confirmed death count')
+    bad_patterns = ['2026例', '2026件', '2026人', '628人', '628死亡', '628例で変化', '死亡者数']
+    for pat in bad_patterns:
+        if pat in drc_text:
+            errors.append(f'latest_situation.json contains stale/unsafe text: {pat}')
+    qual = str(ls.get('drc_ai_qualitative_sentence_ja',''))
+    if qual and any(ch.isdigit() for ch in qual):
+        errors.append('latest_situation qualitative sentence contains digits; qualitative AI text must not include numbers')
+
 ug=latest(read_csv(DATA/'uganda_evd_summary.csv'),'as_of_date')
 daily=read_csv(DATA/'uganda_evd_daily_cases.csv')
 if not ug:

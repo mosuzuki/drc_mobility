@@ -18,11 +18,13 @@ const files = {
   ugandaEvdDaily: 'data/uganda_evd_daily_cases.csv',
   ugandaEvdHistory: 'data/uganda_evd_history.csv',
   aiSummary: 'data/ai_sitrep_summary.csv',
+  latestSituation: 'data/latest_situation.json',
   finalProjection: 'data/final_size_projection.json',
   trueInfectionEstimate: 'data/true_infection_estimate.json'
 };
 
 let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], ugandaEvdDailyCases = [], ugandaEvdHistory = [], aiSitrepSummary = [];
+let latestSituationData = null;
 let finalSizeProjectionData = null;
 let trueInfectionEstimateData = null;
 let healthZoneBoundaries = null;
@@ -1924,6 +1926,26 @@ function updateLatestSituationSummary() {
       ugandaEl.textContent = formatUgandaLatestSituation();
     }
     if (metaEl) metaEl.textContent = previous ? `${previous.report_no}→${latest.report_no}, date de rapport ${displayDateLabel(latest.reporting_date)}.` : `${latest.report_no}, date de rapport ${displayDateLabel(latest.reporting_date)}.`;
+    return;
+  }
+
+
+  // Japanese top-panel text is now assembled from validated data in
+  // data/latest_situation.json. Numeric statements are never taken from
+  // OpenAI output; only the final qualitative sentence may be AI-assisted.
+  if (latestSituationData && latestSituationData.report_no) {
+    const ls = latestSituationData;
+    const drcSummary = formatJapaneseCaseUnits(String(ls.drc_summary_ja || '').trim());
+    const ugandaSummary = formatJapaneseCaseUnits(String(ls.uganda_summary_ja || '').replace(/^ウガンダ：\s*/, '').trim());
+    if (drcEl) drcEl.textContent = drcSummary || 'DRC側の差分要約を作成できませんでした。';
+    if (ugandaEl) ugandaEl.textContent = ugandaSummary || formatUgandaLatestSituation();
+    if (metaEl) {
+      const prev = ls.previous_report_no ? `${ls.previous_report_no}→${ls.report_no}` : ls.report_no;
+      const qGen = ls.qualitative_generated_by === 'openai'
+        ? `数値は検証済みデータ、コメントはOpenAI API（${ls.openai_model || 'model未記録'}）`
+        : '数値は検証済みデータ、コメントはSitRep本文から抽出';
+      metaEl.textContent = `${prev}、報告日 ${displayDateLabel(ls.report_date)}。${qGen}。`;
+    }
     return;
   }
 
@@ -4232,8 +4254,8 @@ function updateDashboard() {
 
 async function main() {
   initLanguageControls();
-  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, finalSizeProjectionData, trueInfectionEstimateData] = await Promise.all([
-    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate)
+  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, latestSituationData, finalSizeProjectionData, trueInfectionEstimateData] = await Promise.all([
+    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.latestSituation), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate)
   ]);
   buildIndexes();
   initMap();

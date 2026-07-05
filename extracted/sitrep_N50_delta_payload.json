@@ -1,0 +1,68 @@
+{
+  "report_no": "N50",
+  "reporting_date": "2026-07-03",
+  "previous_report_no": "N49",
+  "previous_reporting_date": "2026-07-02",
+  "confirmed_cases": {
+    "previous": 1502,
+    "latest": 1528,
+    "change": 26
+  },
+  "confirmed_deaths": {
+    "previous": 473,
+    "latest": 492,
+    "change": 19
+  },
+  "province_new_cases_from_health_zone_delta": {
+    "Ituri": 21,
+    "Nord-Kivu": 6
+  },
+  "top_health_zone_increases": [
+    {
+      "province": "Ituri",
+      "health_zone": "Rwampara",
+      "increase": 11
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Bunia",
+      "increase": 5
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mongbwalu",
+      "increase": 3
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mangala",
+      "increase": 2
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Butembo",
+      "increase": 2
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Beni",
+      "increase": 1
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Kyondo",
+      "increase": 1
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Masereka",
+      "increase": 1
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Musienene",
+      "increase": 1
+    }
+  ],
+  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+}
