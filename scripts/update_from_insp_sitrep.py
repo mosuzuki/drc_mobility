@@ -901,9 +901,14 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
     t = norm_text(text)
     # Contact follow-up rate, use the last/latest explicit contact follow-up rate if present.
     contact_patterns = [
+        # Standard prose/table order.
         r"Taux\s+de\s+suivi\s+de\s+contacts?\s*[:\-]?\s*(\d+[,.]?\d*)\s*%",
         r"Taux\s+de\s+Suivis?\s*[:\-]?\s*(\d+[,.]?\d*)\s*%",
         r"contacts\s+suivis.*?Taux\s+de\s+Suivis?.{0,80}?(\d+[,.]?\d*)\s*%",
+        # First-page KPI cards often extract as: "82,7% Taux de suivi des contacts".
+        r"(\d{1,3}[,.]\d+)\s*%?\s*Taux\s+de\s+suivi\s+des?\s+contacts?",
+        # Contact table: Total 11 796 9 756 82,7%.
+        r"Total\s+\d[\d\s]*\s+\d[\d\s]*\s+(\d{1,3}[,.]\d+)\s*%",
     ]
     vals = []
     for pat in contact_patterns:
@@ -912,12 +917,37 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
     if vals:
         row["contact_followup_rate"] = vals[-1]
 
+    # Contact follow-up table: Total / contacts under follow-up / contacts seen / rate.
+    cm = re.search(r"(?:Tableau\s+\d+[^\n]{0,120})?Suivi\s+des\s+contacts.*?Total\s+(\d[\d\s]*)\s+(\d[\d\s]*)\s+(\d{1,3}[,.]\d+)\s*%", t, re.I | re.S)
+    if cm:
+        row["contacts_under_followup"] = to_int(cm.group(1)) or ""
+        row["contacts_seen"] = to_int(cm.group(2)) or ""
+        rate = to_float(cm.group(3) + "%")
+        if rate is not None:
+            row["contact_followup_rate"] = rate
+
     m = re.search(r"Pour\s+la\s+journ[ée]e\s+du\s+[^,]+,\s*(\d[\d\s]*)\s+alertes.*?dont\s+(\d[\d\s]*)\s*\((\d+[,.]?\d*)\s*%\)\s+investigu[ée]es", t, re.I | re.S)
     if m:
         ar = to_int(m.group(1)); ai = to_int(m.group(2)); rate = to_float(m.group(3) + "%")
         row["alerts_reported"] = ar if ar is not None else ""
         row["alerts_investigated"] = ai if ai is not None else ""
         row["alert_investigation_rate"] = rate if rate is not None else ""
+
+    # Alert-management table: Total Alertes du jour / Alertes investiguées / Taux d'investigation.
+    am = re.search(r"Total\s+Alertes\s+du\s+jour\s+.*?(\d[\d\s]*)\s+Alertes\s+investigu[ée]es\s+.*?(\d[\d\s]*)\s+Taux\s+d[’']investigation\s+.*?(\d{1,3}[,.]\d+)\s*%", t, re.I | re.S)
+    if am:
+        ar = to_int(am.group(1)); ai = to_int(am.group(2)); rate = to_float(am.group(3) + "%")
+        row["alerts_reported"] = ar if ar is not None else row["alerts_reported"]
+        row["alerts_investigated"] = ai if ai is not None else row["alerts_investigated"]
+        row["alert_investigation_rate"] = rate if rate is not None else row["alert_investigation_rate"]
+
+    # PoE/PoC screening table: global travellers and screening percentage.
+    poe = re.search(r"Nombre\s+(?:de|des)\s+personnes\s+pass[ée]es\s+aux\s+PoE/PoC\s+(?:\d[\d\s]*\s+){2}(\d[\d\s]*)\s+%\s+des\s+voyageurs\s+screen[ée]s\s+(?:\d{1,3}[,.]\d+%\s+){2}(\d{1,3}[,.]\d+)\s*%", t, re.I | re.S)
+    if poe:
+        row["travellers_total"] = to_int(poe.group(1)) or ""
+        rate = to_float(poe.group(2) + "%")
+        if rate is not None:
+            row["poe_screening_coverage"] = rate
 
     # Laboratory: prefer daily sample statement if available.
     lab = re.search(r"(\d[\d\s]*)\s+nouveaux?\s+[ée]chantillons?.{0,80}?analys[ée]s?.{0,80}?(\d[\d\s]*)\s+(?:sont\s+)?revenus?\s+positifs?", t, re.I | re.S)

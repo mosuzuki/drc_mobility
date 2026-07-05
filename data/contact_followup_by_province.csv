@@ -20,3 +20,16 @@ date,province,contacts_under_followup,contacts_seen,followup_rate,target_rate,so
 2026-06-10,Ituri,4703,3357,0.714,0.95,SitRep N27/MVB_10/06/2026,Province-level contact follow-up rate from SitRep N27; dashboard uses nearest prior available rate for dates without province-level contact data.
 2026-06-10,Nord-Kivu,841,597,0.71,0.95,SitRep N27/MVB_10/06/2026,Province-level contact follow-up rate from SitRep N27; dashboard uses nearest prior available rate for dates without province-level contact data.
 2026-06-10,Sud-Kivu,224,187,0.835,0.95,SitRep N27/MVB_10/06/2026,Province-level contact follow-up rate from SitRep N27; dashboard uses nearest prior available rate for dates without province-level contact data.
+2026-06-27,Ituri,7235,6199,0.857,0.95,SitRep N44/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-06-27,Nord-Kivu,1892,1747,0.923,0.95,SitRep N44/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-06-27,Sud-Kivu,18,18,1.0,0.95,SitRep N44/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-06-29,Ituri,9335,7825,0.838,0.95,SitRep N46/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-06-29,Nord-Kivu,2461,1931,0.785,0.95,SitRep N46/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-06-30,Ituri,9238,7631,0.826,0.95,SitRep N47/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-06-30,Nord-Kivu,2408,1974,0.819,0.95,SitRep N47/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-07-01,Ituri,8376,6973,0.832,0.95,SitRep N48/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-07-01,Nord-Kivu,2445,1981,0.81,0.95,SitRep N48/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-07-02,Ituri,9046,7433,0.822,0.95,SitRep N49/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-07-02,Nord-Kivu,2314,1858,0.802,0.95,SitRep N49/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-07-03,Ituri,7467,6148,0.823,0.95,SitRep N50/MVB,Province-level contact follow-up table from uploaded SitRep.
+2026-07-03,Nord-Kivu,2504,1978,0.789,0.95,SitRep N50/MVB,Province-level contact follow-up table from uploaded SitRep.
