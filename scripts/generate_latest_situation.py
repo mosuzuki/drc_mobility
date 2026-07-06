@@ -140,7 +140,7 @@ def top_zones_sentence_ja(deltas: list[tuple[str, str, int]], limit: int = 5) ->
 def uganda_summary_ja() -> str:
     rows = [r for r in read_csv(DATA / "uganda_evd_summary.csv") if r.get("as_of_date")]
     if not rows:
-        return "ウガンダ：ウガンダ側の更新情報は取得できていません。"
+        return "ウガンダ側の更新情報は取得できていません。"
     rows.sort(key=lambda r: r.get("as_of_date", ""))
     r = rows[-1]
     cases = fmt_int(num(r.get("cumulative_confirmed") or r.get("cumulative_confirmed_cases")))
@@ -164,7 +164,7 @@ def uganda_summary_ja() -> str:
         except Exception:
             zero_days = None
     zero_text = f"{last_positive}以降、{zero_days}日間連続で新規症例の増加は報告されていません。" if zero_days is not None and zero_days > 0 else "直近の新規症例数はデータで確認してください。"
-    return f"ウガンダ：{asof}時点で累積確定例{cases}例、死亡例{deaths}例です。輸入例{imported}例、国内感染例{local}例です。{zero_text}"
+    return f"{asof}時点で累積確定例{cases}例、死亡例{deaths}例です。輸入例{imported}例、国内感染例{local}例です。{zero_text}"
 
 
 def sitrep_text(report_no: str) -> str:
@@ -185,9 +185,11 @@ def facts_highlight(text: str) -> str:
     low = t.lower()
     if "incident sécuritaire" in low or "incident securitaire" in low:
         return "SitRepでは、IturiとNord-Kivuで伝播が続く中、Nia-Nia周辺の治安インシデントが対応上の懸念として記載されています。"
+    if "essais cliniques" in low or "essais cliniques au cte" in low:
+        return "SitRepでは、RwamparaのCTE CMEで臨床試験が開始されたことが対応上の動きとして記載されています。"
     if "installation des laboratoires" in low or "laboratoires de diagnostic" in low:
         return "SitRepでは、Ituri州内の複数の保健区で診断ラボ整備が進められていることが対応上の動きとして記載されています。"
-    if "nouvelle zone de santé" in low or "nouvelle zone de sante" in low:
+    if ("nouvelle zone de santé" in low or "nouvelle zone de sante" in low) and not ("aucune nouvelle zone" in low):
         # Try to pick a named zone after phrase; keep no numbers.
         m = re.search(r"nouvelle zone de sant[ée].{0,80}?(?:ZS de |celle de )([A-Za-zÀ-ÿ\-]+)", t, re.I)
         zone = m.group(1) if m else "新たな保健区"
@@ -256,11 +258,11 @@ def main() -> None:
     zone_sentence = top_zones_sentence_ja(deltas)
     if prev:
         numeric = (
-            f"DRC：累積確定例は{fmt_int(pc)}例から{fmt_int(lc)}例に{fmt_int(dc)}例増加し、"
+            f"累積確定例は{fmt_int(pc)}例から{fmt_int(lc)}例に{fmt_int(dc)}例増加し、"
             f"累積確定死亡例は{fmt_int(pd)}例から{fmt_int(ld)}例に{fmt_int(dd)}例増加しました。"
         )
     else:
-        numeric = f"DRC：{latest_no}時点で累積確定例は{fmt_int(lc)}例、累積確定死亡例は{fmt_int(ld)}例です。"
+        numeric = f"{latest_no}時点で累積確定例は{fmt_int(lc)}例、累積確定死亡例は{fmt_int(ld)}例です。"
     if province_sentence:
         numeric += province_sentence
     if zone_sentence:
@@ -307,7 +309,12 @@ def main() -> None:
             "updated_at_utc": result["updated_at_utc"],
             "notes": result["notes"],
         })
-        write_csv(ai_path, [row], fields, ["report_no", "reporting_date"])
+        # Keep only the current safe fallback row. Older AI summaries may contain
+        # stale extraction artifacts and must not be available to the browser.
+        with ai_path.open("w", newline="", encoding="utf-8") as f:
+            w = csv.DictWriter(f, fieldnames=fields)
+            w.writeheader()
+            w.writerow(row)
 
     # Rewrite latest delta payload from corrected values so stale 2026/628 cannot be reused.
     EXTRACTED.mkdir(exist_ok=True)

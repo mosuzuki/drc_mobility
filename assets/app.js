@@ -1935,16 +1935,14 @@ function updateLatestSituationSummary() {
   // OpenAI output; only the final qualitative sentence may be AI-assisted.
   if (latestSituationData && latestSituationData.report_no) {
     const ls = latestSituationData;
-    const drcSummary = formatJapaneseCaseUnits(String(ls.drc_summary_ja || '').trim());
-    const ugandaSummary = formatJapaneseCaseUnits(String(ls.uganda_summary_ja || '').replace(/^ウガンダ：\s*/, '').trim());
+    const stripLeadingLabelJa = (text, label) => String(text || '').replace(new RegExp('^\\s*' + label + '[：:]\\s*'), '').trim();
+    const drcSummary = formatJapaneseCaseUnits(stripLeadingLabelJa(ls.drc_summary_ja || '', 'DRC'));
+    const ugandaSummary = formatJapaneseCaseUnits(stripLeadingLabelJa(ls.uganda_summary_ja || '', 'ウガンダ'));
     if (drcEl) drcEl.textContent = drcSummary || 'DRC側の差分要約を作成できませんでした。';
     if (ugandaEl) ugandaEl.textContent = ugandaSummary || formatUgandaLatestSituation();
     if (metaEl) {
       const prev = ls.previous_report_no ? `${ls.previous_report_no}→${ls.report_no}` : ls.report_no;
-      const qGen = ls.qualitative_generated_by === 'openai'
-        ? `数値は検証済みデータ、コメントはOpenAI API（${ls.openai_model || 'model未記録'}）`
-        : '数値は検証済みデータ、コメントはSitRep本文から抽出';
-      metaEl.textContent = `${prev}、報告日 ${displayDateLabel(ls.report_date)}。${qGen}。`;
+      metaEl.textContent = `${prev}、報告日 ${displayDateLabel(ls.report_date)}。`;
     }
     return;
   }

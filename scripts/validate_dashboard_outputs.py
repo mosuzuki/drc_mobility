@@ -38,6 +38,10 @@ if not math.isfinite(latest_cases) or latest_cases <= 0:
     errors.append('latest report_summary has invalid DRC confirmed cases')
 if not math.isfinite(latest_deaths) or latest_deaths < 0:
     errors.append('latest report_summary has invalid DRC confirmed deaths')
+if math.isfinite(latest_cases) and round(latest_cases) == 2026:
+    errors.append('latest report_summary confirmed cases is 2026; likely the reporting year was misread as cumulative cases')
+if math.isfinite(latest_deaths) and round(latest_deaths) == 628:
+    errors.append('latest report_summary deaths is 628; likely isolated/hospitalised patients were misread as deaths')
 if math.isfinite(latest_cases) and math.isfinite(latest_deaths):
     if latest_deaths > latest_cases:
         errors.append(f'latest deaths {latest_deaths} exceed confirmed cases {latest_cases}')
@@ -117,6 +121,8 @@ else:
     if latest_date and ls.get('report_date') != latest_date:
         errors.append(f'latest_situation.json report_date {ls.get("report_date")} != latest report_summary {latest_date}')
     drc_text = str(ls.get('drc_summary_ja',''))
+    if drc_text.startswith('DRC：') or drc_text.startswith('DRC:'):
+        errors.append('latest_situation.json DRC summary must not include leading DRC label; the browser adds the label once')
     if math.isfinite(latest_cases) and f'{int(round(latest_cases)):,}' not in drc_text and str(int(round(latest_cases))) not in drc_text:
         errors.append('latest_situation.json DRC summary does not contain latest confirmed case count')
     if math.isfinite(latest_deaths) and f'{int(round(latest_deaths)):,}' not in drc_text and str(int(round(latest_deaths))) not in drc_text:
@@ -128,6 +134,14 @@ else:
     qual = str(ls.get('drc_ai_qualitative_sentence_ja',''))
     if qual and any(ch.isdigit() for ch in qual):
         errors.append('latest_situation qualitative sentence contains digits; qualitative AI text must not include numbers')
+
+# Legacy AI summary fallback must not retain stale unsafe rows.
+ai_rows = read_csv(DATA/'ai_sitrep_summary.csv')
+for i, r in enumerate(ai_rows, start=1):
+    joined = ' '.join(str(v) for v in r.values())
+    for pat in ['2026件', '2026例', '2026人', '628人', '628死亡', '死亡者数']:
+        if pat in joined:
+            errors.append(f'ai_sitrep_summary.csv contains stale/unsafe text on row {i}: {pat}')
 
 ug=latest(read_csv(DATA/'uganda_evd_summary.csv'),'as_of_date')
 daily=read_csv(DATA/'uganda_evd_daily_cases.csv')

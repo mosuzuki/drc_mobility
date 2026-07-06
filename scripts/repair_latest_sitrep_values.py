@@ -26,6 +26,7 @@ SUMMARY_FIXES = {
     "N48": ("2026-07-01", "2026-07-02", 1460, 452),
     "N49": ("2026-07-02", "2026-07-03", 1502, 473),
     "N50": ("2026-07-03", "2026-07-04", 1528, 492),
+    "N51": ("2026-07-04", "2026-07-05", 1561, 506),
 }
 
 RESPONSE_FIXES = {
@@ -35,6 +36,7 @@ RESPONSE_FIXES = {
     "N48": dict(reporting_date="2026-07-01", contacts_under_followup=10821, contacts_seen=8954, contact_followup_rate=0.827, alerts_reported=958, alerts_investigated=842, alert_investigation_rate=0.879, samples_analysed=228, positive_samples=54, travellers_total=357189, poe_screening_coverage=0.982),
     "N49": dict(reporting_date="2026-07-02", contacts_under_followup=11360, contacts_seen=9291, contact_followup_rate=0.818, alerts_reported=1078, alerts_investigated=767, alert_investigation_rate=0.712, samples_analysed=196, positive_samples=42, travellers_total=119245, poe_screening_coverage=0.959),
     "N50": dict(reporting_date="2026-07-03", contacts_under_followup=9971, contacts_seen=8126, contact_followup_rate=0.815, alerts_reported=1131, alerts_investigated=902, alert_investigation_rate=0.797, samples_analysed=147, positive_samples=26, travellers_total=148579, poe_screening_coverage=0.959),
+    "N51": dict(reporting_date="2026-07-04", contacts_under_followup=10079, contacts_seen=8221, contact_followup_rate=0.816, alerts_reported=1244, alerts_investigated=1002, alert_investigation_rate=0.805, samples_analysed=172, positive_samples=33, travellers_total=153930, poe_screening_coverage=0.952),
 }
 
 UNVENTILATED_FIXES = {
@@ -44,6 +46,7 @@ UNVENTILATED_FIXES = {
     "N48": ("2026-07-01", 17),
     "N49": ("2026-07-02", 17),
     "N50": ("2026-07-03", 17),
+    "N51": ("2026-07-04", 17),
 }
 
 

@@ -633,7 +633,7 @@ def extract_total_confirmed(text: str) -> int | None:
     # Prefer explicit province-summary tables where the Total row is followed by
     # confirmed cases and deaths. This avoids accidentally reading the year (2026)
     # from prose such as "Cumul de cas confirmés 08 juin 2026".
-    table_total = re.search(r"\bTotal\s+([0-9]{1,5})\s+([0-9]{1,5})\s+[0-9]+[,.]?[0-9]*\s*%", text, re.I)
+    table_total = re.search(r"\bTotal\s+([0-9][0-9\s]{0,8})\s+([0-9][0-9\s]{0,8})\s+[0-9]+[,.]?[0-9]*\s*%", text, re.I)
     if table_total:
         return int(table_total.group(1).replace(" ", ""))
     # Province bullet lines, e.g. Ituri (563 cas), Nord-Kivu (32 cas), Sud-Kivu (3 cas).
@@ -657,7 +657,7 @@ def extract_total_confirmed(text: str) -> int | None:
 
 
 def extract_total_deaths(text: str) -> int | None:
-    table_total = re.search(r"\bTotal\s+([0-9]{1,5})\s+([0-9]{1,5})\s+[0-9]+[,.]?[0-9]*\s*%", text, re.I)
+    table_total = re.search(r"\bTotal\s+([0-9][0-9\s]{0,8})\s+([0-9][0-9\s]{0,8})\s+[0-9]+[,.]?[0-9]*\s*%", text, re.I)
     if table_total:
         return int(table_total.group(2).replace(" ", ""))
     patterns = [
@@ -675,6 +675,39 @@ def extract_total_deaths(text: str) -> int | None:
                 return val
     return None
 
+
+
+def reconcile_totals_with_health_zone_rows(total_cases: int | None, total_deaths: int | None, hz_rows: list[dict[str, Any]], unassigned_cases: int | None, unassigned_deaths: int | None, report_date: str) -> tuple[int | None, int | None]:
+    """Guard against PDF extraction errors such as reading the reporting year
+    (2026) as cumulative cases or the isolated/hospitalised count as deaths.
+
+    When the sum of health-zone rows plus unassigned cases is internally
+    consistent and differs from the headline totals, prefer the internally
+    consistent table-derived total.  This is safer than card-text extraction for
+    the current SitRep layout.
+    """
+    def sint(x):
+        try:
+            if x is None or str(x).strip() == "":
+                return 0
+            return int(float(str(x).replace(',', '').replace(' ', '')))
+        except Exception:
+            return 0
+    hz_cases = sum(sint(r.get("confirmed_cases")) for r in hz_rows)
+    hz_deaths = sum(sint(r.get("confirmed_deaths")) for r in hz_rows)
+    uv_cases = sint(unassigned_cases)
+    uv_deaths = sint(unassigned_deaths)
+    table_cases = hz_cases + uv_cases
+    table_deaths = hz_deaths + uv_deaths
+    # Use table-derived totals if headline values are missing, implausible, or
+    # disagree by more than one case/death.  This prevents 2026/628 errors.
+    if table_cases > 0 and (total_cases is None or abs(int(total_cases) - table_cases) > 1):
+        log(f"Reconciled total confirmed from {total_cases} to table-derived {table_cases} for {report_date}")
+        total_cases = table_cases
+    if table_deaths >= 0 and table_cases > 0 and (total_deaths is None or abs(int(total_deaths) - table_deaths) > 1):
+        log(f"Reconciled total deaths from {total_deaths} to table-derived {table_deaths} for {report_date}")
+        total_deaths = table_deaths
+    return total_cases, total_deaths
 
 def canonical_zone_name(raw: str, known_names: set[str]) -> str | None:
     s = norm_text(raw)
@@ -1712,7 +1745,11 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
     hz_sum = sum(int(r["confirmed_cases"]) for r in hz_rows if str(r["confirmed_cases"]).isdigit())
     if unassigned_cases is None and total_cases is not None:
         diff = total_cases - hz_sum
-        unassigned_cases = diff if diff > 0 else 0
+        # Do not silently infer huge "unassigned" counts. In this SitRep layout,
+        # large gaps usually mean the reporting year (2026) was misread as the
+        # cumulative case count. Small gaps are legitimate "Autres zones non
+        # encore identifiées" rows.
+        unassigned_cases = diff if 0 <= diff <= 100 else None
 
     log(f"Deterministic validation: health_zone_sum={hz_sum}, unassigned_cases={unassigned_cases}, total_cases={total_cases}, rows={len(hz_rows)}")
     if total_cases is not None and (hz_sum <= 0 or hz_sum + int(unassigned_cases or 0) != total_cases):
@@ -1722,10 +1759,10 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
             hz_sum = sum(int(r["confirmed_cases"]) for r in hz_rows if str(r["confirmed_cases"]).isdigit())
             if unassigned_cases is None and total_cases is not None:
                 diff = total_cases - hz_sum
-                unassigned_cases = diff if diff > 0 else 0
+                unassigned_cases = diff if 0 <= diff <= 100 else None
             log(f"Post-OpenAI validation: health_zone_sum={hz_sum}, unassigned_cases={unassigned_cases}, total_cases={total_cases}, rows={len(hz_rows)}, openai_used={openai_used}")
 
-    if total_cases is None or hz_sum <= 0 or hz_sum + int(unassigned_cases or 0) != total_cases:
+    if total_cases is None or hz_sum <= 0 or unassigned_cases is None or hz_sum + int(unassigned_cases or 0) != total_cases:
         detail = validation_detail("Extracted health-zone counts did not validate after deterministic extraction and optional OpenAI fallback.")
         (EXTRACTED / f"sitrep_N{report_no:03d}_review.json").write_text(json.dumps(detail, indent=2), encoding="utf-8")
         fail(
@@ -1742,8 +1779,8 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
         "publication_date": publication_date,
         "drc_confirmed_cases": total_cases,
         "drc_confirmed_deaths": total_deaths if total_deaths is not None else "",
-        "uganda_confirmed_cases": "7",
-        "uganda_confirmed_deaths": "1",
+        "uganda_confirmed_cases": "20",
+        "uganda_confirmed_deaths": "2",
         "source": report_label,
         "notes": "Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.",
     }

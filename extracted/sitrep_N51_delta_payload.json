@@ -1,0 +1,58 @@
+{
+  "report_no": "N51",
+  "reporting_date": "2026-07-04",
+  "previous_report_no": "N50",
+  "previous_reporting_date": "2026-07-03",
+  "confirmed_cases": {
+    "previous": 1528,
+    "latest": 1561,
+    "change": 33
+  },
+  "confirmed_deaths": {
+    "previous": 492,
+    "latest": 506,
+    "change": 14
+  },
+  "province_new_cases_from_health_zone_delta": {
+    "Ituri": 30,
+    "Nord-Kivu": 3
+  },
+  "top_health_zone_increases": [
+    {
+      "province": "Ituri",
+      "health_zone": "Rwampara",
+      "increase": 11
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Bunia",
+      "increase": 7
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nizi",
+      "increase": 7
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Komanda",
+      "increase": 3
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mongbwalu",
+      "increase": 2
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Musienene",
+      "increase": 2
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Katwa",
+      "increase": 1
+    }
+  ],
+  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+}

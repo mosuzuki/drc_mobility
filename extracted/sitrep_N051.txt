@@ -72,7 +72,6 @@ Centre d’Opérations d’Urgence de Santé Publique
 Système de Gestion de l’Incident MVE-17 
 Rapport de Situation de la 17ème Epidémie de la Maladie à Virus EBOLA /RDC 
 SitRep N°051/MVB_04/07/2026 
- 
 Cumul cas confirmés 
 pour les 3 provinces  
 Cumul décès parmi 
@@ -89,11 +88,7 @@ Nombre cumulé
 des guéris 
  
  
- 
- 
- 
 81,6% 
- 
  
 506(32,4%) 
  
@@ -107,7 +102,6 @@ Cas suspects du
 jour 
 * Données réactualisées à la suite du processus de nettoyage et d’harmonisation de la base DHIS2, incluant la 
 consolidation des informations issues des zones de santé, des laboratoires et des structures de prise en charge des cas. 
- 
 **Les décès suspects survenus en communauté font l’objet d’une investigation 
 approfondie en vue d’une éventuelle reclassification (Non-cas, cas probables). 
 
