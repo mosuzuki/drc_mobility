@@ -1,7 +1,15 @@
 {
-  "report_no": "N51",
-  "reporting_date": "2026-07-04",
-  "total_confirmed": 1561,
-  "total_deaths": 506,
-  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+  "updated_at_utc": "2026-07-07T19:57:48Z",
+  "article_url": "https://insp.cd/sitrep-n052-mvb_05-07-2026/",
+  "pdf_path": "raw/sitreps/sitrep_N052.pdf",
+  "report_no": 52,
+  "reporting_date": "2026-07-05",
+  "publication_date": "2026-07-06",
+  "total_confirmed": 1624,
+  "total_deaths": 521,
+  "mapped_health_zone_count": 35,
+  "mapped_cases_sum": 1587,
+  "unassigned_cases": 37,
+  "openai_fallback_used": false,
+  "openai_model": ""
 }
