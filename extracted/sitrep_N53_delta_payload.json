@@ -1,0 +1,74 @@
+{
+  "report_no": "N53",
+  "reporting_date": "2026-07-06",
+  "previous_report_no": "N52",
+  "previous_reporting_date": "2026-07-05",
+  "confirmed_cases": {
+    "previous": 1624,
+    "latest": 1708,
+    "change": 84
+  },
+  "confirmed_deaths": {
+    "previous": 521,
+    "latest": 580,
+    "change": 59
+  },
+  "province_new_cases_from_health_zone_delta": {
+    "Ituri": 132,
+    "Nord-Kivu": 6,
+    "Sud-Kivu": 3
+  },
+  "top_health_zone_increases": [
+    {
+      "province": "Ituri",
+      "health_zone": "Mangala",
+      "increase": 39
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nia-Nia",
+      "increase": 33
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Bunia",
+      "increase": 20
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mongbwalu",
+      "increase": 10
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Rwampara",
+      "increase": 8
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Lita",
+      "increase": 7
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nizi",
+      "increase": 6
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Katwa",
+      "increase": 4
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Bambu",
+      "increase": 3
+    },
+    {
+      "province": "Sud-Kivu",
+      "health_zone": "Miti-Murhesa",
+      "increase": 3
+    }
+  ],
+  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+}

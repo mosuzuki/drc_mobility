@@ -183,6 +183,8 @@ def facts_highlight(text: str) -> str:
     """Fallback qualitative sentence with no explicit numbers."""
     t = re.sub(r"\s+", " ", text)
     low = t.lower()
+    if "grève de prestataires" in low or "greve de prestataires" in low:
+        return "SitRepでは、BuniaとRwamparaで医療従事者のストライキが続いていることが対応上の懸念として記載されています。"
     if "incident sécuritaire" in low or "incident securitaire" in low:
         return "SitRepでは、IturiとNord-Kivuで伝播が続く中、Nia-Nia周辺の治安インシデントが対応上の懸念として記載されています。"
     if "essais cliniques" in low or "essais cliniques au cte" in low:
@@ -265,8 +267,10 @@ def main() -> None:
         numeric = f"{latest_no}時点で累積確定例は{fmt_int(lc)}例、累積確定死亡例は{fmt_int(ld)}例です。"
     if province_sentence:
         numeric += province_sentence
-    if zone_sentence:
-        numeric += zone_sentence
+    # Do not append health-zone delta details here: the PDF extraction of
+    # health-zone histories can include reclassification noise. The top panel
+    # keeps validated cumulative/province-level numbers plus one qualitative
+    # SitRep sentence.
     fallback = facts_highlight(text)
     qualitative, generated_by, model = openai_highlight(text, fallback)
     drc_summary = numeric + qualitative

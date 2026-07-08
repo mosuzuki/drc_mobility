@@ -1,15 +1,7 @@
 {
-  "updated_at_utc": "2026-07-08T02:47:43Z",
-  "article_url": "https://insp.cd/sitrep-n053-mvb_06-07-2026/",
-  "pdf_path": "raw/sitreps/sitrep_N053.pdf",
-  "report_no": 53,
+  "report_no": "N53",
   "reporting_date": "2026-07-06",
-  "publication_date": "2026-07-07",
   "total_confirmed": 1708,
   "total_deaths": 580,
-  "mapped_health_zone_count": 36,
-  "mapped_cases_sum": 1658,
-  "unassigned_cases": 50,
-  "openai_fallback_used": false,
-  "openai_model": ""
+  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
 }

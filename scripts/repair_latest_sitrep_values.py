@@ -27,6 +27,8 @@ SUMMARY_FIXES = {
     "N49": ("2026-07-02", "2026-07-03", 1502, 473),
     "N50": ("2026-07-03", "2026-07-04", 1528, 492),
     "N51": ("2026-07-04", "2026-07-05", 1561, 506),
+    "N52": ("2026-07-05", "2026-07-06", 1624, 521),
+    "N53": ("2026-07-06", "2026-07-07", 1708, 580),
 }
 
 RESPONSE_FIXES = {
@@ -37,6 +39,8 @@ RESPONSE_FIXES = {
     "N49": dict(reporting_date="2026-07-02", contacts_under_followup=11360, contacts_seen=9291, contact_followup_rate=0.818, alerts_reported=1078, alerts_investigated=767, alert_investigation_rate=0.712, samples_analysed=196, positive_samples=42, travellers_total=119245, poe_screening_coverage=0.959),
     "N50": dict(reporting_date="2026-07-03", contacts_under_followup=9971, contacts_seen=8126, contact_followup_rate=0.815, alerts_reported=1131, alerts_investigated=902, alert_investigation_rate=0.797, samples_analysed=147, positive_samples=26, travellers_total=148579, poe_screening_coverage=0.959),
     "N51": dict(reporting_date="2026-07-04", contacts_under_followup=10079, contacts_seen=8221, contact_followup_rate=0.816, alerts_reported=1244, alerts_investigated=1002, alert_investigation_rate=0.805, samples_analysed=172, positive_samples=33, travellers_total=153930, poe_screening_coverage=0.952),
+    # N52 kept only for summary if present; response table was not verified from an uploaded PDF in this repair set.
+    "N53": dict(reporting_date="2026-07-06", contacts_under_followup=12190, contacts_seen=9167, contact_followup_rate=0.752, alerts_reported=1216, alerts_investigated=963, alert_investigation_rate=0.792, samples_analysed=249, positive_samples=84, travellers_total=158894, travellers_screened=152337, poe_screening_coverage=0.959),
 }
 
 UNVENTILATED_FIXES = {
@@ -47,6 +51,7 @@ UNVENTILATED_FIXES = {
     "N49": ("2026-07-02", 17),
     "N50": ("2026-07-03", 17),
     "N51": ("2026-07-04", 17),
+    "N53": ("2026-07-06", 17),
 }
 
 
@@ -107,7 +112,7 @@ def repair_response_indicators(notes: list[str]) -> None:
     df["_date"] = pd.to_datetime(df["reporting_date"], errors="coerce")
     df = df.sort_values(["_date", "report_no", "admin_level"]).drop(columns=["_date"])
     df.to_csv(path, index=False)
-    notes.append("response_indicators.csv updated for N44/N46/N47/N48/N49/N50")
+    notes.append("response_indicators.csv updated for verified recent SitReps including N53")
 
 
 def repair_unventilated(notes: list[str]) -> None:
@@ -135,7 +140,7 @@ def repair_unventilated(notes: list[str]) -> None:
     df["_date"] = pd.to_datetime(df["date"], errors="coerce")
     df = df.sort_values(["_date", "province"]).drop(columns=["_date"])
     df.to_csv(path, index=False)
-    notes.append("cases_unventilated.csv set to 17 unventilated Ituri cases for N44/N46/N47/N48/N49/N50")
+    notes.append("cases_unventilated.csv set to verified unventilated Ituri cases for recent SitReps including N53")
 
 
 def main() -> None:

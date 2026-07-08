@@ -17,7 +17,7 @@ STATUS = ROOT / ".dashboard_update_all_status.md"
 STEPS = [
     ("INSP SitRep update", [sys.executable, "scripts/update_from_insp_sitrep.py"], False),
     ("Repair latest SitRep values", [sys.executable, "scripts/repair_latest_sitrep_values.py"], True),
-    ("Uganda EVD update", [sys.executable, "scripts/update_uganda_evd.py"], False),
+    ("Uganda EVD update", [sys.executable, "scripts/update_uganda_evd.py"], True),
     ("Latest situation summary", [sys.executable, "scripts/generate_latest_situation.py"], True),
     ("Final size projection", [sys.executable, "scripts/generate_final_size_projection.py"], True),
     ("Reporting-adjusted infection estimate", [sys.executable, "scripts/estimate_true_infections.py"], True),

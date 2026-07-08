@@ -89,6 +89,14 @@ else:
         errors.append(f'response_indicators.csv latest {latest_no} has no contact_followup_rate')
     elif not (0.3 <= cf <= 1.0):
         errors.append(f'response_indicators.csv latest contact_followup_rate {cf} is outside plausible range')
+    cu = to_float(rr.get('contacts_under_followup'))
+    cs = to_float(rr.get('contacts_seen'))
+    if math.isfinite(cu) and math.isfinite(latest_cases) and round(cu) == round(latest_cases):
+        errors.append('response_indicators contacts_under_followup equals cumulative confirmed cases; likely summary totals were misread as contact indicators')
+    if math.isfinite(cs) and math.isfinite(latest_deaths) and round(cs) == round(latest_deaths):
+        errors.append('response_indicators contacts_seen equals cumulative confirmed deaths; likely summary totals were misread as contact indicators')
+    if math.isfinite(cf) and math.isfinite(latest_deaths) and math.isfinite(latest_cases) and abs(cf - (latest_deaths / max(latest_cases,1))) < 0.005:
+        errors.append('response_indicators contact_followup_rate equals CFR; likely the card fatality ratio was misread as contact follow-up')
     ar = to_float(rr.get('alert_investigation_rate'))
     if not math.isfinite(ar):
         warnings.append(f'response_indicators.csv latest {latest_no} has no alert_investigation_rate')
@@ -157,7 +165,7 @@ else:
             errors.append(f'uganda_evd_daily_cases.csv has no row for Uganda as_of_date {asof}')
     try:
         if asof and (date.today() - date.fromisoformat(asof)).days > 3:
-            warnings.append(f'Uganda as_of_date {asof} is more than 3 days old')
+            errors.append(f'Uganda as_of_date {asof} is more than 3 days old')
     except Exception:
         pass
 
