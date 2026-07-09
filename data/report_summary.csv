@@ -48,3 +48,4 @@ N50,2026-07-03,2026-07-04,1528,492,20,2,SitRep N50/MVB,Verified from uploaded Si
 N51,2026-07-04,2026-07-05,1561,506,20,2,SitRep N51/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading reporting year or operational counts as cumulative cases/deaths.
 N52,2026-07-05,2026-07-06,1624,521,20,2,SitRep N52/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading reporting year or operational counts as cumulative cases/deaths.
 N53,2026-07-06,2026-07-07,1708,580,20,2,SitRep N53/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading reporting year or operational counts as cumulative cases/deaths.
+N54,2026-07-07,2026-07-08,1759,600,20,2,SitRep N54/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
