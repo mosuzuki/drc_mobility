@@ -1,0 +1,85 @@
+{
+  "from_report": "N54",
+  "to_report": "N55",
+  "from_reporting_date": "2026-07-07",
+  "to_reporting_date": "2026-07-08",
+  "confirmed_cases": {
+    "previous": 1759,
+    "latest": 1792,
+    "change": 33
+  },
+  "confirmed_deaths": {
+    "previous": 600,
+    "latest": 625,
+    "change": 25
+  },
+  "health_zones": {
+    "previous_count": 36,
+    "latest_count": 36,
+    "new_health_zones": [],
+    "largest_increases": [
+      {
+        "health_zone": "Nizi",
+        "change": 10,
+        "latest": 104
+      },
+      {
+        "health_zone": "Rwampara",
+        "change": 6,
+        "latest": 370
+      },
+      {
+        "health_zone": "Mongbwalu",
+        "change": 5,
+        "latest": 315
+      },
+      {
+        "health_zone": "Bunia",
+        "change": 4,
+        "latest": 487
+      },
+      {
+        "health_zone": "Mangala",
+        "change": 3,
+        "latest": 43
+      },
+      {
+        "health_zone": "Bambu",
+        "change": 1,
+        "latest": 29
+      },
+      {
+        "health_zone": "Lita",
+        "change": 1,
+        "latest": 41
+      }
+    ]
+  },
+  "response": {
+    "contact_followup_rate_previous": 0.341,
+    "contact_followup_rate_latest": 0.349,
+    "contacts_under_followup_latest": 1792,
+    "contacts_seen_latest": 625,
+    "alerts_reported_latest": 0,
+    "alerts_investigated_latest": 0,
+    "alert_investigation_rate_latest": 0.541,
+    "samples_analysed_latest": 0,
+    "positive_samples_latest": 0,
+    "travellers_total_latest": 912,
+    "travellers_screened_latest": 93,
+    "poe_screening_coverage_latest": 0.10197368421052631
+  },
+  "uganda": {
+    "as_of_date": "2026-07-08",
+    "confirmed_cases": 20,
+    "confirmed_deaths": 2,
+    "imported_cases": 15,
+    "local_cases": 5,
+    "new_cases_last_24h": 0,
+    "no_reported_increase_days": 17,
+    "last_reported_increase_date": "2026-06-21",
+    "trend_basis": "daily_confirmation_chart",
+    "trend_status": "no_recent_increase",
+    "source_url": "https://evd-daily.health.go.ug/"
+  }
+}
