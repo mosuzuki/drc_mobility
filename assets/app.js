@@ -1312,6 +1312,14 @@ function populateControls() {
   document.getElementById('forecastHorizonSelect')?.addEventListener('change', () => { updateForecastChart(); });
   document.getElementById('forecastSiSelect')?.addEventListener('change', () => { updateForecastChart(); });
   document.getElementById('finalSizeScenarioSelect')?.addEventListener('change', () => { updateFinalSizeProjectionChart(); });
+  document.querySelectorAll('#finalSizeBasisToggle button').forEach(btn => {
+    btn.addEventListener('click', () => {
+      if (btn.disabled) return;
+      document.querySelectorAll('#finalSizeBasisToggle button').forEach(b => b.classList.remove('active'));
+      btn.classList.add('active');
+      updateFinalSizeProjectionChart();
+    });
+  });
   document.getElementById('healthZoneActivitySearch')?.addEventListener('input', () => { updateHealthZoneActivityPanel(); });
   document.getElementById('healthZoneActivityPageSize')?.addEventListener('change', () => { updateHealthZoneActivityPanel(); });
 
@@ -3591,6 +3599,70 @@ function finalProjectionScenarioData(record, scenario) {
   return models[scenario] || models.ensemble || models.branching || models.baseline || null;
 }
 
+
+function getSelectedFinalSizeBasis() {
+  const active = document.querySelector('#finalSizeBasisToggle button.active');
+  return active?.dataset?.finalSizeBasis || 'reported';
+}
+
+function getAdjustedMultiplierForRecord(record) {
+  if (!record || !trueInfectionEstimateData) return null;
+  const reportNo = record.report_no || '';
+  const reportDate = record.reporting_date || '';
+  const tieReportNo = trueInfectionEstimateData.source_sitrep || '';
+  const tieReportDate = trueInfectionEstimateData.report_date || '';
+  if ((reportNo && tieReportNo && reportNo !== tieReportNo) || (reportDate && tieReportDate && reportDate !== tieReportDate)) return null;
+  const reported = toNumber(trueInfectionEstimateData.reported_confirmed_cases || record.current_cumulative_cases);
+  const median = toNumber(trueInfectionEstimateData?.estimated_infections?.median);
+  if (!Number.isFinite(reported) || !Number.isFinite(median) || reported <= 0 || median <= 0) return null;
+  return median / reported;
+}
+
+function scaleRange(range, factor) {
+  if (!Array.isArray(range)) return range;
+  return range.map(v => Math.round(toNumber(v) * factor));
+}
+
+function scaledFinalProjection(proj, factor) {
+  if (!proj || !Number.isFinite(factor) || factor <= 0) return null;
+  const copy = JSON.parse(JSON.stringify(proj));
+  const fs = copy.final_size || {};
+  if (fs.median !== undefined) fs.median = Math.round(toNumber(fs.median) * factor);
+  if (fs.pi50) fs.pi50 = scaleRange(fs.pi50, factor);
+  if (fs.pi90) fs.pi90 = scaleRange(fs.pi90, factor);
+  copy.trajectory = (copy.trajectory || []).map(r => ({
+    ...r,
+    median: Math.round(toNumber(r.median) * factor * 10) / 10,
+    q25: Math.round(toNumber(r.q25) * factor * 10) / 10,
+    q75: Math.round(toNumber(r.q75) * factor * 10) / 10,
+    q05: Math.round(toNumber(r.q05) * factor * 10) / 10,
+    q95: Math.round(toNumber(r.q95) * factor * 10) / 10
+  }));
+  return copy;
+}
+
+function finalSizeBasisLabel(basis) {
+  if (basis === 'adjusted') return textByLang('報告補正後ベース（参考）', 'Reporting-adjusted basis (reference)', 'Base corrigée du sous-signalement (référence)');
+  return textByLang('報告確定例ベース', 'Reported confirmed-case basis', 'Base des cas confirmés rapportés');
+}
+
+function updateFinalSizeBasisToggleAvailability(record) {
+  const factor = getAdjustedMultiplierForRecord(record);
+  const buttons = document.querySelectorAll('#finalSizeBasisToggle button');
+  buttons.forEach(btn => {
+    if (btn.dataset.finalSizeBasis === 'adjusted') {
+      btn.disabled = !factor;
+      btn.classList.toggle('disabled', !factor);
+    }
+  });
+  if (!factor && getSelectedFinalSizeBasis() === 'adjusted') {
+    const reported = document.querySelector('#finalSizeBasisToggle button[data-final-size-basis="reported"]');
+    const adjusted = document.querySelector('#finalSizeBasisToggle button[data-final-size-basis="adjusted"]');
+    adjusted?.classList.remove('active');
+    reported?.classList.add('active');
+  }
+}
+
 function updateFinalSizeProjectionChart() {
   const el = document.getElementById('finalSizeChart');
   if (!el) return;
@@ -3618,47 +3690,66 @@ function updateFinalSizeProjectionChart() {
     return;
   }
 
-  const fs = proj.final_size || {};
-  const ed = proj.end_date || {};
-  const rt = proj.rt || {};
+  updateFinalSizeBasisToggleAvailability(record);
+  const reportedProj = proj;
+  const adjustedFactor = getAdjustedMultiplierForRecord(record);
+  const adjustedProj = adjustedFactor ? scaledFinalProjection(proj, adjustedFactor) : null;
+  const selectedBasis = getSelectedFinalSizeBasis();
+  const activeBasis = selectedBasis === 'adjusted' && adjustedProj ? 'adjusted' : 'reported';
+  const chartProj = activeBasis === 'adjusted' ? adjustedProj : reportedProj;
+  const fs = chartProj.final_size || {};
+  const ed = chartProj.end_date || {};
+  const rt = chartProj.rt || {};
+  const reportedFs = reportedProj.final_size || {};
+  const adjustedFs = adjustedProj?.final_size || null;
+  const adjustedMedian = toNumber(trueInfectionEstimateData?.estimated_infections?.median);
+  const adjustedPi90 = trueInfectionEstimateData?.estimated_infections?.pi90;
+  const multiplierMedian = toNumber(trueInfectionEstimateData?.multiplier?.median || adjustedFactor);
   if (summaryEl) {
     const topMatches = Array.isArray(proj.matches) ? proj.matches.slice(0, 3).map(m => m.outbreak_label).filter(Boolean) : [];
     const matchCardJa = topMatches.length ? `<div class="final-size-stat-card"><span>類似した過去流行</span><strong>${topMatches[0]}</strong><small>${topMatches.slice(1).join(' / ')}</small></div>` : '';
     const matchCardEn = topMatches.length ? `<div class="final-size-stat-card"><span>Closest historical analogs</span><strong>${topMatches[0]}</strong><small>${topMatches.slice(1).join(' / ')}</small></div>` : '';
     const matchCardFr = topMatches.length ? `<div class="final-size-stat-card"><span>Analogues historiques les plus proches</span><strong>${topMatches[0]}</strong><small>${topMatches.slice(1).join(' / ')}</small></div>` : '';
+    const adjustedSmallJa = adjustedFs ? `90%予測区間 ${formatCaseCount(adjustedFs.pi90?.[0])}–${formatCaseCount(adjustedFs.pi90?.[1])}<br>現在推定感染規模 ${formatCaseCount(adjustedMedian)}、補正倍率 約${multiplierMedian.toFixed(1)}倍` : '報告補正後推定は最新SitRep時点のみ表示されます';
+    const adjustedSmallEn = adjustedFs ? `90% PI ${formatCaseCount(adjustedFs.pi90?.[0])}–${formatCaseCount(adjustedFs.pi90?.[1])}<br>Current adjusted infections ${formatCaseCount(adjustedMedian)}, multiplier about ${multiplierMedian.toFixed(1)}×` : 'Reporting-adjusted projection is shown only for the latest SitRep point';
+    const adjustedSmallFr = adjustedFs ? `IP 90 % ${formatCaseCount(adjustedFs.pi90?.[0])}–${formatCaseCount(adjustedFs.pi90?.[1])}<br>Infections corrigées actuelles ${formatCaseCount(adjustedMedian)}, multiplicateur env. ${multiplierMedian.toFixed(1)}×` : 'La projection corrigée n’est affichée que pour le dernier SitRep';
     if (currentLang === 'ja') {
       summaryEl.innerHTML = `
-        <div class="final-size-stat-card"><span>推定最終累積症例数</span><strong>${formatCaseCount(fs.median)}</strong><small>90%予測区間 ${formatCaseCount(fs.pi90?.[0])}–${formatCaseCount(fs.pi90?.[1])}</small></div>
+        <div class="final-size-stat-card"><span>報告確定例ベース</span><strong>${formatCaseCount(reportedFs.median)}</strong><small>90%予測区間 ${formatCaseCount(reportedFs.pi90?.[0])}–${formatCaseCount(reportedFs.pi90?.[1])}</small></div>
+        <div class="final-size-stat-card"><span>報告補正後ベース（参考）</span><strong>${adjustedFs ? formatCaseCount(adjustedFs.median) : '—'}</strong><small>${adjustedSmallJa}</small></div>
         <div class="final-size-stat-card"><span>推定終息日</span><strong>${formatDateLong(ed.median)}</strong><small>90%予測区間 ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>
         ${matchCardJa}`;
     } else if (currentLang === 'fr') {
       summaryEl.innerHTML = `
-        <div class="final-size-stat-card"><span>Cas cumulés finaux estimés</span><strong>${formatCaseCount(fs.median)}</strong><small>IP 90 % ${formatCaseCount(fs.pi90?.[0])}–${formatCaseCount(fs.pi90?.[1])}</small></div>
+        <div class="final-size-stat-card"><span>Base cas confirmés rapportés</span><strong>${formatCaseCount(reportedFs.median)}</strong><small>IP 90 % ${formatCaseCount(reportedFs.pi90?.[0])}–${formatCaseCount(reportedFs.pi90?.[1])}</small></div>
+        <div class="final-size-stat-card"><span>Base corrigée (référence)</span><strong>${adjustedFs ? formatCaseCount(adjustedFs.median) : '—'}</strong><small>${adjustedSmallFr}</small></div>
         <div class="final-size-stat-card"><span>Date de fin estimée</span><strong>${formatDateLong(ed.median)}</strong><small>IP 90 % ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>
         ${matchCardFr}`;
     } else {
       summaryEl.innerHTML = `
-        <div class="final-size-stat-card"><span>Estimated final cumulative cases</span><strong>${formatCaseCount(fs.median)}</strong><small>90% PI ${formatCaseCount(fs.pi90?.[0])}–${formatCaseCount(fs.pi90?.[1])}</small></div>
+        <div class="final-size-stat-card"><span>Reported confirmed-case basis</span><strong>${formatCaseCount(reportedFs.median)}</strong><small>90% PI ${formatCaseCount(reportedFs.pi90?.[0])}–${formatCaseCount(reportedFs.pi90?.[1])}</small></div>
+        <div class="final-size-stat-card"><span>Reporting-adjusted basis (reference)</span><strong>${adjustedFs ? formatCaseCount(adjustedFs.median) : '—'}</strong><small>${adjustedSmallEn}</small></div>
         <div class="final-size-stat-card"><span>Estimated end date</span><strong>${formatDateLong(ed.median)}</strong><small>90% PI ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}</small></div>
         ${matchCardEn}`;
     }
   }
 
   const projectionDate = record.reporting_date || selectedCaseDate();
-  const currentCum = toNumber(record.current_cumulative_cases || latestObservedCumulative(projectionDate));
+  const baseCurrentCum = toNumber(record.current_cumulative_cases || latestObservedCumulative(projectionDate));
+  const currentCum = activeBasis === 'adjusted' && adjustedFactor ? baseCurrentCum * adjustedFactor : baseCurrentCum;
   const obs = dailyObservedSeriesUntil(projectionDate).filter(r => String(r.date) <= String(projectionDate));
   const obsDates = obs.map(r => r.date);
-  const obsCum = obs.map(r => r.cumulative);
-  const pred = [{ date: projectionDate, median: currentCum, q25: currentCum, q75: currentCum, q05: currentCum, q95: currentCum }].concat(proj.trajectory || []);
+  const obsCum = obs.map(r => activeBasis === 'adjusted' && adjustedFactor ? r.cumulative * adjustedFactor : r.cumulative);
+  const pred = [{ date: projectionDate, median: currentCum, q25: currentCum, q75: currentCum, q05: currentCum, q95: currentCum }].concat(chartProj.trajectory || []);
   const x = pred.map(r => r.date);
 
   const traces = [
-    { type: 'scatter', mode: 'lines+markers', name: textByLang('観測累積症例数', 'Observed cumulative cases', 'Cas cumulés observés'), x: obsDates, y: obsCum, line: { width: 2 }, marker: { size: 5 }, hovertemplate: textByLang('%{x}<br>観測累積: %{y:,.0f}例<extra></extra>', '%{x}<br>Observed cumulative: %{y:,.0f} cases<extra></extra>', '%{x}<br>Cumul observé: %{y:,.0f} cas<extra></extra>') },
+    { type: 'scatter', mode: 'lines+markers', name: activeBasis === 'adjusted' ? textByLang('報告補正後累積感染規模（推定）', 'Reporting-adjusted cumulative infections', 'Infections cumulées corrigées') : textByLang('観測累積症例数', 'Observed cumulative cases', 'Cas cumulés observés'), x: obsDates, y: obsCum, line: { width: 2 }, marker: { size: 5 }, hovertemplate: textByLang(activeBasis === 'adjusted' ? '%{x}<br>補正後推定: %{y:,.0f}例<extra></extra>' : '%{x}<br>観測累積: %{y:,.0f}例<extra></extra>', activeBasis === 'adjusted' ? '%{x}<br>Adjusted estimate: %{y:,.0f} infections<extra></extra>' : '%{x}<br>Observed cumulative: %{y:,.0f} cases<extra></extra>', activeBasis === 'adjusted' ? '%{x}<br>Estimation corrigée: %{y:,.0f} infections<extra></extra>' : '%{x}<br>Cumul observé: %{y:,.0f} cas<extra></extra>') },
     { type: 'scatter', mode: 'lines', name: '90% PI lower', x, y: pred.map(r => r.q05), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
     { type: 'scatter', mode: 'lines', name: textByLang('90%予測区間', '90% prediction interval', 'Intervalle de prédiction 90 %'), x, y: pred.map(r => r.q95), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.12)', hoverinfo: 'skip' },
     { type: 'scatter', mode: 'lines', name: '50% PI lower', x, y: pred.map(r => r.q25), line: { width: 0 }, hoverinfo: 'skip', showlegend: false },
     { type: 'scatter', mode: 'lines', name: textByLang('50%予測区間', '50% prediction interval', 'Intervalle de prédiction 50 %'), x, y: pred.map(r => r.q75), line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(46, 144, 250, 0.22)', hoverinfo: 'skip' },
-    { type: 'scatter', mode: 'lines', name: textByLang('中央値', 'Median trajectory', 'Trajectoire médiane'), x, y: pred.map(r => r.median), line: { width: 2.5, color: '#175cd3' }, hovertemplate: textByLang('%{x}<br>中央値: %{y:,.0f}例<extra></extra>', '%{x}<br>Median: %{y:,.0f} cases<extra></extra>', '%{x}<br>Médiane: %{y:,.0f} cas<extra></extra>') }
+    { type: 'scatter', mode: 'lines', name: activeBasis === 'adjusted' ? textByLang('補正後中央値', 'Adjusted median trajectory', 'Trajectoire médiane corrigée') : textByLang('中央値', 'Median trajectory', 'Trajectoire médiane'), x, y: pred.map(r => r.median), line: { width: 2.5, color: '#175cd3' }, hovertemplate: textByLang('%{x}<br>中央値: %{y:,.0f}例<extra></extra>', '%{x}<br>Median: %{y:,.0f} cases<extra></extra>', '%{x}<br>Médiane: %{y:,.0f} cas<extra></extra>') }
   ];
 
   const maxY = Math.max(...obsCum, ...pred.map(r => toNumber(r.q95)), 1);
@@ -3673,7 +3764,7 @@ function updateFinalSizeProjectionChart() {
   Plotly.newPlot('finalSizeChart', traces, {
     margin: { l: 68, r: 24, t: 34, b: 92 },
     xaxis: { title: { text: textByLang('日付', 'Date', 'Date'), standoff: 16 }, tickangle: -35, gridcolor: '#eef3f8', automargin: true, nticks: window.innerWidth < 700 ? 5 : 7 },
-    yaxis: { title: textByLang('累積確定症例数', 'Cumulative confirmed cases', 'Cas confirmés cumulés'), gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
+    yaxis: { title: activeBasis === 'adjusted' ? textByLang('報告補正後累積感染規模', 'Reporting-adjusted cumulative infections', 'Infections cumulées corrigées') : textByLang('累積確定症例数', 'Cumulative confirmed cases', 'Cas confirmés cumulés'), gridcolor: '#e7eef7', rangemode: 'tozero', automargin: true },
     legend: { orientation: 'h', x: 0.5, xanchor: 'center', y: 1.12, yanchor: 'bottom' },
     shapes: finalShapes,
     annotations: finalAnnotations,
@@ -3690,29 +3781,32 @@ function updateFinalSizeProjectionChart() {
     const weightTextEn = weights ? `Ensemble weights: branching process ${Math.round((weights.branching_process || 0) * 100)}%, AI-assisted historical matching ${Math.round((weights.ai_assisted_historical_matching || 0) * 100)}%. ` : '';
     const rtTextFr = Number.isFinite(rt.median) ? `Rt médian <strong>${rt.median.toFixed(2)}</strong> (ICr 95 % ${Number.isFinite(rt.q025) ? rt.q025.toFixed(2) : '—'}–${Number.isFinite(rt.q975) ? rt.q975.toFixed(2) : '—'}). ` : '';
     const weightTextFr = weights ? `Poids de l’ensemble : processus de branchement ${Math.round((weights.branching_process || 0) * 100)} %, appariement historique assisté par IA ${Math.round((weights.ai_assisted_historical_matching || 0) * 100)} %. ` : '';
+    const basisNoteJa = activeBasis === 'adjusted' ? `表示：<strong>報告補正後ベース（参考）</strong>。報告補正モデルの現在推定感染規模を起点にし、報告確定例ベースの軌道を補正倍率でスケーリングしています。` : `表示：<strong>報告確定例ベース</strong>。`;
+    const basisNoteEn = activeBasis === 'adjusted' ? `Display: <strong>reporting-adjusted basis (reference)</strong>. The trajectory is scaled from the reported-confirmed basis using the current reporting-adjustment multiplier. ` : `Display: <strong>reported confirmed-case basis</strong>. `;
+    const basisNoteFr = activeBasis === 'adjusted' ? `Affichage : <strong>base corrigée du sous-signalement (référence)</strong>. La trajectoire est mise à l’échelle depuis la base des cas confirmés rapportés avec le multiplicateur de correction actuel. ` : `Affichage : <strong>base des cas confirmés rapportés</strong>. `;
     if (currentLang === 'ja') {
       if (scenario === 'historical_ai') {
-        statsEl.innerHTML = `モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例の累積曲線を、過去DRCエボラ流行曲線にスケーリングして照合します。近い過去流行：<strong>${topMatches || '—'}</strong>。これはAI支援によるアナログ推定であり、都市部侵入、医療機関内伝播、制御活動の変化により大きく外れる可能性があります。`;
+        statsEl.innerHTML = `${basisNoteJa} モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例の累積曲線を、過去DRCエボラ流行曲線にスケーリングして照合します。近い過去流行：<strong>${topMatches || '—'}</strong>。これはAI支援によるアナログ推定であり、都市部侵入、医療機関内伝播、制御活動の変化により大きく外れる可能性があります。`;
       } else if (scenario === 'ensemble') {
-        statsEl.innerHTML = `モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例を用い、Branching processとAI支援による過去流行マッチングを統合した推奨表示です。${weightTextJa}${rtTextJa}推定終息日は、モデル上で日別新規確定例が42日間連続して0となる最初の日です。これは確定的な予測ではありません。`;
+        statsEl.innerHTML = `${basisNoteJa} モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例を用い、Branching processとAI支援による過去流行マッチングを統合した推奨表示です。${weightTextJa}${rtTextJa}推定終息日は、モデル上で日別新規確定例が42日間連続して0となる最初の日です。これは確定的な予測ではありません。`;
       } else {
-        statsEl.innerHTML = `モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例を用い、GitHub Actions側で事前計算したrenewal / branching-process negative-binomialモデルです。${rtTextJa}推定終息日は、シミュレーション上で日別新規確定例が42日間連続して0となる最初の日です。これは確定的な予測ではありません。`;
+        statsEl.innerHTML = `${basisNoteJa} モデル：<strong>${finalSizeScenarioLabel(scenario)}</strong>。${sourceSitrep ? sourceSitrep + '（' : ''}${formatDateLong(projectionDate)}${sourceSitrep ? '）' : ''}までの報告確定例を用い、GitHub Actions側で事前計算したrenewal / branching-process negative-binomialモデルです。${rtTextJa}推定終息日は、シミュレーション上で日別新規確定例が42日間連続して0となる最初の日です。これは確定的な予測ではありません。`;
       }
     } else if (currentLang === 'fr') {
       if (scenario === 'historical_ai') {
-        statsEl.innerHTML = `Modèle : <strong>${finalSizeScenarioLabel(scenario)}</strong>. La trajectoire cumulée jusqu’au ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''} est mise à l’échelle et appariée aux courbes des épidémies précédentes d’Ebola en RDC. Analogues les plus proches : <strong>${topMatches || '—'}</strong>. Il s’agit d’une prévision analogue assistée par IA; la diffusion urbaine, la transmission nosocomiale et les changements de réponse peuvent modifier fortement la projection.`;
+        statsEl.innerHTML = `${basisNoteFr} Modèle : <strong>${finalSizeScenarioLabel(scenario)}</strong>. La trajectoire cumulée jusqu’au ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''} est mise à l’échelle et appariée aux courbes des épidémies précédentes d’Ebola en RDC. Analogues les plus proches : <strong>${topMatches || '—'}</strong>. Il s’agit d’une prévision analogue assistée par IA; la diffusion urbaine, la transmission nosocomiale et les changements de réponse peuvent modifier fortement la projection.`;
       } else if (scenario === 'ensemble') {
-        statsEl.innerHTML = `Modèle : <strong>${finalSizeScenarioLabel(scenario)}</strong>. Affichage recommandé combinant le processus de branchement et l’appariement historique assisté par IA à partir des cas confirmés rapportés jusqu’au ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${weightTextFr}${rtTextFr}La date de fin estimée est la première date suivie de 42 jours consécutifs sans nouveau cas confirmé dans le modèle. Il ne s’agit pas d’une prédiction déterministe.`;
+        statsEl.innerHTML = `${basisNoteFr} Modèle : <strong>${finalSizeScenarioLabel(scenario)}</strong>. Affichage recommandé combinant le processus de branchement et l’appariement historique assisté par IA à partir des cas confirmés rapportés jusqu’au ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${weightTextFr}${rtTextFr}La date de fin estimée est la première date suivie de 42 jours consécutifs sans nouveau cas confirmé dans le modèle. Il ne s’agit pas d’une prédiction déterministe.`;
       } else {
-        statsEl.innerHTML = `Modèle : <strong>${finalSizeScenarioLabel(scenario)}</strong>. Pré-calculé dans GitHub Actions avec un modèle renewal / processus de branchement binomial négatif utilisant les cas confirmés rapportés jusqu’au ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${rtTextFr}La date de fin estimée est la première date suivie de 42 jours consécutifs sans nouveau cas confirmé dans les simulations. Il ne s’agit pas d’une prédiction déterministe.`;
+        statsEl.innerHTML = `${basisNoteFr} Modèle : <strong>${finalSizeScenarioLabel(scenario)}</strong>. Pré-calculé dans GitHub Actions avec un modèle renewal / processus de branchement binomial négatif utilisant les cas confirmés rapportés jusqu’au ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${rtTextFr}La date de fin estimée est la première date suivie de 42 jours consécutifs sans nouveau cas confirmé dans les simulations. Il ne s’agit pas d’une prédiction déterministe.`;
       }
     } else {
       if (scenario === 'historical_ai') {
-        statsEl.innerHTML = `Model: <strong>${finalSizeScenarioLabel(scenario)}</strong>. The cumulative trajectory through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''} is scaled and matched to previous DRC Ebola outbreak curves. Closest analogs: <strong>${topMatches || '—'}</strong>. This is an AI-assisted analog forecast; urban spread, nosocomial transmission and response changes may substantially alter the projection.`;
+        statsEl.innerHTML = `${basisNoteEn} Model: <strong>${finalSizeScenarioLabel(scenario)}</strong>. The cumulative trajectory through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''} is scaled and matched to previous DRC Ebola outbreak curves. Closest analogs: <strong>${topMatches || '—'}</strong>. This is an AI-assisted analog forecast; urban spread, nosocomial transmission and response changes may substantially alter the projection.`;
       } else if (scenario === 'ensemble') {
-        statsEl.innerHTML = `Model: <strong>${finalSizeScenarioLabel(scenario)}</strong>. Recommended display combining branching process and AI-assisted historical matching using reported confirmed cases through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${weightTextEn}${rtTextEn}The estimated end date is the first date followed by 42 consecutive days with zero incident confirmed cases in the model. This is not a deterministic prediction.`;
+        statsEl.innerHTML = `${basisNoteEn} Model: <strong>${finalSizeScenarioLabel(scenario)}</strong>. Recommended display combining branching process and AI-assisted historical matching using reported confirmed cases through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${weightTextEn}${rtTextEn}The estimated end date is the first date followed by 42 consecutive days with zero incident confirmed cases in the model. This is not a deterministic prediction.`;
       } else {
-        statsEl.innerHTML = `Model: <strong>${finalSizeScenarioLabel(scenario)}</strong>. Precomputed in GitHub Actions using a renewal / branching-process negative-binomial model with reported confirmed cases through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${rtTextEn}The estimated end date is the first date followed by 42 consecutive days with zero incident confirmed cases in the simulations. This is not a deterministic prediction.`;
+        statsEl.innerHTML = `${basisNoteEn} Model: <strong>${finalSizeScenarioLabel(scenario)}</strong>. Precomputed in GitHub Actions using a renewal / branching-process negative-binomial model with reported confirmed cases through ${formatDateLong(projectionDate)}${sourceSitrep ? ' (' + sourceSitrep + ')' : ''}. ${rtTextEn}The estimated end date is the first date followed by 42 consecutive days with zero incident confirmed cases in the simulations. This is not a deterministic prediction.`;
       }
     }
   }

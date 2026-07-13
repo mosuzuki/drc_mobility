@@ -988,6 +988,41 @@ main {
   width: 100%;
 }
 
+
+.final-size-basis-toggle {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 6px;
+}
+
+.final-size-basis-toggle button {
+  width: 100%;
+  border: 1px solid #d0d9e6;
+  border-radius: 999px;
+  background: #ffffff;
+  color: #344054;
+  font-weight: 700;
+  font-size: 0.78rem;
+  line-height: 1.25;
+  padding: 7px 10px;
+  cursor: pointer;
+  transition: background 0.15s ease, color 0.15s ease, border-color 0.15s ease, box-shadow 0.15s ease;
+}
+
+.final-size-basis-toggle button.active {
+  background: #175cd3;
+  border-color: #175cd3;
+  color: #ffffff;
+  box-shadow: 0 6px 14px rgba(23, 92, 211, 0.16);
+}
+
+.final-size-basis-toggle button.disabled,
+.final-size-basis-toggle button:disabled {
+  opacity: 0.45;
+  cursor: not-allowed;
+  box-shadow: none;
+}
+
 .final-size-summary-grid {
   display: grid;
   grid-template-columns: repeat(2, minmax(0, 1fr));

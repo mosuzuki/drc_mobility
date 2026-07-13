@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="preconnect" href="https://cdn.plot.ly" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="assets/style.css?v=20260713-n58-latest-sitrep" />
+  <link rel="stylesheet" href="assets/style.css?v=20260713-finalsize-adjusted-toggle" />
 </head>
 <body>
   <header class="topbar">
@@ -214,6 +214,10 @@
               <option value="branching">Branching process</option>
               <option value="historical_ai">AI支援による過去流行マッチング</option>
             </select>
+            <div id="finalSizeBasisToggle" class="final-size-basis-toggle" role="group" aria-label="Final size basis">
+              <button type="button" class="active" data-final-size-basis="reported">報告確定例ベース</button>
+              <button type="button" data-final-size-basis="adjusted">報告補正後ベース（参考）</button>
+            </div>
           </div>
         </div>
         <div id="finalSizeSummary" class="final-size-summary-grid"></div>
@@ -339,6 +343,6 @@
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="assets/app.js?v=20260713-hz-activity"></script>
+  <script src="assets/app.js?v=20260713-finalsize-adjusted-toggle"></script>
 </body>
 </html>
