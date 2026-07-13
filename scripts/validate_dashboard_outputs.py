@@ -150,6 +150,28 @@ for i, r in enumerate(ai_rows, start=1):
     for pat in ['2026件', '2026例', '2026人', '628人', '628死亡', '死亡者数']:
         if pat in joined:
             errors.append(f'ai_sitrep_summary.csv contains stale/unsafe text on row {i}: {pat}')
+# Health-zone activity status panel must be generated for the latest SitRep.
+hz_activity = read_csv(DATA/'health_zone_activity_status.csv')
+if not hz_activity:
+    errors.append('health_zone_activity_status.csv missing or empty')
+else:
+    ref_nos = {r.get('reference_report_no') for r in hz_activity}
+    ref_dates = {r.get('reference_date') for r in hz_activity}
+    if latest_no and ref_nos != {latest_no}:
+        errors.append(f'health_zone_activity_status.csv reference_report_no {sorted(ref_nos)} != latest report_summary {latest_no}')
+    if latest_date and ref_dates != {latest_date}:
+        errors.append(f'health_zone_activity_status.csv reference_date {sorted(ref_dates)} != latest report_summary {latest_date}')
+    for i, r in enumerate(hz_activity, start=1):
+        days = to_float(r.get('days_since_last_increase'))
+        cases_v = to_float(r.get('cumulative_confirmed'))
+        if not math.isfinite(days) or days < 0:
+            errors.append(f'health_zone_activity_status.csv row {i} has invalid days_since_last_increase')
+        if not math.isfinite(cases_v) or cases_v <= 0:
+            errors.append(f'health_zone_activity_status.csv row {i} has invalid cumulative_confirmed')
+        hz_name = str(r.get('health_zone','')).lower()
+        if 'autres' in hz_name or 'non ventil' in hz_name or 'unventil' in hz_name:
+            errors.append('health_zone_activity_status.csv must not include unventilated/aggregate rows as health zones')
+
 
 ug=latest(read_csv(DATA/'uganda_evd_summary.csv'),'as_of_date')
 daily=read_csv(DATA/'uganda_evd_daily_cases.csv')

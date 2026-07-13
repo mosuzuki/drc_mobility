@@ -1968,3 +1968,141 @@ main > .grid-two:first-of-type .right-analysis-panel {
     min-height: 390px !important;
   }
 }
+
+/* Health-zone activity status panel: full-width operational table between upper 4 panels and response/RWI. */
+.health-zone-activity-block {
+  grid-column: 1 / -1 !important;
+  min-height: 520px !important;
+  height: auto !important;
+  max-height: none !important;
+  overflow: visible !important;
+}
+.health-zone-activity-head {
+  align-items: flex-start !important;
+  gap: 14px !important;
+}
+.health-zone-activity-controls {
+  display: flex;
+  gap: 10px;
+  align-items: center;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  min-width: min(100%, 360px);
+}
+.health-zone-activity-controls input,
+.health-zone-activity-controls select {
+  border: 1px solid #cdd9e6;
+  border-radius: 12px;
+  background: #fff;
+  color: #123b5d;
+  padding: 9px 11px;
+  font-weight: 700;
+  min-height: 40px;
+}
+.health-zone-activity-controls input {
+  width: min(100%, 245px);
+}
+.health-zone-activity-summary {
+  display: grid;
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+  gap: 10px;
+  margin: 10px 0 14px;
+  flex: 0 0 auto;
+}
+.hz-activity-card {
+  border: 1px solid #d6e2ef;
+  background: #f8fbff;
+  border-radius: 16px;
+  padding: 12px 13px;
+  min-width: 0;
+}
+.hz-activity-card strong {
+  display: block;
+  font-size: 1.35rem;
+  line-height: 1.1;
+  color: #123b5d;
+  font-weight: 950;
+  overflow-wrap: anywhere;
+}
+.hz-activity-card span {
+  display: block;
+  margin-top: 5px;
+  color: #475467;
+  font-size: .86rem;
+  line-height: 1.3;
+  font-weight: 800;
+}
+.hz-activity-card.active { border-color: #fecaca; background: #fff7f7; }
+.hz-activity-card.watch { border-color: #fedf89; background: #fffbeb; }
+.hz-activity-card.cooldown { border-color: #abefc6; background: #f0fdf4; }
+.health-zone-activity-table-wrap {
+  width: 100%;
+  overflow: auto;
+  border: 1px solid #d6e2ef;
+  border-radius: 16px;
+  background: #fff;
+  flex: 0 0 auto;
+}
+.health-zone-activity-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: .92rem;
+  min-width: 760px;
+}
+.health-zone-activity-table th,
+.health-zone-activity-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid #edf2f7;
+  text-align: left;
+  vertical-align: middle;
+}
+.health-zone-activity-table th {
+  background: #f5f9fd;
+  color: #344054;
+  font-weight: 900;
+  white-space: nowrap;
+  position: sticky;
+  top: 0;
+  z-index: 1;
+}
+.health-zone-activity-table tr:last-child td { border-bottom: 0; }
+.health-zone-activity-table .num { text-align: right; font-variant-numeric: tabular-nums; }
+.hz-status-badge {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 999px;
+  padding: 5px 10px;
+  font-size: .82rem;
+  font-weight: 950;
+  white-space: nowrap;
+}
+.hz-status-badge.active { background: #fee4e2; color: #912018; border: 1px solid #fecdca; }
+.hz-status-badge.watch { background: #fef0c7; color: #93370d; border: 1px solid #fedf89; }
+.hz-status-badge.cooldown { background: #dcfae6; color: #05603a; border: 1px solid #abefc6; }
+.health-zone-activity-note {
+  margin-top: 12px !important;
+  font-size: .88rem !important;
+  line-height: 1.5 !important;
+  color: #475467;
+}
+@media (max-width: 900px) {
+  .health-zone-activity-block {
+    min-height: 0 !important;
+  }
+  .health-zone-activity-head,
+  .health-zone-activity-controls {
+    align-items: stretch !important;
+    width: 100%;
+  }
+  .health-zone-activity-controls input,
+  .health-zone-activity-controls select {
+    width: 100%;
+  }
+  .health-zone-activity-summary {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+@media (max-width: 520px) {
+  .health-zone-activity-summary { grid-template-columns: 1fr; }
+}

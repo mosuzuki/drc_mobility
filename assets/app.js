@@ -20,10 +20,11 @@ const files = {
   aiSummary: 'data/ai_sitrep_summary.csv',
   latestSituation: 'data/latest_situation.json',
   finalProjection: 'data/final_size_projection.json',
-  trueInfectionEstimate: 'data/true_infection_estimate.json'
+  trueInfectionEstimate: 'data/true_infection_estimate.json',
+  healthZoneActivity: 'data/health_zone_activity_status.csv'
 };
 
-let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], ugandaEvdDailyCases = [], ugandaEvdHistory = [], aiSitrepSummary = [];
+let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], ugandaEvdDailyCases = [], ugandaEvdHistory = [], aiSitrepSummary = [], healthZoneActivity = [];
 let latestSituationData = null;
 let finalSizeProjectionData = null;
 let trueInfectionEstimateData = null;
@@ -53,6 +54,9 @@ let updateTimer = null;
 
 const fmt = new Intl.NumberFormat('en-US');
 const pct = (x) => `${(x * 100).toFixed(1)}%`;
+function escapeHtml(value) {
+  return String(value ?? '').replace(/[&<>"']/g, ch => ({ '&':'&amp;', '<':'&lt;', '>':'&gt;', '"':'&quot;', "'":'&#39;' }[ch]));
+}
 
 let currentLang = localStorage.getItem('dashboardLanguage') || 'ja';
 if (!['ja', 'en', 'fr'].includes(currentLang)) currentLang = 'ja';
@@ -102,6 +106,14 @@ const UI_TEXT = {
     sourcesTitle: '接続候補データソース',
     limitationText: '<strong>重要：</strong>ウガンダ推定値には、2026年5月15–24日のIOM DTM EVD国境フロー要約と、DRC側の症例加重移動量・2026年ウガンダ目的地プロファイルを組み合わせたシナリオベースのimportation-pressure scoreが含まれます。エボラ伝播確率ではありません。',
     footerText: 'Flowminder / HDX由来のDRC health-zone移動推定を用いたプロトタイプ・ダッシュボードです。ウガンダの値は、国境横断データで較正されるまではproxy推定として解釈してください。',
+    healthZoneActivityTitle: 'ヘルスゾーン別最終報告状況',
+    healthZoneActivityDesc: 'ヘルスゾーンごとの累積確定例と、最後に症例数が増加した報告日からの経過日数です。隔離・健康観察判断の補助情報として使用してください。',
+    hzActivityProvinceCol: '州',
+    hzActivityZoneCol: 'ヘルスゾーン',
+    hzActivityCasesCol: '累積確定例',
+    hzActivityLastDateCol: '最終増加報告日',
+    hzActivityDaysCol: '経過日数',
+    hzActivityStatusCol: '判定',
     kpiTotalLabel: 'DRC確定症例数',
     kpiDrcDeathsLabel: 'DRC確定死亡例数',
     kpiUgandaCasesLabel: 'ウガンダ確定症例数',
@@ -151,6 +163,14 @@ const UI_TEXT = {
     sourcesTitle: 'Data sources to connect',
     limitationText: '<strong>Important:</strong> Uganda estimates include both observed IOM DTM EVD border-flow summaries from 15–24 May 2026 and scenario-based importation-pressure scores that combine DRC-side case-weighted movement toward border proxy zones with the 2026 Uganda destination profile. They are not Ebola transmission probabilities.',
     footerText: 'Prototype dashboard using Flowminder / HDX-derived DRC health-zone mobility estimates. Uganda values remain proxy estimates unless calibrated with cross-border data.',
+    healthZoneActivityTitle: 'Health-zone last report status',
+    healthZoneActivityDesc: 'Cumulative confirmed cases by health zone and days since the last SitRep date when cumulative cases increased. Use as decision-support for isolation or monitoring, not as individual risk classification.',
+    hzActivityProvinceCol: 'Province',
+    hzActivityZoneCol: 'Health zone',
+    hzActivityCasesCol: 'Confirmed cases',
+    hzActivityLastDateCol: 'Last increase report date',
+    hzActivityDaysCol: 'Days since',
+    hzActivityStatusCol: 'Status',
     kpiTotalLabel: 'DRC confirmed cases',
     kpiDrcDeathsLabel: 'DRC confirmed deaths',
     kpiUgandaCasesLabel: 'Uganda confirmed cases',
@@ -200,6 +220,14 @@ const UI_TEXT = {
     sourcesTitle: 'Sources de données à connecter',
     limitationText: '<strong>Important :</strong> Les estimations pour l’Ouganda incluent à la fois les synthèses observées des flux frontaliers EVD de l’IOM DTM du 15 au 24 mai 2026 et des scores de pression d’importation fondés sur des scénarios combinant les mouvements pondérés par les cas côté RDC vers des zones frontalières proxy avec le profil de destination 2026 pour l’Ouganda. Il ne s’agit pas de probabilités de transmission d’Ebola.',
     footerText: 'Prototype de tableau de bord utilisant des estimations de mobilité par zone de santé en RDC dérivées de Flowminder / HDX. Les valeurs pour l’Ouganda doivent être interprétées comme des proxys tant qu’elles ne sont pas calibrées avec des données transfrontalières.',
+    healthZoneActivityTitle: 'Dernière notification par zone de santé',
+    healthZoneActivityDesc: 'Cas confirmés cumulés par zone de santé et jours depuis la dernière date SitRep avec augmentation des cas. À utiliser comme aide à la décision, pas comme classification individuelle du risque.',
+    hzActivityProvinceCol: 'Province',
+    hzActivityZoneCol: 'Zone de santé',
+    hzActivityCasesCol: 'Cas confirmés',
+    hzActivityLastDateCol: 'Dernière augmentation',
+    hzActivityDaysCol: 'Jours écoulés',
+    hzActivityStatusCol: 'Statut',
     kpiTotalLabel: 'Cas confirmés en RDC',
     kpiDrcDeathsLabel: 'Décès confirmés en RDC',
     kpiUgandaCasesLabel: 'Cas confirmés en Ouganda',
@@ -270,7 +298,7 @@ function refreshFinalSizeScenarioOptions() {
 
 function applyStaticLanguage() {
   document.documentElement.lang = currentLang === 'ja' ? 'ja' : (currentLang === 'fr' ? 'fr' : 'en');
-  const ids = ['pageEyebrow','pageTitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','finalSizeTitle','finalSizeDesc','responseTimelineTitle','responseTimelineDesc','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiUgandaDeathsLabel'];
+  const ids = ['pageEyebrow','pageTitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','finalSizeTitle','finalSizeDesc','responseTimelineTitle','responseTimelineDesc','healthZoneActivityTitle','healthZoneActivityDesc','hzActivityProvinceCol','hzActivityZoneCol','hzActivityCasesCol','hzActivityLastDateCol','hzActivityDaysCol','hzActivityStatusCol','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiUgandaDeathsLabel'];
   ids.forEach(id => setTextById(id, uiText(id)));
   setTextById('limitationText', uiText('limitationText'), true);
   const ja = document.getElementById('langJa');
@@ -1284,6 +1312,8 @@ function populateControls() {
   document.getElementById('forecastHorizonSelect')?.addEventListener('change', () => { updateForecastChart(); });
   document.getElementById('forecastSiSelect')?.addEventListener('change', () => { updateForecastChart(); });
   document.getElementById('finalSizeScenarioSelect')?.addEventListener('change', () => { updateFinalSizeProjectionChart(); });
+  document.getElementById('healthZoneActivitySearch')?.addEventListener('input', () => { updateHealthZoneActivityPanel(); });
+  document.getElementById('healthZoneActivityPageSize')?.addEventListener('change', () => { updateHealthZoneActivityPanel(); });
 
   if (monthSlider) {
     monthSlider.addEventListener('input', () => {
@@ -4206,6 +4236,90 @@ function updateAssessmentPanel() {
 }
 
 
+function healthZoneStatusLabel(row) {
+  if (!row) return '—';
+  if (currentLang === 'fr') return row.status_label_fr || row.status_label_en || row.status_label_ja || row.activity_status || '—';
+  if (currentLang === 'en') return row.status_label_en || row.status_label_ja || row.activity_status || '—';
+  return row.status_label_ja || row.status_label_en || row.activity_status || '—';
+}
+
+function healthZoneStatusClass(row) {
+  const code = String(row?.activity_status || '');
+  if (code.includes('cooldown')) return 'cooldown';
+  if (code.includes('watch')) return 'watch';
+  return 'active';
+}
+
+function updateHealthZoneActivityPanel() {
+  const summaryEl = document.getElementById('healthZoneActivitySummary');
+  const tbody = document.getElementById('healthZoneActivityTableBody');
+  const searchEl = document.getElementById('healthZoneActivitySearch');
+  const sizeEl = document.getElementById('healthZoneActivityPageSize');
+  const noteEl = document.getElementById('healthZoneActivityNote');
+  if (!summaryEl || !tbody) return;
+  const rows = (healthZoneActivity || []).slice();
+  if (!rows.length) {
+    summaryEl.innerHTML = `<div class="hz-activity-card"><strong>—</strong><span>${textByLang('データ未作成', 'No data generated', 'Données non générées')}</span></div>`;
+    tbody.innerHTML = `<tr><td colspan="6">${textByLang('ヘルスゾーン別最終報告状況データがありません。', 'No health-zone activity status data are available.', 'Aucune donnée de statut par zone de santé n’est disponible.')}</td></tr>`;
+    return;
+  }
+  const referenceNo = rows[0].reference_report_no || '';
+  const referenceDate = rows[0].reference_date || '';
+  const counts = rows.reduce((acc, r) => {
+    const code = String(r.activity_status || 'active_0_21');
+    acc[code] = (acc[code] || 0) + 1;
+    return acc;
+  }, {});
+  const mkCard = (value, label, cls='') => `<div class="hz-activity-card ${cls}"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></div>`;
+  summaryEl.innerHTML = [
+    mkCard(`${referenceNo || '—'} / ${displayDateLabel(referenceDate)}`, textByLang('基準SitRep', 'Reference SitRep', 'SitRep de référence')),
+    mkCard(fmt.format(rows.length), textByLang('影響ヘルスゾーン', 'Affected health zones', 'Zones de santé touchées')),
+    mkCard(fmt.format(counts.active_0_21 || 0), textByLang('0〜21日以内に増加', 'Increase within 0–21 days', 'Augmentation ≤21 jours'), 'active'),
+    mkCard(fmt.format(counts.watch_22_41 || 0), textByLang('22〜41日増加なし', 'No increase for 22–41 days', 'Sans augmentation 22–41 j'), 'watch'),
+    mkCard(fmt.format(counts.cooldown_42_plus || 0), textByLang('42日以上増加なし', 'No increase for 42+ days', 'Sans augmentation ≥42 j'), 'cooldown')
+  ].join('');
+
+  const q = normalizedString(searchEl?.value || '');
+  const filtered = rows.filter(r => {
+    if (!q) return true;
+    return normalizedString(`${r.province || ''} ${r.health_zone || ''} ${r.activity_status || ''} ${healthZoneStatusLabel(r)}`).includes(q);
+  }).sort((a, b) => {
+    const da = toNumber(a.days_since_last_increase);
+    const db = toNumber(b.days_since_last_increase);
+    if (da !== db) return da - db;
+    const ca = toNumber(a.cumulative_confirmed);
+    const cb = toNumber(b.cumulative_confirmed);
+    if (ca !== cb) return cb - ca;
+    return String(a.province || '').localeCompare(String(b.province || '')) || String(a.health_zone || '').localeCompare(String(b.health_zone || ''));
+  });
+  const pageSizeRaw = sizeEl?.value || '10';
+  const pageSize = pageSizeRaw === 'all' ? filtered.length : Math.max(1, Number(pageSizeRaw) || 10);
+  const visible = filtered.slice(0, pageSize);
+  if (!visible.length) {
+    tbody.innerHTML = `<tr><td colspan="6">${textByLang('検索条件に一致するヘルスゾーンはありません。', 'No health zones match the search.', 'Aucune zone de santé ne correspond à la recherche.')}</td></tr>`;
+  } else {
+    tbody.innerHTML = visible.map(r => {
+      const cls = healthZoneStatusClass(r);
+      return `<tr>
+        <td>${escapeHtml(r.province || '')}</td>
+        <td><strong>${escapeHtml(r.health_zone || '')}</strong></td>
+        <td class="num">${fmt.format(Math.round(toNumber(r.cumulative_confirmed)))}</td>
+        <td>${displayDateLabel(r.last_increase_report_date)}</td>
+        <td class="num">${fmt.format(Math.round(toNumber(r.days_since_last_increase)))}${textByLang('日', 'd', ' j')}</td>
+        <td><span class="hz-status-badge ${cls}">${escapeHtml(healthZoneStatusLabel(r))}</span></td>
+      </tr>`;
+    }).join('');
+  }
+  if (noteEl) {
+    const shown = Math.min(pageSize, filtered.length);
+    noteEl.textContent = textByLang(
+      `${filtered.length}件中${shown}件を表示。最終増加報告日は発症日・曝露日ではなく、SitRep上で累積確定例が最後に増加した報告日です。個人の隔離・健康観察は症状と具体的接触歴を優先して判断してください。`,
+      `Showing ${shown} of ${filtered.length}. Last increase report date is a SitRep reporting-date proxy, not onset or exposure date. Individual isolation or monitoring decisions should prioritize symptoms and specific exposure history.`,
+      `${shown} sur ${filtered.length} affichées. La dernière augmentation est une date de rapport SitRep, pas une date de début des symptômes ni d’exposition. Les décisions individuelles doivent prioriser les symptômes et les expositions précises.`
+    );
+  }
+}
+
 function updateDashboard() {
   document.getElementById('topNValue').textContent = document.getElementById('topN').value;
   const month = document.getElementById('monthSelect').value;
@@ -4230,6 +4344,7 @@ function updateDashboard() {
   renderTrueInfectionEstimate();
   updateForecastChart();
   updateFinalSizeProjectionChart();
+  updateHealthZoneActivityPanel();
   updateResponseTimelineChart();
   updateRwiScatterChart();
   if (mapMode === 'cases') updateCasesMap();
@@ -4252,8 +4367,8 @@ function updateDashboard() {
 
 async function main() {
   initLanguageControls();
-  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, latestSituationData, finalSizeProjectionData, trueInfectionEstimateData] = await Promise.all([
-    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.latestSituation), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate)
+  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, latestSituationData, finalSizeProjectionData, trueInfectionEstimateData, healthZoneActivity] = await Promise.all([
+    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.latestSituation), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate), loadCsvOptional(files.healthZoneActivity)
   ]);
   buildIndexes();
   initMap();

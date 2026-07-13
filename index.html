@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="preconnect" href="https://cdn.plot.ly" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="assets/style.css?v=20260708-n51-total-guard" />
+  <link rel="stylesheet" href="assets/style.css?v=20260713-n58-latest-sitrep" />
 </head>
 <body>
   <header class="topbar">
@@ -221,6 +221,45 @@
         <div id="finalSizeStats" class="chart-note"></div>
       </article>
 
+
+
+      <article class="panel chart-card dashboard-card health-zone-activity-block" aria-label="Health-zone activity status">
+        <div class="chart-block-head health-zone-activity-head">
+          <div>
+            <h2 id="healthZoneActivityTitle">ヘルスゾーン別最終報告状況</h2>
+            <p id="healthZoneActivityDesc">ヘルスゾーンごとの累積確定例と、最後に症例数が増加した報告日からの経過日数を表示します。</p>
+          </div>
+          <div class="health-zone-activity-controls">
+            <input id="healthZoneActivitySearch" type="search" placeholder="ヘルスゾーン・州で検索" aria-label="Search health zones" />
+            <select id="healthZoneActivityPageSize" aria-label="Rows shown">
+              <option value="10" selected>10行</option>
+              <option value="25">25行</option>
+              <option value="50">50行</option>
+              <option value="all">全件</option>
+            </select>
+          </div>
+        </div>
+        <div id="healthZoneActivitySummary" class="health-zone-activity-summary"></div>
+        <div class="health-zone-activity-table-wrap">
+          <table class="health-zone-activity-table">
+            <thead>
+              <tr>
+                <th id="hzActivityProvinceCol">州</th>
+                <th id="hzActivityZoneCol">ヘルスゾーン</th>
+                <th id="hzActivityCasesCol">累積確定例</th>
+                <th id="hzActivityLastDateCol">最終増加報告日</th>
+                <th id="hzActivityDaysCol">経過日数</th>
+                <th id="hzActivityStatusCol">判定</th>
+              </tr>
+            </thead>
+            <tbody id="healthZoneActivityTableBody">
+              <tr><td colspan="6">データを読み込み中です。</td></tr>
+            </tbody>
+          </table>
+        </div>
+        <div id="healthZoneActivityNote" class="chart-note health-zone-activity-note">最終増加報告日は、発症日・曝露日ではなく、SitRep上で累積確定例が最後に増加した報告日です。</div>
+      </article>
+
       <article class="panel chart-card dashboard-card response-chart-block">
         <div class="chart-block-head">
           <div>
@@ -304,6 +343,6 @@
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="assets/app.js?v=20260708-n51-total-guard"></script>
+  <script src="assets/app.js?v=20260713-hz-activity"></script>
 </body>
 </html>
