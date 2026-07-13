@@ -227,15 +227,12 @@
         <div class="chart-block-head health-zone-activity-head">
           <div>
             <h2 id="healthZoneActivityTitle">ヘルスゾーン別最終報告状況</h2>
-            <p id="healthZoneActivityDesc">ヘルスゾーンごとの累積確定例と、最後に症例数が増加した報告日からの経過日数を表示します。</p>
           </div>
           <div class="health-zone-activity-controls">
             <input id="healthZoneActivitySearch" type="search" placeholder="ヘルスゾーン・州で検索" aria-label="Search health zones" />
-            <select id="healthZoneActivityPageSize" aria-label="Rows shown">
-              <option value="10" selected>10行</option>
-              <option value="25">25行</option>
-              <option value="50">50行</option>
-              <option value="all">全件</option>
+            <select id="healthZoneActivityPageSize" aria-label="表示件数">
+              <option value="5" selected>短く表示（5件）</option>
+              <option value="all">すべて表示</option>
             </select>
           </div>
         </div>
@@ -247,7 +244,7 @@
                 <th id="hzActivityProvinceCol">州</th>
                 <th id="hzActivityZoneCol">ヘルスゾーン</th>
                 <th id="hzActivityCasesCol">累積確定例</th>
-                <th id="hzActivityLastDateCol">最終増加報告日</th>
+                <th id="hzActivityLastDateCol">最終新規症例報告日</th>
                 <th id="hzActivityDaysCol">経過日数</th>
                 <th id="hzActivityStatusCol">判定</th>
               </tr>
@@ -257,7 +254,6 @@
             </tbody>
           </table>
         </div>
-        <div id="healthZoneActivityNote" class="chart-note health-zone-activity-note">最終増加報告日は、発症日・曝露日ではなく、SitRep上で累積確定例が最後に増加した報告日です。</div>
       </article>
 
       <article class="panel chart-card dashboard-card response-chart-block">

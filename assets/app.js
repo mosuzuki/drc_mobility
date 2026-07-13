@@ -107,11 +107,11 @@ const UI_TEXT = {
     limitationText: '<strong>重要：</strong>ウガンダ推定値には、2026年5月15–24日のIOM DTM EVD国境フロー要約と、DRC側の症例加重移動量・2026年ウガンダ目的地プロファイルを組み合わせたシナリオベースのimportation-pressure scoreが含まれます。エボラ伝播確率ではありません。',
     footerText: 'Flowminder / HDX由来のDRC health-zone移動推定を用いたプロトタイプ・ダッシュボードです。ウガンダの値は、国境横断データで較正されるまではproxy推定として解釈してください。',
     healthZoneActivityTitle: 'ヘルスゾーン別最終報告状況',
-    healthZoneActivityDesc: 'ヘルスゾーンごとの累積確定例と、最後に症例数が増加した報告日からの経過日数です。隔離・健康観察判断の補助情報として使用してください。',
+    healthZoneActivityDesc: '',
     hzActivityProvinceCol: '州',
     hzActivityZoneCol: 'ヘルスゾーン',
     hzActivityCasesCol: '累積確定例',
-    hzActivityLastDateCol: '最終増加報告日',
+    hzActivityLastDateCol: '最終新規症例報告日',
     hzActivityDaysCol: '経過日数',
     hzActivityStatusCol: '判定',
     kpiTotalLabel: 'DRC確定症例数',
@@ -164,11 +164,11 @@ const UI_TEXT = {
     limitationText: '<strong>Important:</strong> Uganda estimates include both observed IOM DTM EVD border-flow summaries from 15–24 May 2026 and scenario-based importation-pressure scores that combine DRC-side case-weighted movement toward border proxy zones with the 2026 Uganda destination profile. They are not Ebola transmission probabilities.',
     footerText: 'Prototype dashboard using Flowminder / HDX-derived DRC health-zone mobility estimates. Uganda values remain proxy estimates unless calibrated with cross-border data.',
     healthZoneActivityTitle: 'Health-zone last report status',
-    healthZoneActivityDesc: 'Cumulative confirmed cases by health zone and days since the last SitRep date when cumulative cases increased. Use as decision-support for isolation or monitoring, not as individual risk classification.',
+    healthZoneActivityDesc: '',
     hzActivityProvinceCol: 'Province',
     hzActivityZoneCol: 'Health zone',
     hzActivityCasesCol: 'Confirmed cases',
-    hzActivityLastDateCol: 'Last increase report date',
+    hzActivityLastDateCol: 'Last new-case report date',
     hzActivityDaysCol: 'Days since',
     hzActivityStatusCol: 'Status',
     kpiTotalLabel: 'DRC confirmed cases',
@@ -221,11 +221,11 @@ const UI_TEXT = {
     limitationText: '<strong>Important :</strong> Les estimations pour l’Ouganda incluent à la fois les synthèses observées des flux frontaliers EVD de l’IOM DTM du 15 au 24 mai 2026 et des scores de pression d’importation fondés sur des scénarios combinant les mouvements pondérés par les cas côté RDC vers des zones frontalières proxy avec le profil de destination 2026 pour l’Ouganda. Il ne s’agit pas de probabilités de transmission d’Ebola.',
     footerText: 'Prototype de tableau de bord utilisant des estimations de mobilité par zone de santé en RDC dérivées de Flowminder / HDX. Les valeurs pour l’Ouganda doivent être interprétées comme des proxys tant qu’elles ne sont pas calibrées avec des données transfrontalières.',
     healthZoneActivityTitle: 'Dernière notification par zone de santé',
-    healthZoneActivityDesc: 'Cas confirmés cumulés par zone de santé et jours depuis la dernière date SitRep avec augmentation des cas. À utiliser comme aide à la décision, pas comme classification individuelle du risque.',
+    healthZoneActivityDesc: '',
     hzActivityProvinceCol: 'Province',
     hzActivityZoneCol: 'Zone de santé',
     hzActivityCasesCol: 'Cas confirmés',
-    hzActivityLastDateCol: 'Dernière augmentation',
+    hzActivityLastDateCol: 'Dernier nouveau cas',
     hzActivityDaysCol: 'Jours écoulés',
     hzActivityStatusCol: 'Statut',
     kpiTotalLabel: 'Cas confirmés en RDC',
@@ -4274,9 +4274,9 @@ function updateHealthZoneActivityPanel() {
   summaryEl.innerHTML = [
     mkCard(`${referenceNo || '—'} / ${displayDateLabel(referenceDate)}`, textByLang('基準SitRep', 'Reference SitRep', 'SitRep de référence')),
     mkCard(fmt.format(rows.length), textByLang('影響ヘルスゾーン', 'Affected health zones', 'Zones de santé touchées')),
-    mkCard(fmt.format(counts.active_0_21 || 0), textByLang('0〜21日以内に増加', 'Increase within 0–21 days', 'Augmentation ≤21 jours'), 'active'),
-    mkCard(fmt.format(counts.watch_22_41 || 0), textByLang('22〜41日増加なし', 'No increase for 22–41 days', 'Sans augmentation 22–41 j'), 'watch'),
-    mkCard(fmt.format(counts.cooldown_42_plus || 0), textByLang('42日以上増加なし', 'No increase for 42+ days', 'Sans augmentation ≥42 j'), 'cooldown')
+    mkCard(fmt.format(counts.active_0_21 || 0), textByLang('0〜21日以内に新規症例報告あり', 'New case reported within 0–21 days', 'Nouveau cas rapporté ≤21 jours'), 'active'),
+    mkCard(fmt.format(counts.watch_22_41 || 0), textByLang('22〜41日新規症例報告なし', 'No new case report for 22–41 days', 'Aucun nouveau cas 22–41 j'), 'watch'),
+    mkCard(fmt.format(counts.cooldown_42_plus || 0), textByLang('42日以上新規症例報告なし', 'No new case report for 42+ days', 'Aucun nouveau cas ≥42 j'), 'cooldown')
   ].join('');
 
   const q = normalizedString(searchEl?.value || '');
@@ -4292,8 +4292,8 @@ function updateHealthZoneActivityPanel() {
     if (ca !== cb) return cb - ca;
     return String(a.province || '').localeCompare(String(b.province || '')) || String(a.health_zone || '').localeCompare(String(b.health_zone || ''));
   });
-  const pageSizeRaw = sizeEl?.value || '10';
-  const pageSize = pageSizeRaw === 'all' ? filtered.length : Math.max(1, Number(pageSizeRaw) || 10);
+  const pageSizeRaw = sizeEl?.value || '5';
+  const pageSize = pageSizeRaw === 'all' ? filtered.length : Math.max(1, Number(pageSizeRaw) || 5);
   const visible = filtered.slice(0, pageSize);
   if (!visible.length) {
     tbody.innerHTML = `<tr><td colspan="6">${textByLang('検索条件に一致するヘルスゾーンはありません。', 'No health zones match the search.', 'Aucune zone de santé ne correspond à la recherche.')}</td></tr>`;
@@ -4310,14 +4310,7 @@ function updateHealthZoneActivityPanel() {
       </tr>`;
     }).join('');
   }
-  if (noteEl) {
-    const shown = Math.min(pageSize, filtered.length);
-    noteEl.textContent = textByLang(
-      `${filtered.length}件中${shown}件を表示。最終増加報告日は発症日・曝露日ではなく、SitRep上で累積確定例が最後に増加した報告日です。個人の隔離・健康観察は症状と具体的接触歴を優先して判断してください。`,
-      `Showing ${shown} of ${filtered.length}. Last increase report date is a SitRep reporting-date proxy, not onset or exposure date. Individual isolation or monitoring decisions should prioritize symptoms and specific exposure history.`,
-      `${shown} sur ${filtered.length} affichées. La dernière augmentation est une date de rapport SitRep, pas une date de début des symptômes ni d’exposition. Les décisions individuelles doivent prioriser les symptômes et les expositions précises.`
-    );
-  }
+  if (noteEl) noteEl.textContent = '';
 }
 
 function updateDashboard() {

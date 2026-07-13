@@ -2106,3 +2106,9 @@ main > .grid-two:first-of-type .right-analysis-panel {
 @media (max-width: 520px) {
   .health-zone-activity-summary { grid-template-columns: 1fr; }
 }
+
+/* Health-zone activity display-mode selector. */
+.health-zone-activity-controls select {
+  font-weight: 700;
+  min-width: 150px;
+}
