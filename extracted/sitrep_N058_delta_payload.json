@@ -1,96 +1,20 @@
 {
-  "from_report": "N56",
-  "to_report": "N58",
-  "from_reporting_date": "2026-07-09",
-  "to_reporting_date": "2026-07-11",
+  "report_no": "N58",
+  "previous_report_no": "N57",
+  "report_date": "2026-07-11",
   "confirmed_cases": {
-    "previous": 1830,
+    "previous": 1873,
     "latest": 1926,
-    "change": 96
+    "change": 53
   },
   "confirmed_deaths": {
-    "previous": 648,
+    "previous": 672,
     "latest": 702,
-    "change": 54
+    "change": 30
   },
-  "health_zones": {
-    "previous_count": 36,
-    "latest_count": 41,
-    "new_health_zones": [
-      "Ariwara",
-      "Lubunga",
-      "Mangobo",
-      "Tshopo",
-      "Wamba"
-    ],
-    "largest_increases": [
-      {
-        "health_zone": "Rwampara",
-        "change": 20,
-        "latest": 393
-      },
-      {
-        "health_zone": "Nizi",
-        "change": 14,
-        "latest": 121
-      },
-      {
-        "health_zone": "Bunia",
-        "change": 12,
-        "latest": 507
-      },
-      {
-        "health_zone": "Mongbwalu",
-        "change": 9,
-        "latest": 336
-      },
-      {
-        "health_zone": "Mangala",
-        "change": 7,
-        "latest": 50
-      },
-      {
-        "health_zone": "Lita",
-        "change": 6,
-        "latest": 48
-      },
-      {
-        "health_zone": "Katwa",
-        "change": 5,
-        "latest": 71
-      },
-      {
-        "health_zone": "Tshopo",
-        "change": 4,
-        "latest": 4
-      }
-    ]
+  "new_confirmed_by_province": {
+    "Ituri": 45,
+    "Nord-Kivu": 8
   },
-  "response": {
-    "contact_followup_rate_previous": 0.354,
-    "contact_followup_rate_latest": 0.364,
-    "contacts_under_followup_latest": 1926,
-    "contacts_seen_latest": 702,
-    "alerts_reported_latest": 0,
-    "alerts_investigated_latest": 0,
-    "alert_investigation_rate_latest": 0.7394,
-    "samples_analysed_latest": 0,
-    "positive_samples_latest": 0,
-    "travellers_total_latest": 94,
-    "travellers_screened_latest": 93,
-    "poe_screening_coverage_latest": 0.9893617021276596
-  },
-  "uganda": {
-    "as_of_date": "2026-07-08",
-    "confirmed_cases": 20,
-    "confirmed_deaths": 2,
-    "imported_cases": 15,
-    "local_cases": 5,
-    "new_cases_last_24h": 0,
-    "no_reported_increase_days": 17,
-    "last_reported_increase_date": "2026-06-21",
-    "trend_basis": "daily_confirmation_chart",
-    "trend_status": "no_recent_increase",
-    "source_url": "https://evd-daily.health.go.ug/"
-  }
+  "qualitative_highlight": "Ariwara newly affected; investigations continue in Tshopo and Haut-Uele."
 }

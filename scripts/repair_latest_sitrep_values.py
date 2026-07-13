@@ -29,6 +29,11 @@ SUMMARY_FIXES = {
     "N51": ("2026-07-04", "2026-07-05", 1561, 506),
     "N52": ("2026-07-05", "2026-07-06", 1624, 521),
     "N53": ("2026-07-06", "2026-07-07", 1708, 580),
+    "N54": ("2026-07-07", "2026-07-08", 1759, 600),
+    "N55": ("2026-07-08", "2026-07-09", 1792, 625),
+    "N56": ("2026-07-09", "2026-07-10", 1830, 648),
+    "N57": ("2026-07-10", "2026-07-11", 1873, 672),
+    "N58": ("2026-07-11", "2026-07-12", 1926, 702),
 }
 
 RESPONSE_FIXES = {
@@ -41,6 +46,11 @@ RESPONSE_FIXES = {
     "N51": dict(reporting_date="2026-07-04", contacts_under_followup=10079, contacts_seen=8221, contact_followup_rate=0.816, alerts_reported=1244, alerts_investigated=1002, alert_investigation_rate=0.805, samples_analysed=172, positive_samples=33, travellers_total=153930, poe_screening_coverage=0.952),
     # N52 kept only for summary if present; response table was not verified from an uploaded PDF in this repair set.
     "N53": dict(reporting_date="2026-07-06", contacts_under_followup=12190, contacts_seen=9167, contact_followup_rate=0.752, alerts_reported=1216, alerts_investigated=963, alert_investigation_rate=0.792, samples_analysed=249, positive_samples=84, travellers_total=158894, travellers_screened=152337, poe_screening_coverage=0.959),
+    "N54": dict(reporting_date="2026-07-07", contacts_under_followup=14119, contacts_seen=11300, contact_followup_rate=0.800, alerts_reported=1220, alerts_investigated=970, alert_investigation_rate=0.795, samples_analysed=240, positive_samples=51, travellers_total=156344, travellers_screened=146690, poe_screening_coverage=0.938),
+    "N55": dict(reporting_date="2026-07-08", contacts_under_followup=11927, contacts_seen=9376, contact_followup_rate=0.786, alerts_reported=898, alerts_investigated=605, alert_investigation_rate=0.674, samples_analysed=272, positive_samples=33, travellers_total=159912, travellers_screened=151756, poe_screening_coverage=0.949),
+    "N56": dict(reporting_date="2026-07-09", contacts_under_followup=12946, contacts_seen=10106, contact_followup_rate=0.781, alerts_reported=1351, alerts_investigated=1069, alert_investigation_rate=0.791, samples_analysed=214, positive_samples=38, travellers_total=155945, travellers_screened=147992, poe_screening_coverage=0.949),
+    "N57": dict(reporting_date="2026-07-10", contacts_under_followup=13760, contacts_seen=9862, contact_followup_rate=0.717, alerts_reported=1516, alerts_investigated=1285, alert_investigation_rate=0.848, samples_analysed=236, positive_samples=43, travellers_total=164866, travellers_screened=156038, poe_screening_coverage=0.946),
+    "N58": dict(reporting_date="2026-07-11", contacts_under_followup=12735, contacts_seen=9970, contact_followup_rate=0.783, alerts_reported=1345, alerts_investigated=1179, alert_investigation_rate=0.876, samples_analysed="", positive_samples=53, travellers_total="", travellers_screened="", poe_screening_coverage=""),
 }
 
 UNVENTILATED_FIXES = {
@@ -52,6 +62,11 @@ UNVENTILATED_FIXES = {
     "N50": ("2026-07-03", 17),
     "N51": ("2026-07-04", 17),
     "N53": ("2026-07-06", 17),
+    "N54": ("2026-07-07", 52),
+    "N55": ("2026-07-08", 55),
+    "N56": ("2026-07-09", 52),
+    "N57": ("2026-07-10", 17),
+    "N58": ("2026-07-11", 17),
 }
 
 

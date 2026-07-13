@@ -1,16 +1,16 @@
 {
-  "report_no": "N53",
-  "report_date": "2026-07-06",
-  "previous_report_no": "N52",
-  "previous_report_date": "2026-07-05",
-  "drc_numeric_summary_ja": "累積確定例は1,624例から1,708例に84例増加し、累積確定死亡例は521例から580例に59例増加しました。新規確定例はIturiで79例、Nord-Kivuで5例でした。",
-  "drc_ai_qualitative_sentence_ja": "SitRepでは、BuniaとRwamparaで医療従事者のストライキが続いていることが対応上の懸念として記載されています。",
-  "drc_summary_ja": "累積確定例は1,624例から1,708例に84例増加し、累積確定死亡例は521例から580例に59例増加しました。新規確定例はIturiで79例、Nord-Kivuで5例でした。SitRepでは、BuniaとRwamparaで医療従事者のストライキが続いていることが対応上の懸念として記載されています。",
-  "uganda_summary_ja": "2026-07-08時点で累積確定例20例、死亡例2例です。輸入例15例、国内感染例5例です。2026-06-21以降、17日間連続で新規症例の増加は報告されていません。",
+  "report_no": "N58",
+  "report_date": "2026-07-11",
+  "previous_report_no": "N57",
+  "previous_report_date": "2026-07-10",
+  "drc_numeric_summary_ja": "累積確定例は1,873例から1,926例に53例増加し、累積確定死亡例は672例から702例に30例増加しました。新規確定例はIturiで45例、Nord-Kivuで8例でした。",
+  "drc_ai_qualitative_sentence_ja": "SitRepでは、Ituri州のAriwaraが新たに影響を受けた保健区として記載され、TshopoとHaut-Ueleでの調査継続も示されています。",
+  "uganda_summary_ja": "2026-07-12時点で累積確定例20例、死亡例2例です。輸入例15例、国内感染例5例です。2026-06-21以降、21日間連続で新規症例の増加は報告されていません。",
   "generated_by": "validated_data_plus_qualitative_highlight",
   "qualitative_generated_by": "deterministic",
   "openai_model": "",
-  "updated_at_utc": "2026-07-08T15:10:55+00:00",
-  "source": "Validated CSV/JSON numbers + SitRep text qualitative highlight",
-  "notes": "Numeric statements are generated from validated data only. The qualitative sentence is AI-assisted when OPENAI_API_KEY is available and is blocked from containing numbers; otherwise a deterministic SitRep-text highlight is used."
+  "updated_at_utc": "2026-07-13T03:02:46+00:00",
+  "source": "Validated CSV/JSON numbers + uploaded SitRep text qualitative highlight",
+  "notes": "Numeric statements are generated from validated data only. Qualitative sentence is kept separate internally and contains no digits.",
+  "drc_summary_ja": "累積確定例は1,873例から1,926例に53例増加し、累積確定死亡例は672例から702例に30例増加しました。新規確定例はIturiで45例、Nord-Kivuで8例でした。SitRepでは、Ituri州のAriwaraが新たに影響を受けた保健区として記載され、TshopoとHaut-Ueleでの調査継続も示されています。"
 }

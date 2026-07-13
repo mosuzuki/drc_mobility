@@ -46,9 +46,10 @@ N48,2026-07-01,2026-07-02,1460,452,20,2,SitRep N48/MVB,Verified from uploaded Si
 N49,2026-07-02,2026-07-03,1502,473,20,2,SitRep N49/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
 N50,2026-07-03,2026-07-04,1528,492,20,2,SitRep N50/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
 N51,2026-07-04,2026-07-05,1561,506,20,2,SitRep N51/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading reporting year or operational counts as cumulative cases/deaths.
-N52,2026-07-05,2026-07-06,1624,521,20,2,SitRep N52/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading reporting year or operational counts as cumulative cases/deaths.
-N53,2026-07-06,2026-07-07,1708,580,20,2,SitRep N53/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading reporting year or operational counts as cumulative cases/deaths.
-N54,2026-07-07,2026-07-08,1759,600,20,2,SitRep N54/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
-N55,2026-07-08,2026-07-09,1792,625,20,2,SitRep N55/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
-N56,2026-07-09,2026-07-10,1830,648,20,2,SitRep N56/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
-N58,2026-07-11,2026-07-12,1926,702,20,2,SitRep N58/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
+N52,2026-07-05,2026-07-06,1624,521,20,2,SitRep N52/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
+N53,2026-07-06,2026-07-07,1708,580,20,2,SitRep N53/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
+N54,2026-07-07,2026-07-08,1759,600,20,2,SitRep N54/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
+N55,2026-07-08,2026-07-09,1792,625,20,2,SitRep N55/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
+N56,2026-07-09,2026-07-10,1830,648,20,2,SitRep N56/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
+N57,2026-07-10,2026-07-11,1873,672,20,2,SitRep N57/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
+N58,2026-07-11,2026-07-12,1926,702,20,2,SitRep N58/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.

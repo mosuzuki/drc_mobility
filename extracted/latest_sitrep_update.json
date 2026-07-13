@@ -1,15 +1,16 @@
 {
-  "updated_at_utc": "2026-07-13T02:54:01Z",
-  "article_url": "https://insp.cd/sitrep-n058-mvb_11-07-2026/",
-  "pdf_path": "raw/sitreps/sitrep_N058.pdf",
-  "report_no": 58,
-  "reporting_date": "2026-07-11",
+  "report_no": "N58",
+  "report_date": "2026-07-11",
   "publication_date": "2026-07-12",
   "total_confirmed": 1926,
   "total_deaths": 702,
-  "mapped_health_zone_count": 41,
-  "mapped_cases_sum": 1875,
-  "unassigned_cases": 51,
-  "openai_fallback_used": false,
-  "openai_model": ""
+  "new_confirmed": 53,
+  "new_deaths": 30,
+  "new_confirmed_by_province": {
+    "Ituri": 45,
+    "Nord-Kivu": 8
+  },
+  "mapped_cases_sum": 1909,
+  "unassigned_cases": 17,
+  "source": "uploaded SitRep N58 verified values"
 }

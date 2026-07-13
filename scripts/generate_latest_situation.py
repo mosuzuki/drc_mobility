@@ -183,6 +183,11 @@ def facts_highlight(text: str) -> str:
     """Fallback qualitative sentence with no explicit numbers."""
     t = re.sub(r"\s+", " ", text)
     low = t.lower()
+
+    if "ariwara" in low:
+        return "SitRepでは、Ituri州のAriwaraが新たに影響を受けた保健区として記載され、TshopoとHaut-Ueleでの調査継続も示されています。"
+    if "tshopo" in low and ("haut-uele" in low or "haut uele" in low or "haut-uélé" in low):
+        return "SitRepでは、TshopoとHaut-Ueleへの地理的拡大が示され、追加調査と対応強化が必要な状況として記載されています。"
     if "grève de prestataires" in low or "greve de prestataires" in low:
         return "SitRepでは、BuniaとRwamparaで医療従事者のストライキが続いていることが対応上の懸念として記載されています。"
     if "incident sécuritaire" in low or "incident securitaire" in low:
