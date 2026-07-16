@@ -292,5 +292,6 @@
     "travellers_screened": 150957,
     "poe_screening_coverage": 0.96
   },
-  "notes": "Extracted confirmed cases and deaths by health zone from detailed table; unassigned cases correspond to 'Non identifiées' (17 cases, 0 deaths). Total confirmed and deaths match reported totals. Contact follow-up and alert investigation rates calculated from reported data."
+  "notes": "Extracted confirmed cases and deaths by health zone from detailed table; unassigned cases correspond to 'Non identifiées' (17 cases, 0 deaths). Total confirmed and deaths match reported totals. Contact follow-up and alert investigation rates calculated from reported data.",
+  "_openai_model": "gpt-4.1-mini"
 }
