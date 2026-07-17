@@ -298,5 +298,6 @@
     "travellers_screened": 145541,
     "poe_screening_coverage": 0.96
   },
-  "notes": "Data extracted from SitRep N°062 dated 15 July 2026. Total confirmed cases and deaths match provincial sums. Unassigned cases (17) correspond to 'Non identifiées' health zone in Ituri. Response indicators include contact follow-up, alerts, lab testing, and PoE screening as reported."
+  "notes": "Data extracted from SitRep N°062 dated 15 July 2026. Total confirmed cases and deaths match provincial sums. Unassigned cases (17) correspond to 'Non identifiées' health zone in Ituri. Response indicators include contact follow-up, alerts, lab testing, and PoE screening as reported.",
+  "_openai_model": "gpt-4.1-mini"
 }
