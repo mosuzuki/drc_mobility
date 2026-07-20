@@ -298,5 +298,6 @@
     "travellers_screened": 140740,
     "poe_screening_coverage": 0.943
   },
-  "notes": "Data extracted from SitRep N°065 dated 18 July 2026. Total confirmed cases and deaths match provincial sums. Unassigned cases correspond to 'Non identifiées' health zone. Response indicators include contact follow-up, alerts, lab samples, and traveller screening."
+  "notes": "Data extracted from SitRep N°065 dated 18 July 2026. Total confirmed cases and deaths match provincial sums. Unassigned cases correspond to 'Non identifiées' health zone. Response indicators include contact follow-up, alerts, lab samples, and traveller screening.",
+  "_openai_model": "gpt-4.1-mini"
 }
