@@ -304,5 +304,6 @@
     "travellers_screened": 153553,
     "poe_screening_coverage": 0.947
   },
-  "notes": "Data extracted from SitRep N°066 dated 19 July 2026. Total confirmed cases and deaths match provincial sums. Unassigned cases correspond to 'Non identifiées' health zone with 17 cases and 0 deaths."
+  "notes": "Data extracted from SitRep N°066 dated 19 July 2026. Total confirmed cases and deaths match provincial sums. Unassigned cases correspond to 'Non identifiées' health zone with 17 cases and 0 deaths.",
+  "_openai_model": "gpt-4.1-mini"
 }
