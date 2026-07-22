@@ -304,5 +304,6 @@
     "travellers_screened": 172825,
     "poe_screening_coverage": 0.958
   },
-  "notes": "Extracted confirmed cases and deaths by health zone from tables; unassigned cases are 17 from 'Non identifiées'. Contact follow-up and alert indicators from surveillance tables. Samples received and analysed sum Ituri and Nord-Kivu. POE data aggregated from Ituri and Nord-Kivu."
+  "notes": "Extracted confirmed cases and deaths by health zone from tables; unassigned cases are 17 from 'Non identifiées'. Contact follow-up and alert indicators from surveillance tables. Samples received and analysed sum Ituri and Nord-Kivu. POE data aggregated from Ituri and Nord-Kivu.",
+  "_openai_model": "gpt-4.1-mini"
 }
