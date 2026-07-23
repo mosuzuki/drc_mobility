@@ -1,16 +1,16 @@
 {
-  "report_no": "N58",
-  "report_date": "2026-07-11",
-  "previous_report_no": "N57",
-  "previous_report_date": "2026-07-10",
-  "drc_numeric_summary_ja": "累積確定例は1,873例から1,926例に53例増加し、累積確定死亡例は672例から702例に30例増加しました。新規確定例はIturiで45例、Nord-Kivuで8例でした。",
-  "drc_ai_qualitative_sentence_ja": "SitRepでは、Ituri州のAriwaraが新たに影響を受けた保健区として記載され、TshopoとHaut-Ueleでの調査継続も示されています。",
-  "uganda_summary_ja": "2026-07-12時点で累積確定例20例、死亡例2例です。輸入例15例、国内感染例5例です。2026-06-21以降、21日間連続で新規症例の増加は報告されていません。",
+  "report_no": "N68",
+  "report_date": "2026-07-21",
+  "previous_report_no": "N67",
+  "previous_report_date": "2026-07-20",
+  "drc_numeric_summary_ja": "累積確定例は2,473例から2,536例に63例増加し、累積確定死亡例は999例から1,033例に34例増加しました。新規確定例はIturiで46例、Nord-Kivuで12例、Haut-Ueleで5例でした。",
+  "drc_ai_qualitative_sentence_ja": "SitRepでは、Haut-Ueleで診断検査が開始されたこと、インフォデミック対応ガイド作成のワークショップが行われたことが対応上の動きとして記載されています。",
+  "uganda_summary_ja": "2026-07-21時点で累積確定例20例、死亡例2例です。輸入例15例、国内感染例5例です。2026-06-21以降、30日間連続で新規症例の増加は報告されていません。",
   "generated_by": "validated_data_plus_qualitative_highlight",
-  "qualitative_generated_by": "deterministic",
+  "qualitative_generated_by": "manual_from_uploaded_sitrep",
   "openai_model": "",
-  "updated_at_utc": "2026-07-13T03:02:46+00:00",
-  "source": "Validated CSV/JSON numbers + uploaded SitRep text qualitative highlight",
+  "updated_at_utc": "2026-07-23T08:30:33+00:00",
+  "source": "Validated CSV/JSON numbers + uploaded SitRep N68 text qualitative highlight",
   "notes": "Numeric statements are generated from validated data only. Qualitative sentence is kept separate internally and contains no digits.",
-  "drc_summary_ja": "累積確定例は1,873例から1,926例に53例増加し、累積確定死亡例は672例から702例に30例増加しました。新規確定例はIturiで45例、Nord-Kivuで8例でした。SitRepでは、Ituri州のAriwaraが新たに影響を受けた保健区として記載され、TshopoとHaut-Ueleでの調査継続も示されています。"
+  "drc_summary_ja": "累積確定例は2,473例から2,536例に63例増加し、累積確定死亡例は999例から1,033例に34例増加しました。新規確定例はIturiで46例、Nord-Kivuで12例、Haut-Ueleで5例でした。SitRepでは、Haut-Ueleで診断検査が開始されたこと、インフォデミック対応ガイド作成のワークショップが行われたことが対応上の動きとして記載されています。"
 }

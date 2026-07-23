@@ -1,34 +1,34 @@
 {
-  "updated_at": "2026-07-13T03:03:55.194621+00:00",
-  "source_sitrep": "N58",
-  "report_date": "2026-07-11",
-  "uganda_as_of_date": "2026-07-12",
+  "updated_at": "2026-07-23T08:30:38.629548+00:00",
+  "source_sitrep": "N68",
+  "report_date": "2026-07-21",
+  "uganda_as_of_date": "2026-07-21",
   "model": "multiple_data_stream_reporting_adjustment",
   "status": "ok",
-  "reported_confirmed_cases": 1926,
-  "reported_deaths": 702,
+  "reported_confirmed_cases": 2536,
+  "reported_deaths": 1033,
   "uganda_imported_cases": 15,
   "uganda_deaths": 2,
   "estimated_infections": {
-    "median": 8649,
+    "median": 11805,
     "pi50": [
-      6658,
-      11629
+      9079,
+      15762
     ],
     "pi90": [
-      4749,
-      18515
+      6495,
+      24754
     ]
   },
   "multiplier": {
-    "median": 4.49,
+    "median": 4.65,
     "pi50": [
-      3.46,
-      6.04
+      3.58,
+      6.22
     ],
     "pi90": [
-      2.47,
-      9.61
+      2.56,
+      9.76
     ]
   },
   "inputs": [
@@ -46,7 +46,7 @@
   },
   "diagnostics": {
     "samples": 120000,
-    "effective_sample_size": 31076.9
+    "effective_sample_size": 29737.9
   },
   "external_reference": {
     "source": "ECDC overview of modelling evidence, 17 June 2026, summarising Epiforecasts estimate as of 13 June 2026",

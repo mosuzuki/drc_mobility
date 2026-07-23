@@ -50,3 +50,7 @@ date,province,contacts_under_followup,contacts_seen,followup_rate,target_rate,so
 2026-07-11,Ituri,10450,7886,0.755,0.95,Verified uploaded SitRep tables,Province-level contact follow-up table from uploaded SitRep.
 2026-07-11,Nord-Kivu,2285,2084,0.912,0.95,Verified uploaded SitRep tables,Province-level contact follow-up table from uploaded SitRep.
 2026-07-11,Sud-Kivu,0,0,,0.95,Verified uploaded SitRep tables,Province-level contact follow-up table from uploaded SitRep.
+2026-07-21,Ituri,10100,7616,0.754,0.95,SitRep N68/MVB,Province-level contact follow-up table from uploaded SitRep N68.
+2026-07-21,Nord-Kivu,3761,3074,0.817,0.95,SitRep N68/MVB,Province-level contact follow-up table from uploaded SitRep N68.
+2026-07-21,Sud-Kivu,0,0,,0.95,SitRep N68/MVB,Contact follow-up closed / not applicable in uploaded SitRep N68.
+2026-07-21,Tshopo,75,75,1.0,0.95,SitRep N68/MVB,Province-level contact follow-up table from uploaded SitRep N68.

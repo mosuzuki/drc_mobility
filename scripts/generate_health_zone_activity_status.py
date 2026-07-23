@@ -52,6 +52,16 @@ def parse_date(x: str) -> date | None:
         return None
 
 
+def norm_name(x: str) -> str:
+    # Harmonize common accent / dash variants so a zone is not duplicated after
+    # SitRep formatting changes (e.g. Haut-Uele vs Haut-Uélé).
+    txt = str(x or '').strip()
+    txt = txt.replace('Haut-Uele', 'Haut-Uélé').replace('Haut Uele', 'Haut-Uélé')
+    txt = txt.replace('Nord Kivu', 'Nord-Kivu')
+    txt = txt.replace('Nia Nia', 'Nia-Nia')
+    return txt
+
+
 def status_for_days(days: int) -> tuple[str, str, str, str, int]:
     if days <= 21:
         return "active_0_21", "継続警戒", "Active vigilance", "Vigilance active", 1
@@ -76,8 +86,8 @@ def main() -> None:
 
     grouped: dict[tuple[str, str], list[dict]] = defaultdict(list)
     for r in cases:
-        hz = str(r.get("health_zone") or "").strip()
-        prov = str(r.get("province") or "").strip()
+        hz = norm_name(r.get("health_zone") or "")
+        prov = norm_name(r.get("province") or "")
         d = parse_date(str(r.get("date") or r.get("source_date") or ""))
         cc = to_int(r.get("confirmed_cases"), 0)
         if not hz or not prov or not d or cc <= 0:
@@ -91,7 +101,8 @@ def main() -> None:
     out = []
     for (province, hz), rows in grouped.items():
         rows = sorted(rows, key=lambda r: str(r.get("date") or r.get("source_date") or ""))
-        prev_cc = 0
+        prev_cc = None
+        current_cc = 0
         last_increase = None
         latest_row = None
         for r in rows:
@@ -99,11 +110,15 @@ def main() -> None:
             if not d or d > ref_date:
                 continue
             cc = to_int(r.get("confirmed_cases"), 0)
-            if cc > prev_cc:
+            # Use the reported cumulative value in the latest SitRep as the current
+            # value. Do not carry forward a previous maximum, because DHIS2
+            # reconciliation can move or de-duplicate cases between zones.
+            if prev_cc is None or cc > prev_cc:
                 last_increase = d
-            prev_cc = max(prev_cc, cc)
+            prev_cc = cc
+            current_cc = cc
             latest_row = r
-        if not latest_row or prev_cc <= 0 or not last_increase:
+        if not latest_row or current_cc <= 0 or not last_increase:
             continue
         days = (ref_date - last_increase).days
         code, ja, en, fr, sort = status_for_days(days)
@@ -113,7 +128,7 @@ def main() -> None:
             "reference_date": ref_date_s,
             "province": province,
             "health_zone": hz,
-            "cumulative_confirmed": prev_cc,
+            "cumulative_confirmed": current_cc,
             "cumulative_deaths": deaths,
             "last_increase_report_date": last_increase.isoformat(),
             "days_since_last_increase": days,
