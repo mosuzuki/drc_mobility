@@ -4492,11 +4492,35 @@ function updateCfrTrendChart() {
   const x = recent.map(r => r.date);
   const crude = recent.map(r => toNumber(r.crude_cfr) * 100);
   const adj = recent.map(r => toNumber(r.delay_adjusted_cfr) * 100);
-  const yMax = Math.min(100, Math.max(50, ...crude, ...adj) * 1.08);
-  const traces = [
+  const adjLow = recent.map(r => toNumber(r.delay_adjusted_cfr_low) * 100);
+  const adjHigh = recent.map(r => toNumber(r.delay_adjusted_cfr_high) * 100);
+  const ciAvailable = adjLow.some(Number.isFinite) && adjHigh.some(Number.isFinite);
+  const yValues = [
+    ...crude.filter(Number.isFinite),
+    ...adj.filter(Number.isFinite),
+    ...adjHigh.filter(Number.isFinite)
+  ];
+  const yMax = Math.min(100, Math.max(50, ...yValues) * 1.08);
+  const traces = [];
+  if (ciAvailable) {
+    traces.push(
+      {
+        type: 'scatter', mode: 'lines', x, y: adjHigh,
+        line: { width: 0 }, hoverinfo: 'skip', showlegend: false,
+        name: textByLang('遅れ補正CFR 95%CI', 'Delay-adjusted CFR 95% CI', 'IC 95 % du CFR ajusté')
+      },
+      {
+        type: 'scatter', mode: 'lines', x, y: adjLow,
+        line: { width: 0 }, fill: 'tonexty', fillcolor: 'rgba(31, 119, 180, 0.14)',
+        hoverinfo: 'skip', showlegend: true,
+        name: textByLang('遅れ補正CFR 95%CI', 'Delay-adjusted CFR 95% CI', 'IC 95 % du CFR ajusté')
+      }
+    );
+  }
+  traces.push(
     { type: 'scatter', mode: 'lines+markers', x, y: crude, line: { width: 2, dash: 'dot' }, marker: { size: 4 }, name: textByLang('粗CFR', 'Crude CFR', 'CFR brut'), hovertemplate: '%{x}<br>%{y:.1f}%<extra></extra>' },
     { type: 'scatter', mode: 'lines+markers', x, y: adj, line: { width: 3 }, marker: { size: 5 }, name: textByLang('遅れ補正CFR', 'Delay-adjusted CFR', 'CFR ajusté du délai'), hovertemplate: '%{x}<br>%{y:.1f}%<extra></extra>' }
-  ];
+  );
   const layout = {
     margin: { l: 52, r: 20, t: 14, b: 42 },
     xaxis: { title: '', gridcolor: '#e7eef7', tickformat: '%m/%d' },
@@ -4509,10 +4533,16 @@ function updateCfrTrendChart() {
   const latest = latestFiniteRow(rows, 'delay_adjusted_cfr');
   if (stats && latest) {
     const medianDelay = latest.delay_median_days || '7';
+    const adjPct = (toNumber(latest.delay_adjusted_cfr) * 100).toFixed(1);
+    const low = toNumber(latest.delay_adjusted_cfr_low);
+    const high = toNumber(latest.delay_adjusted_cfr_high);
+    const ciTextJa = Number.isFinite(low) && Number.isFinite(high) ? `（95%CI ${(low * 100).toFixed(1)}–${(high * 100).toFixed(1)}%）` : '';
+    const ciTextEn = Number.isFinite(low) && Number.isFinite(high) ? ` (95% CI ${(low * 100).toFixed(1)}–${(high * 100).toFixed(1)}%)` : '';
+    const ciTextFr = Number.isFinite(low) && Number.isFinite(high) ? ` (IC 95 % ${(low * 100).toFixed(1)}–${(high * 100).toFixed(1)} %)` : '';
     stats.textContent = textByLang(
-      `最新：粗CFR ${(toNumber(latest.crude_cfr) * 100).toFixed(1)}%、遅れ補正CFR ${(toNumber(latest.delay_adjusted_cfr) * 100).toFixed(1)}%。報告から死亡までの遅れ中央値${medianDelay}日を仮定した参考値です。`,
-      `Latest: crude CFR ${(toNumber(latest.crude_cfr) * 100).toFixed(1)}%, delay-adjusted CFR ${(toNumber(latest.delay_adjusted_cfr) * 100).toFixed(1)}%. The adjustment assumes a median report-to-death delay of ${medianDelay} days.`,
-      `Dernier point : CFR brut ${(toNumber(latest.crude_cfr) * 100).toFixed(1)} %, CFR ajusté ${(toNumber(latest.delay_adjusted_cfr) * 100).toFixed(1)} %. Ajustement avec un délai médian rapport–décès de ${medianDelay} jours.`
+      `最新：粗CFR ${(toNumber(latest.crude_cfr) * 100).toFixed(1)}%、遅れ補正CFR ${adjPct}%${ciTextJa}。報告から死亡までの遅れ中央値${medianDelay}日を固定した近似区間です。`,
+      `Latest: crude CFR ${(toNumber(latest.crude_cfr) * 100).toFixed(1)}%, delay-adjusted CFR ${adjPct}%${ciTextEn}. The interval is approximate, conditional on a fixed median report-to-death delay of ${medianDelay} days.`,
+      `Dernier point : CFR brut ${(toNumber(latest.crude_cfr) * 100).toFixed(1)} %, CFR ajusté ${adjPct} %${ciTextFr}. Intervalle approximatif avec un délai médian rapport–décès fixé à ${medianDelay} jours.`
     );
   }
 }

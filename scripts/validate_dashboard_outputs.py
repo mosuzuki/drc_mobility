@@ -195,6 +195,8 @@ else:
         errors.append(f'cfr_estimates.csv latest date {cfr_latest.get("date")} != latest report_summary {latest_date}')
     crude = to_float(cfr_latest.get('crude_cfr'))
     adj = to_float(cfr_latest.get('delay_adjusted_cfr'))
+    adj_low = to_float(cfr_latest.get('delay_adjusted_cfr_low'))
+    adj_high = to_float(cfr_latest.get('delay_adjusted_cfr_high'))
     if not math.isfinite(crude) or not math.isfinite(adj):
         errors.append('cfr_estimates.csv latest crude/delay-adjusted CFR is missing')
     else:
@@ -204,6 +206,10 @@ else:
             errors.append(f'cfr_estimates.csv latest delay-adjusted CFR {adj} outside 0-1')
         if adj + 0.001 < crude:
             warnings.append('delay-adjusted CFR is below crude CFR; check delay-distribution assumptions and retroactive classifications')
+    if not math.isfinite(adj_low) or not math.isfinite(adj_high):
+        errors.append('cfr_estimates.csv latest delay-adjusted CFR 95% CI is missing')
+    elif not (0 <= adj_low <= adj <= adj_high <= 1.0):
+        errors.append(f'cfr_estimates.csv latest delay-adjusted CFR CI is inconsistent: low={adj_low}, point={adj}, high={adj_high}')
 
 
 ug=latest(read_csv(DATA/'uganda_evd_summary.csv'),'as_of_date')

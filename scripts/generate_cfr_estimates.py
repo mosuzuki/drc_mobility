@@ -67,6 +67,29 @@ def expand_daily(rows):
     return daily
 
 
+def wilson_interval(successes, trials, z=1.96):
+    """Wilson score interval for a binomial proportion.
+
+    `trials` may be a non-integer effective denominator for the
+    delay-adjusted CFR. This interval captures binomial counting uncertainty
+    conditional on the fixed report-to-death delay distribution.
+    """
+    try:
+        x = float(successes)
+        n = float(trials)
+    except Exception:
+        return (float('nan'), float('nan'))
+    if not math.isfinite(x) or not math.isfinite(n) or n <= 0:
+        return (float('nan'), float('nan'))
+    x = min(max(x, 0.0), n)
+    p = x / n
+    z2 = z * z
+    denom = 1.0 + z2 / n
+    centre = (p + z2 / (2.0 * n)) / denom
+    half = z * math.sqrt((p * (1.0 - p) / n) + (z2 / (4.0 * n * n))) / denom
+    return (max(0.0, centre - half), min(1.0, centre + half))
+
+
 def delay_cdf(elapsed_days):
     if elapsed_days < 0:
         return 0.0
@@ -90,6 +113,7 @@ def main():
         # enough report-to-death time has accrued in the simple denominator.
         adjusted_denom_display = max(denom, cum_deaths)
         adjusted = cum_deaths / adjusted_denom_display if adjusted_denom_display > 0 else float('nan')
+        adj_low, adj_high = wilson_interval(cum_deaths, adjusted_denom_display)
         out_rows.append({
             'date': r['date'].isoformat(),
             'report_no': r['report_no'],
@@ -98,15 +122,18 @@ def main():
             'cumulative_deaths': round(cum_deaths, 3),
             'crude_cfr': '' if not math.isfinite(crude) else round(crude, 4),
             'delay_adjusted_cfr': '' if not math.isfinite(adjusted) else round(adjusted, 4),
+            'delay_adjusted_cfr_low': '' if not math.isfinite(adj_low) else round(adj_low, 4),
+            'delay_adjusted_cfr_high': '' if not math.isfinite(adj_high) else round(adj_high, 4),
             'adjusted_denominator': round(adjusted_denom_display, 3),
             'raw_delay_adjusted_denominator': round(denom, 3),
             'delay_median_days': DELAY_MEDIAN_DAYS,
             'delay_scale_days': DELAY_SCALE_DAYS,
+            'ci_method': 'wilson_95_ci_conditional_on_fixed_delay_distribution',
             'method': 'report_to_death_delay_adjusted_cfr_logistic_cdf'
         })
     OUT.parent.mkdir(parents=True, exist_ok=True)
     with OUT.open('w', newline='', encoding='utf-8') as f:
-        fieldnames = ['date','report_no','observed_sitrep','cumulative_confirmed','cumulative_deaths','crude_cfr','delay_adjusted_cfr','adjusted_denominator','raw_delay_adjusted_denominator','delay_median_days','delay_scale_days','method']
+        fieldnames = ['date','report_no','observed_sitrep','cumulative_confirmed','cumulative_deaths','crude_cfr','delay_adjusted_cfr','delay_adjusted_cfr_low','delay_adjusted_cfr_high','adjusted_denominator','raw_delay_adjusted_denominator','delay_median_days','delay_scale_days','ci_method','method']
         writer = csv.DictWriter(f, fieldnames=fieldnames)
         writer.writeheader(); writer.writerows(out_rows)
     latest = rows[-1] if rows else {}
@@ -115,7 +142,7 @@ def main():
         f'Updated at: {datetime.now(timezone.utc).isoformat(timespec="seconds")}',
         f'- Latest report: {latest.get("report_no", "")} / {latest.get("reporting_date", "")}',
         f'- Rows written: {len(out_rows)}',
-        f'- Method: crude CFR and simple report-to-death delay adjustment; median delay {DELAY_MEDIAN_DAYS:g} d.'
+        f'- Method: crude CFR and simple report-to-death delay adjustment; median delay {DELAY_MEDIAN_DAYS:g} d.; delay-adjusted CFR includes approximate Wilson 95% CI.'
     ]) + '\n', encoding='utf-8')
     print(f'Wrote {OUT} ({len(out_rows)} rows)')
 
