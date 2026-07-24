@@ -21,10 +21,12 @@ const files = {
   latestSituation: 'data/latest_situation.json',
   finalProjection: 'data/final_size_projection.json',
   trueInfectionEstimate: 'data/true_infection_estimate.json',
-  healthZoneActivity: 'data/health_zone_activity_status.csv'
+  healthZoneActivity: 'data/health_zone_activity_status.csv',
+  rtEstimates: 'data/rt_estimates.csv',
+  cfrEstimates: 'data/cfr_estimates.csv'
 };
 
-let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], ugandaEvdDailyCases = [], ugandaEvdHistory = [], aiSitrepSummary = [], healthZoneActivity = [];
+let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], ugandaEvdDailyCases = [], ugandaEvdHistory = [], aiSitrepSummary = [], healthZoneActivity = [], rtEstimates = [], cfrEstimates = [];
 let latestSituationData = null;
 let finalSizeProjectionData = null;
 let trueInfectionEstimateData = null;
@@ -108,6 +110,10 @@ const UI_TEXT = {
     footerText: 'Flowminder / HDX由来のDRC health-zone移動推定を用いたプロトタイプ・ダッシュボードです。ウガンダの値は、国境横断データで較正されるまではproxy推定として解釈してください。',
     healthZoneActivityTitle: 'ヘルスゾーン別最終報告状況',
     healthZoneActivityDesc: '',
+    rtTrendTitle: '実行再生産数 Rt（報告症例ベース）',
+    rtTrendDesc: '報告確定例から推定した流行拡大・縮小の参考指標です。',
+    cfrTrendTitle: 'CFRの推移',
+    cfrTrendDesc: '粗CFRと、報告から死亡までの遅れを補正したCFRを示します。',
     hzActivityProvinceCol: '州',
     hzActivityZoneCol: 'ヘルスゾーン',
     hzActivityCasesCol: '累積確定例',
@@ -165,6 +171,10 @@ const UI_TEXT = {
     footerText: 'Prototype dashboard using Flowminder / HDX-derived DRC health-zone mobility estimates. Uganda values remain proxy estimates unless calibrated with cross-border data.',
     healthZoneActivityTitle: 'Health-zone last report status',
     healthZoneActivityDesc: '',
+    rtTrendTitle: 'Effective reproduction number Rt (reported cases)',
+    rtTrendDesc: 'A situational indicator of epidemic expansion or contraction estimated from reported confirmed cases.',
+    cfrTrendTitle: 'CFR trend',
+    cfrTrendDesc: 'Crude CFR and CFR adjusted for the delay from report to death.',
     hzActivityProvinceCol: 'Province',
     hzActivityZoneCol: 'Health zone',
     hzActivityCasesCol: 'Confirmed cases',
@@ -222,6 +232,10 @@ const UI_TEXT = {
     footerText: 'Prototype de tableau de bord utilisant des estimations de mobilité par zone de santé en RDC dérivées de Flowminder / HDX. Les valeurs pour l’Ouganda doivent être interprétées comme des proxys tant qu’elles ne sont pas calibrées avec des données transfrontalières.',
     healthZoneActivityTitle: 'Dernière notification par zone de santé',
     healthZoneActivityDesc: '',
+    rtTrendTitle: 'Nombre de reproduction effectif Rt (cas rapportés)',
+    rtTrendDesc: 'Indicateur de tendance épidémique estimé à partir des cas confirmés rapportés.',
+    cfrTrendTitle: 'Évolution du CFR',
+    cfrTrendDesc: 'CFR brut et CFR ajusté pour le délai entre rapport et décès.',
     hzActivityProvinceCol: 'Province',
     hzActivityZoneCol: 'Zone de santé',
     hzActivityCasesCol: 'Cas confirmés',
@@ -298,7 +312,7 @@ function refreshFinalSizeScenarioOptions() {
 
 function applyStaticLanguage() {
   document.documentElement.lang = currentLang === 'ja' ? 'ja' : (currentLang === 'fr' ? 'fr' : 'en');
-  const ids = ['pageEyebrow','pageTitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','finalSizeTitle','finalSizeDesc','responseTimelineTitle','responseTimelineDesc','healthZoneActivityTitle','healthZoneActivityDesc','hzActivityProvinceCol','hzActivityZoneCol','hzActivityCasesCol','hzActivityLastDateCol','hzActivityDaysCol','hzActivityStatusCol','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiUgandaDeathsLabel'];
+  const ids = ['pageEyebrow','pageTitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','finalSizeTitle','finalSizeDesc','responseTimelineTitle','responseTimelineDesc','healthZoneActivityTitle','healthZoneActivityDesc','rtTrendTitle','rtTrendDesc','cfrTrendTitle','cfrTrendDesc','hzActivityProvinceCol','hzActivityZoneCol','hzActivityCasesCol','hzActivityLastDateCol','hzActivityDaysCol','hzActivityStatusCol','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiUgandaDeathsLabel'];
   ids.forEach(id => setTextById(id, uiText(id)));
   setTextById('limitationText', uiText('limitationText'), true);
   const ja = document.getElementById('langJa');
@@ -4389,6 +4403,11 @@ function updateHealthZoneActivityPanel() {
   const pageSizeRaw = sizeEl?.value || '5';
   const pageSize = pageSizeRaw === 'all' ? filtered.length : Math.max(1, Number(pageSizeRaw) || 5);
   const visible = filtered.slice(0, pageSize);
+  const tableWrap = document.querySelector('.health-zone-activity-table-wrap');
+  if (tableWrap) {
+    const cappedRows = pageSizeRaw === 'all' ? Math.min(filtered.length || 1, 12) : Math.max(1, pageSize);
+    tableWrap.style.maxHeight = pageSizeRaw === 'all' ? '560px' : `${48 + cappedRows * 45}px`;
+  }
   if (!visible.length) {
     tbody.innerHTML = `<tr><td colspan="6">${textByLang('検索条件に一致するヘルスゾーンはありません。', 'No health zones match the search.', 'Aucune zone de santé ne correspond à la recherche.')}</td></tr>`;
   } else {
@@ -4405,6 +4424,97 @@ function updateHealthZoneActivityPanel() {
     }).join('');
   }
   if (noteEl) noteEl.textContent = '';
+}
+
+
+function finiteRows(rows, keys) {
+  return (rows || []).filter(r => keys.every(k => Number.isFinite(toNumber(r[k]))));
+}
+
+function latestFiniteRow(rows, key) {
+  const xs = finiteRows(rows, [key]).slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+  return xs.length ? xs[xs.length - 1] : null;
+}
+
+function updateRtTrendChart() {
+  const el = document.getElementById('rtTrendChart');
+  const stats = document.getElementById('rtTrendStats');
+  if (!el) return;
+  const rows = finiteRows(rtEstimates, ['rt_median']).slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (!rows.length) {
+    el.innerHTML = `<div class="chart-empty">${textByLang('Rt推定データがありません。', 'No Rt estimate data are available.', 'Aucune donnée Rt n’est disponible.')}</div>`;
+    if (stats) stats.textContent = '';
+    return;
+  }
+  const recent = rows.slice(-45);
+  const x = recent.map(r => r.date);
+  const med = recent.map(r => toNumber(r.rt_median));
+  const low = recent.map(r => toNumber(r.rt_low));
+  const high = recent.map(r => toNumber(r.rt_high));
+  const yMax = Math.max(2.2, ...high.filter(Number.isFinite)) * 1.05;
+  const traces = [
+    { type: 'scatter', mode: 'lines', x: x.concat([...x].reverse()), y: high.concat([...low].reverse()), fill: 'toself', line: { width: 0 }, hoverinfo: 'skip', name: textByLang('不確実性区間', 'Uncertainty interval', 'Intervalle d’incertitude'), showlegend: true },
+    { type: 'scatter', mode: 'lines+markers', x, y: med, line: { width: 3 }, marker: { size: 5 }, name: 'Rt', hovertemplate: '%{x}<br>Rt: %{y:.2f}<extra></extra>' },
+    { type: 'scatter', mode: 'lines', x, y: x.map(() => 1), line: { width: 2, dash: 'dash' }, name: 'Rt = 1', hoverinfo: 'skip' }
+  ];
+  const layout = {
+    margin: { l: 48, r: 20, t: 14, b: 42 },
+    xaxis: { title: '', gridcolor: '#e7eef7', tickformat: '%m/%d' },
+    yaxis: { title: 'Rt', gridcolor: '#e7eef7', range: [0, yMax] },
+    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+    legend: { orientation: 'h', x: 0, y: -0.2 },
+    hovermode: 'x unified'
+  };
+  Plotly.newPlot(el, traces, layout, { responsive: true, displayModeBar: false });
+  const latest = latestFiniteRow(rows, 'rt_median');
+  if (stats && latest) {
+    const gtMean = latest.generation_time_mean_days || '15';
+    const gtSd = latest.generation_time_sd_days || '6';
+    stats.textContent = textByLang(
+      `最新Rt ${toNumber(latest.rt_median).toFixed(2)}（${displayDateLabel(latest.date)}）。報告確定例ベースの近似推定です（世代時間 平均${gtMean}日、SD ${gtSd}日）。`,
+      `Latest Rt ${toNumber(latest.rt_median).toFixed(2)} (${displayDateLabel(latest.date)}). Approximate estimate based on reported confirmed cases (generation time mean ${gtMean} d, SD ${gtSd} d).`,
+      `Rt récent ${toNumber(latest.rt_median).toFixed(2)} (${displayDateLabel(latest.date)}). Estimation approximative fondée sur les cas confirmés rapportés (temps de génération moyen ${gtMean} j, SD ${gtSd} j).`
+    );
+  }
+}
+
+function updateCfrTrendChart() {
+  const el = document.getElementById('cfrTrendChart');
+  const stats = document.getElementById('cfrTrendStats');
+  if (!el) return;
+  const rows = finiteRows(cfrEstimates, ['crude_cfr', 'delay_adjusted_cfr']).slice().sort((a, b) => new Date(a.date) - new Date(b.date));
+  if (!rows.length) {
+    el.innerHTML = `<div class="chart-empty">${textByLang('CFR推定データがありません。', 'No CFR estimate data are available.', 'Aucune donnée CFR n’est disponible.')}</div>`;
+    if (stats) stats.textContent = '';
+    return;
+  }
+  const recent = rows.slice(-45);
+  const x = recent.map(r => r.date);
+  const crude = recent.map(r => toNumber(r.crude_cfr) * 100);
+  const adj = recent.map(r => toNumber(r.delay_adjusted_cfr) * 100);
+  const yMax = Math.min(100, Math.max(50, ...crude, ...adj) * 1.08);
+  const traces = [
+    { type: 'scatter', mode: 'lines+markers', x, y: crude, line: { width: 2, dash: 'dot' }, marker: { size: 4 }, name: textByLang('粗CFR', 'Crude CFR', 'CFR brut'), hovertemplate: '%{x}<br>%{y:.1f}%<extra></extra>' },
+    { type: 'scatter', mode: 'lines+markers', x, y: adj, line: { width: 3 }, marker: { size: 5 }, name: textByLang('遅れ補正CFR', 'Delay-adjusted CFR', 'CFR ajusté du délai'), hovertemplate: '%{x}<br>%{y:.1f}%<extra></extra>' }
+  ];
+  const layout = {
+    margin: { l: 52, r: 20, t: 14, b: 42 },
+    xaxis: { title: '', gridcolor: '#e7eef7', tickformat: '%m/%d' },
+    yaxis: { title: 'CFR (%)', gridcolor: '#e7eef7', range: [0, yMax] },
+    paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)',
+    legend: { orientation: 'h', x: 0, y: -0.2 },
+    hovermode: 'x unified'
+  };
+  Plotly.newPlot(el, traces, layout, { responsive: true, displayModeBar: false });
+  const latest = latestFiniteRow(rows, 'delay_adjusted_cfr');
+  if (stats && latest) {
+    const medianDelay = latest.delay_median_days || '7';
+    stats.textContent = textByLang(
+      `最新：粗CFR ${(toNumber(latest.crude_cfr) * 100).toFixed(1)}%、遅れ補正CFR ${(toNumber(latest.delay_adjusted_cfr) * 100).toFixed(1)}%。報告から死亡までの遅れ中央値${medianDelay}日を仮定した参考値です。`,
+      `Latest: crude CFR ${(toNumber(latest.crude_cfr) * 100).toFixed(1)}%, delay-adjusted CFR ${(toNumber(latest.delay_adjusted_cfr) * 100).toFixed(1)}%. The adjustment assumes a median report-to-death delay of ${medianDelay} days.`,
+      `Dernier point : CFR brut ${(toNumber(latest.crude_cfr) * 100).toFixed(1)} %, CFR ajusté ${(toNumber(latest.delay_adjusted_cfr) * 100).toFixed(1)} %. Ajustement avec un délai médian rapport–décès de ${medianDelay} jours.`
+    );
+  }
 }
 
 function updateDashboard() {
@@ -4432,6 +4542,8 @@ function updateDashboard() {
   updateForecastChart();
   updateFinalSizeProjectionChart();
   updateHealthZoneActivityPanel();
+  updateRtTrendChart();
+  updateCfrTrendChart();
   updateResponseTimelineChart();
   updateRwiScatterChart();
   if (mapMode === 'cases') updateCasesMap();
@@ -4454,8 +4566,8 @@ function updateDashboard() {
 
 async function main() {
   initLanguageControls();
-  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, latestSituationData, finalSizeProjectionData, trueInfectionEstimateData, healthZoneActivity] = await Promise.all([
-    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.latestSituation), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate), loadCsvOptional(files.healthZoneActivity)
+  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, latestSituationData, finalSizeProjectionData, trueInfectionEstimateData, healthZoneActivity, rtEstimates, cfrEstimates] = await Promise.all([
+    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.latestSituation), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate), loadCsvOptional(files.healthZoneActivity), loadCsvOptional(files.rtEstimates), loadCsvOptional(files.cfrEstimates)
   ]);
   buildIndexes();
   initMap();

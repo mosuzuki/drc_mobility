@@ -2147,3 +2147,41 @@ main > .grid-two:first-of-type .right-analysis-panel {
   font-weight: 700;
   min-width: 150px;
 }
+
+/* Compact health-zone activity panel and new Rt/CFR panels. */
+.health-zone-activity-block {
+  min-height: 0 !important;
+  align-self: start !important;
+}
+.health-zone-activity-table-wrap {
+  max-height: 273px;
+}
+.rt-chart-block,
+.cfr-chart-block {
+  min-height: 430px;
+}
+.rt-trend-chart,
+.cfr-trend-chart {
+  height: 310px !important;
+  min-height: 310px !important;
+}
+.chart-empty {
+  min-height: 260px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: #667085;
+  font-weight: 800;
+  text-align: center;
+}
+@media (max-width: 900px) {
+  .rt-chart-block,
+  .cfr-chart-block {
+    min-height: 390px;
+  }
+  .rt-trend-chart,
+  .cfr-trend-chart {
+    height: 280px !important;
+    min-height: 280px !important;
+  }
+}

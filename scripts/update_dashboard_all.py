@@ -22,6 +22,8 @@ STEPS = [
     ("Latest situation summary", [sys.executable, "scripts/generate_latest_situation.py"], True),
     ("Final size projection", [sys.executable, "scripts/generate_final_size_projection.py"], True),
     ("Reporting-adjusted infection estimate", [sys.executable, "scripts/estimate_true_infections.py"], True),
+    ("Reported-case Rt estimates", [sys.executable, "scripts/generate_rt_estimates.py"], True),
+    ("Delay-adjusted CFR estimates", [sys.executable, "scripts/generate_cfr_estimates.py"], True),
     ("Dashboard output validation", [sys.executable, "scripts/validate_dashboard_outputs.py"], True),
 ]
 

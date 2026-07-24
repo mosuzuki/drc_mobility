@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="preconnect" href="https://cdn.plot.ly" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="assets/style.css?v=20260713-finalsize-adjusted-toggle" />
+  <link rel="stylesheet" href="assets/style.css?v=20260724-rt-cfr-panel" />
 </head>
 <body>
   <header class="topbar">
@@ -260,6 +260,29 @@
         </div>
       </article>
 
+      <article class="panel chart-card dashboard-card rt-chart-block">
+        <div class="chart-block-head">
+          <div>
+            <h2 id="rtTrendTitle">実行再生産数 Rt（報告症例ベース）</h2>
+            <p id="rtTrendDesc">報告確定例から推定した流行拡大・縮小の参考指標です。</p>
+          </div>
+        </div>
+        <div id="rtTrendChart" class="chart compact-chart rt-trend-chart"></div>
+        <div id="rtTrendStats" class="chart-note"></div>
+      </article>
+
+      <article class="panel chart-card dashboard-card cfr-chart-block">
+        <div class="chart-block-head">
+          <div>
+            <h2 id="cfrTrendTitle">CFRの推移</h2>
+            <p id="cfrTrendDesc">粗CFRと、報告から死亡までの遅れを補正したCFRを示します。</p>
+          </div>
+        </div>
+        <div id="cfrTrendChart" class="chart compact-chart cfr-trend-chart"></div>
+        <div id="cfrTrendStats" class="chart-note"></div>
+      </article>
+
+
       <article class="panel chart-card dashboard-card response-chart-block">
         <div class="chart-block-head">
           <div>
@@ -343,6 +366,6 @@
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="assets/app.js?v=20260713-finalsize-adjusted-toggle"></script>
+  <script src="assets/app.js?v=20260724-rt-cfr-panel"></script>
 </body>
 </html>

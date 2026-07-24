@@ -172,6 +172,39 @@ else:
         if 'autres' in hz_name or 'non ventil' in hz_name or 'unventil' in hz_name:
             errors.append('health_zone_activity_status.csv must not include unventilated/aggregate rows as health zones')
 
+# Rt and delay-adjusted CFR estimates must be generated through the latest SitRep.
+rt_rows = read_csv(DATA/'rt_estimates.csv')
+if not rt_rows:
+    errors.append('rt_estimates.csv missing or empty')
+else:
+    rt_latest = latest(rt_rows, 'date')
+    if latest_date and rt_latest.get('date') != latest_date:
+        errors.append(f'rt_estimates.csv latest date {rt_latest.get("date")} != latest report_summary {latest_date}')
+    rt_med = to_float(rt_latest.get('rt_median'))
+    if not math.isfinite(rt_med):
+        warnings.append(f'rt_estimates.csv latest {latest_no} has no finite Rt estimate, likely due to insufficient recent data')
+    elif not (0 <= rt_med <= 10):
+        errors.append(f'rt_estimates.csv latest Rt {rt_med} is outside plausible display range')
+
+cfr_rows = read_csv(DATA/'cfr_estimates.csv')
+if not cfr_rows:
+    errors.append('cfr_estimates.csv missing or empty')
+else:
+    cfr_latest = latest(cfr_rows, 'date')
+    if latest_date and cfr_latest.get('date') != latest_date:
+        errors.append(f'cfr_estimates.csv latest date {cfr_latest.get("date")} != latest report_summary {latest_date}')
+    crude = to_float(cfr_latest.get('crude_cfr'))
+    adj = to_float(cfr_latest.get('delay_adjusted_cfr'))
+    if not math.isfinite(crude) or not math.isfinite(adj):
+        errors.append('cfr_estimates.csv latest crude/delay-adjusted CFR is missing')
+    else:
+        if not (0 <= crude <= 1.0):
+            errors.append(f'cfr_estimates.csv latest crude CFR {crude} outside 0-1')
+        if not (0 <= adj <= 1.0):
+            errors.append(f'cfr_estimates.csv latest delay-adjusted CFR {adj} outside 0-1')
+        if adj + 0.001 < crude:
+            warnings.append('delay-adjusted CFR is below crude CFR; check delay-distribution assumptions and retroactive classifications')
+
 
 ug=latest(read_csv(DATA/'uganda_evd_summary.csv'),'as_of_date')
 daily=read_csv(DATA/'uganda_evd_daily_cases.csv')
