@@ -1,0 +1,21 @@
+{
+  "report_no": "N69",
+  "reporting_date": "2026-07-22",
+  "publication_date": "2026-07-23",
+  "confirmed_cases": {
+    "latest": 2905
+  },
+  "confirmed_deaths": {
+    "latest": 1269
+  },
+  "new_confirmed_cases": {
+    "total": 97,
+    "by_province": {
+      "Ituri": 73,
+      "Nord-Kivu": 18,
+      "Haut-Uele": 6
+    }
+  },
+  "source": "Uploaded SitRep_MVE_RDC_N°_69_22-07-2026.pdf",
+  "notes": "Harmonisation of Ituri and Nord-Kivu provincial data; large cumulative increase includes retrospective consolidation."
+}

@@ -1,0 +1,21 @@
+{
+  "report_no": "N70",
+  "reporting_date": "2026-07-23",
+  "publication_date": "2026-07-24",
+  "confirmed_cases": {
+    "latest": 2973
+  },
+  "confirmed_deaths": {
+    "latest": 1309
+  },
+  "new_confirmed_cases": {
+    "total": 68,
+    "by_province": {
+      "Ituri": 51,
+      "Nord-Kivu": 15,
+      "Haut-Uele": 2
+    }
+  },
+  "source": "Uploaded SitRep_MVE_RDC_N°_70_23-07-2026.pdf",
+  "notes": "New affected health zone reported in Haut-Uele: Rungu."
+}

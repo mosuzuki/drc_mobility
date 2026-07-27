@@ -226,7 +226,7 @@ else:
             errors.append(f'uganda_evd_daily_cases.csv has no row for Uganda as_of_date {asof}')
     try:
         if asof and (date.today() - date.fromisoformat(asof)).days > 3:
-            errors.append(f'Uganda as_of_date {asof} is more than 3 days old')
+            warnings.append(f'Uganda as_of_date {asof} is more than 3 days old; official Uganda dashboard may not have advanced')
     except Exception:
         pass
 

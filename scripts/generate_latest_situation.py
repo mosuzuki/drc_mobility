@@ -184,6 +184,12 @@ def facts_highlight(text: str) -> str:
     t = re.sub(r"\s+", " ", text)
     low = t.lower()
 
+    if "supervision des actions" in low or "supervision" in low and "réponse par pilier" in low:
+        return "SitRepでは、各対応ピラーの活動に対する監督が実施されたことが対応上の動きとして記載されています。"
+    if "aucune nouvelle zone" in low:
+        if "laboratoire" in low and "kasenyi" in low:
+            return "SitRepでは、新たに影響を受けた保健区は報告されず、Kasenyiの診断ラボ関連の対応が記載されています。"
+        return "SitRepでは、新たに影響を受けた保健区は報告されず、既存の影響地域で対応活動が継続されています。"
     if "ariwara" in low:
         return "SitRepでは、Ituri州のAriwaraが新たに影響を受けた保健区として記載され、TshopoとHaut-Ueleでの調査継続も示されています。"
     if "tshopo" in low and ("haut-uele" in low or "haut uele" in low or "haut-uélé" in low):

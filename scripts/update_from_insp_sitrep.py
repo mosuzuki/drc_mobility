@@ -84,6 +84,13 @@ HZ_ALIASES = {
     "Kambala": "Kambala",
     "Vuhovi": "Vuhovi",
     "Masereka": "Masereka",
+    "Nia Nia": "Nia-Nia",
+    "Gethy": "Gety",
+    "Boma Mangbetu": "Boma Mangbetu",
+    "Rungu": "Rungu",
+    "Mahagi": "Mahagi",
+    "Adja": "Adja",
+    "Makiso-Kisangani": "Makiso-Kisangani",
     # Some affected health zones are missing from population_by_hz.csv but are
     # still valid SitRep rows. They are retained with blank geometry so they
     # contribute to totals while not being mapped as polygons/centroids.
@@ -630,9 +637,16 @@ def find_date_field(text: str, field: str) -> str | None:
 
 
 def extract_total_confirmed(text: str) -> int | None:
-    # Prefer explicit province-summary tables where the Total row is followed by
-    # confirmed cases and deaths. This avoids accidentally reading the year (2026)
-    # from prose such as "Cumul de cas confirmés 08 juin 2026".
+    # Prefer explicit KPI cards and province-summary tables. New SitReps use
+    # vertically rendered cards such as:
+    #   CAS CONFIRMES — 5 PROVINCES
+    #   3 200
+    # This avoids accidentally reading the reporting year (2026).
+    kpi = re.search(r"CAS\s+CONFIRM[ÉE]S?\s*[—-].{0,80}?\n\s*([0-9][0-9\s]{2,8})\b", text, re.I | re.S)
+    if kpi:
+        val = int(kpi.group(1).replace(" ", ""))
+        if 0 < val < 20000 and val != 2026:
+            return val
     table_total = re.search(r"\bTotal\s+([0-9][0-9\s]{0,8})\s+([0-9][0-9\s]{0,8})\s+[0-9]+[,.]?[0-9]*\s*%", text, re.I)
     if table_total:
         return int(table_total.group(1).replace(" ", ""))
@@ -657,6 +671,11 @@ def extract_total_confirmed(text: str) -> int | None:
 
 
 def extract_total_deaths(text: str) -> int | None:
+    kpi = re.search(r"D[ÉE]C[ÈE]S\s+CONFIRM[ÉE]S?.{0,80}?\n\s*([0-9][0-9\s]{1,8})\s*(?:[·(]|\n)", text, re.I | re.S)
+    if kpi:
+        val = int(kpi.group(1).replace(" ", ""))
+        if 0 <= val < 20000 and val != 2026:
+            return val
     table_total = re.search(r"\bTotal\s+([0-9][0-9\s]{0,8})\s+([0-9][0-9\s]{0,8})\s+[0-9]+[,.]?[0-9]*\s*%", text, re.I)
     if table_total:
         return int(table_total.group(2).replace(" ", ""))
@@ -749,6 +768,16 @@ def load_zone_lookup() -> dict[str, dict[str, Any]]:
             "lat": r.get("lat", ""),
             "lon": r.get("lon", ""),
         }
+    # Valid affected health zones that may be absent from population_by_hz.csv
+    # or boundary metadata are retained with blank geometry so totals still validate.
+    extra_zone_province = {
+        "Boma Mangbetu": "Haut-Uele", "Rungu": "Haut-Uele", "Wamba": "Haut-Uele",
+        "Isiro": "Haut-Uele", "Pawa": "Haut-Uele", "Makiso-Kisangani": "Tshopo",
+        "Lubunga": "Tshopo", "Mangobo": "Tshopo", "Adja": "Ituri", "Mahagi": "Ituri",
+        "Ariwara": "Ituri", "Masereka": "Nord-Kivu", "Vuhovi": "Nord-Kivu",
+    }
+    for name, province in extra_zone_province.items():
+        lookup.setdefault(name, {"zone_id": "", "province": province, "lat": "", "lon": ""})
     return lookup
 
 
@@ -845,12 +874,14 @@ def extract_health_zone_rows(pdf_path: Path, known_lookup: dict[str, dict[str, A
     # 2) Fallback for vertically extracted cumulative health-zone tables.
     #    Example sequence: Bunia / 173 / 15 / 8,7% / Rwampara / 133 / 25 ...
     text = extract_pdf_text(pdf_path)
-    start = re.search(r"Tableau\s+1\..{0,300}?(?:zone de sant[ée]|province)", text, re.I | re.S)
+    start = re.search(r"TABLEAU\s+2\s*[—-].{0,500}?(?:ZONE DE SANTE|Zone de sant[ée]|Province / Zone)", text, re.I | re.S)
+    if not start:
+        start = re.search(r"Tableau\s+1\..{0,300}?(?:zone de sant[ée]|province)", text, re.I | re.S)
     if start:
         # Stop before response sections or after TOTAL.
         section = text[start.start():]
         end_candidates = []
-        for pat in [r"\n\s*TOTAL\s*\n", r"\n\s*4\.\s*ACTIONS", r"--- PAGE\s+5", r"4\.\s*ACTIONS"]:
+        for pat in [r"\n\s*Total\s*\n", r"\n\s*TOTAL\s*\n", r"\n\s*2\.3\s", r"\n\s*4\.\s*ACTIONS", r"--- PAGE\s+5", r"4\.\s*ACTIONS"]:
             m = re.search(pat, section, re.I)
             if m:
                 end_candidates.append(m.end())
@@ -960,6 +991,8 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
             row["contact_followup_rate"] = rate
 
     m = re.search(r"Pour\s+la\s+journ[ée]e\s+du\s+[^,]+,\s*(\d[\d\s]*)\s+alertes.*?dont\s+(\d[\d\s]*)\s*\((\d+[,.]?\d*)\s*%\)\s+investigu[ée]es", t, re.I | re.S)
+    if not m:
+        m = re.search(r"Au\s+total,\s*(\d[\d\s]*)\s+alertes.*?(\d[\d\s]*)\s+investigu[ée]s?.*?\((\d+[,.]?\d*)\s*%\)", t, re.I | re.S)
     if m:
         ar = to_int(m.group(1)); ai = to_int(m.group(2)); rate = to_float(m.group(3) + "%")
         row["alerts_reported"] = ar if ar is not None else ""

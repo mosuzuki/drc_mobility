@@ -1,16 +1,16 @@
 {
-  "report_no": "N68",
-  "report_date": "2026-07-21",
-  "previous_report_no": "N67",
-  "previous_report_date": "2026-07-20",
-  "drc_numeric_summary_ja": "累積確定例は2,473例から2,536例に63例増加し、累積確定死亡例は999例から1,033例に34例増加しました。新規確定例はIturiで46例、Nord-Kivuで12例、Haut-Ueleで5例でした。",
-  "drc_ai_qualitative_sentence_ja": "SitRepでは、Haut-Ueleで診断検査が開始されたこと、インフォデミック対応ガイド作成のワークショップが行われたことが対応上の動きとして記載されています。",
+  "report_no": "N72",
+  "report_date": "2026-07-25",
+  "previous_report_no": "N71",
+  "previous_report_date": "2026-07-24",
+  "drc_numeric_summary_ja": "累積確定例は3,075例から3,200例に125例増加し、累積確定死亡例は1,354例から1,405例に51例増加しました。新規確定例はIturiで115例、Nord-Kivuで7例、Haut-Ueleで3例でした。",
+  "drc_ai_qualitative_sentence_ja": "SitRepでは、各対応ピラーの活動に対する監督が実施されたことが対応上の動きとして記載されています。",
+  "drc_summary_ja": "累積確定例は3,075例から3,200例に125例増加し、累積確定死亡例は1,354例から1,405例に51例増加しました。新規確定例はIturiで115例、Nord-Kivuで7例、Haut-Ueleで3例でした。SitRepでは、各対応ピラーの活動に対する監督が実施されたことが対応上の動きとして記載されています。",
   "uganda_summary_ja": "2026-07-21時点で累積確定例20例、死亡例2例です。輸入例15例、国内感染例5例です。2026-06-21以降、30日間連続で新規症例の増加は報告されていません。",
   "generated_by": "validated_data_plus_qualitative_highlight",
-  "qualitative_generated_by": "manual_from_uploaded_sitrep",
+  "qualitative_generated_by": "deterministic",
   "openai_model": "",
-  "updated_at_utc": "2026-07-23T08:30:33+00:00",
-  "source": "Validated CSV/JSON numbers + uploaded SitRep N68 text qualitative highlight",
-  "notes": "Numeric statements are generated from validated data only. Qualitative sentence is kept separate internally and contains no digits.",
-  "drc_summary_ja": "累積確定例は2,473例から2,536例に63例増加し、累積確定死亡例は999例から1,033例に34例増加しました。新規確定例はIturiで46例、Nord-Kivuで12例、Haut-Ueleで5例でした。SitRepでは、Haut-Ueleで診断検査が開始されたこと、インフォデミック対応ガイド作成のワークショップが行われたことが対応上の動きとして記載されています。"
+  "updated_at_utc": "2026-07-27T23:50:04+00:00",
+  "source": "Validated CSV/JSON numbers + SitRep text qualitative highlight",
+  "notes": "Numeric statements are generated from validated data only. The qualitative sentence is AI-assisted when OPENAI_API_KEY is available and is blocked from containing numbers; otherwise a deterministic SitRep-text highlight is used."
 }

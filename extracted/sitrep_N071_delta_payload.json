@@ -1,0 +1,21 @@
+{
+  "report_no": "N71",
+  "reporting_date": "2026-07-24",
+  "publication_date": "2026-07-25",
+  "confirmed_cases": {
+    "latest": 3075
+  },
+  "confirmed_deaths": {
+    "latest": 1354
+  },
+  "new_confirmed_cases": {
+    "total": 102,
+    "by_province": {
+      "Ituri": 87,
+      "Nord-Kivu": 9,
+      "Haut-Uele": 6
+    }
+  },
+  "source": "Uploaded SitRep_MVE_RDC_N°_71_24-07-2026.pdf",
+  "notes": "No new affected health zone; Kasenyi diagnostic laboratory inauguration reported."
+}

@@ -1,0 +1,21 @@
+{
+  "report_no": "N72",
+  "reporting_date": "2026-07-25",
+  "publication_date": "2026-07-26",
+  "confirmed_cases": {
+    "latest": 3200
+  },
+  "confirmed_deaths": {
+    "latest": 1405
+  },
+  "new_confirmed_cases": {
+    "total": 125,
+    "by_province": {
+      "Ituri": 115,
+      "Nord-Kivu": 7,
+      "Haut-Uele": 3
+    }
+  },
+  "source": "Uploaded SitRep_MVE_RDC_N°_72_25-07-2026.pdf",
+  "notes": "No new affected health zone; response supervision by pillar reported."
+}
