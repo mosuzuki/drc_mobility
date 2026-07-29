@@ -1,93 +1,17 @@
 {
-  "from_report": "N73",
-  "to_report": "N74",
-  "from_reporting_date": "2026-07-26",
-  "to_reporting_date": "2026-07-27",
-  "confirmed_cases": {
-    "previous": 3262,
-    "latest": 3360,
-    "change": 98
+  "report_no": "N74",
+  "reporting_date": "2026-07-27",
+  "publication_date": "2026-07-28",
+  "confirmed_cases": 3360,
+  "confirmed_deaths": 1487,
+  "new_confirmed_cases": 98,
+  "new_confirmed_by_province": {
+    "Ituri": 87,
+    "Nord-Kivu": 11
   },
-  "confirmed_deaths": {
-    "previous": 1437,
-    "latest": 1487,
-    "change": 50
-  },
-  "health_zones": {
-    "previous_count": 48,
-    "latest_count": 47,
-    "new_health_zones": [
-      "Boma",
-      "Tshopo"
-    ],
-    "largest_increases": [
-      {
-        "health_zone": "Bunia",
-        "change": 28,
-        "latest": 801
-      },
-      {
-        "health_zone": "Mongbwalu",
-        "change": 22,
-        "latest": 528
-      },
-      {
-        "health_zone": "Rwampara",
-        "change": 17,
-        "latest": 585
-      },
-      {
-        "health_zone": "Boma",
-        "change": 7,
-        "latest": 7
-      },
-      {
-        "health_zone": "Kilo",
-        "change": 5,
-        "latest": 28
-      },
-      {
-        "health_zone": "Katwa",
-        "change": 5,
-        "latest": 145
-      },
-      {
-        "health_zone": "Tshopo",
-        "change": 5,
-        "latest": 5
-      },
-      {
-        "health_zone": "Lita",
-        "change": 4,
-        "latest": 121
-      }
-    ]
-  },
-  "response": {
-    "contact_followup_rate_previous": 0.782,
-    "contact_followup_rate_latest": 0.44299999999999995,
-    "contacts_under_followup_latest": 0,
-    "contacts_seen_latest": 487,
-    "alerts_reported_latest": 1425,
-    "alerts_investigated_latest": 1142,
-    "alert_investigation_rate_latest": 0.6659999999999999,
-    "samples_analysed_latest": 0,
-    "positive_samples_latest": 0,
-    "travellers_total_latest": 0,
-    "travellers_screened_latest": 94,
-    "poe_screening_coverage_latest": null
-  },
-  "uganda": {
-    "as_of_date": "2026-07-28",
-    "confirmed_cases": 20,
-    "confirmed_deaths": 2,
-    "imported_cases": 15,
-    "local_cases": 5,
-    "new_cases_last_24h": 0,
-    "no_reported_increase_days": 0,
-    "last_reported_increase_date": "2026-07-28",
-    "trend_basis": "daily_confirmation_chart",
-    "trend_status": "increase_on_latest_date",
-    "source_url": "https://evd-daily.health.go.ug/"
-  }
+  "contact_followup_rate": 0.789,
+  "affected_health_zones": 48,
+  "active_transmission_health_zones": 47,
+  "source_pdf": "SitRep_MVE_RDC_N°_74_27-07-2026_OKKK.pdf",
+  "verified_values_source": "Uploaded SitRep N74 indicator cards and Tables 1, 2, 4, and 5."
 }
