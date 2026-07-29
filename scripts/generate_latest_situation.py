@@ -109,22 +109,56 @@ def province_sentence_ja(prov_delta: dict[str, int]) -> str:
 
 
 def province_sentence_from_text_ja(text: str) -> str:
-    """Extract province-level new confirmed cases from the faits saillants.
+    """Extract province-level new confirmed cases from the SitRep headline text.
 
-    Health-zone tables can include data-cleaning reclassification, so for the
-    headline 24h provincial breakdown we prefer the explicit first bullet text.
+    Newer INSP SitReps use several layouts, for example:
+    "+62 nouveaux cas (Ituri 53 · N-Kivu 8 – Haut-Uele 1)" or
+    bullets such as "Ituri : 53 nouveaux cas confirmés". Health-zone
+    cumulative tables may include data cleaning and retroactive reclassification,
+    so the top-panel 24h provincial breakdown must prefer these explicit
+    headline/bullet statements over health-zone cumulative deltas.
     """
     t = re.sub(r"\s+", " ", text)
+    aliases = [
+        ("Ituri", [r"Ituri"]),
+        ("Nord-Kivu", [r"Nord[-\s]?Kivu", r"N[-\s]?Kivu"]),
+        ("Haut-Uélé", [r"Haut[-\s]?U[ée]l[ée]", r"Haut[-\s]?Uele", r"H[-\s]?U[ée]l[ée]", r"H[-\s]?Uele"]),
+        ("Tshopo", [r"Tshopo"]),
+        ("Sud-Kivu", [r"Sud[-\s]?Kivu", r"S[-\s]?Kivu"]),
+    ]
     out = []
-    m = re.search(r"Ituri\s*\((\d+)\s+cas", t, re.I)
-    if m:
-        out.append(("Ituri", int(m.group(1))))
-    m = re.search(r"Nord[- ]Kivu\s*\((\d+)\s+cas", t, re.I)
-    if m:
-        out.append(("Nord-Kivu", int(m.group(1))))
-    m = re.search(r"Sud[- ]Kivu\s*\((\d+)\s+cas", t, re.I)
-    if m:
-        out.append(("Sud-Kivu", int(m.group(1))))
+    seen = set()
+
+    # First, restrict to the explicit headline parenthesis after "nouveaux cas".
+    # This avoids accidentally picking death counts, suspect counts, or recovery
+    # counts that appear later on the same page.
+    headline = ""
+    m_head = re.search(r"\+?\s*\d{1,4}\s+nouveaux?\s+cas[^()]*\(([^)]{1,160})\)", t, re.I)
+    if m_head:
+        headline = m_head.group(1)
+        for label, pats in aliases:
+            for pat in pats:
+                m = re.search(pat + r"\s*(?:[:=])?\s*(\d{1,4})(?=\s*(?:[·;,)–-]|$))", headline, re.I)
+                if m:
+                    val = int(m.group(1))
+                    if val > 0:
+                        out.append((label, val))
+                        seen.add(label)
+                    break
+    if out:
+        return "新規確定例は" + "、".join(f"{p}で{fmt_int(v)}例" for p, v in out if v > 0) + "でした。"
+
+    for label, pats in aliases:
+        val = None
+        for pat in pats:
+            # Bullet text: "Ituri : 53 nouveaux cas confirmés".
+            m = re.search(pat + r"\s*[:：]\s*(\d{1,4})\s+nouveaux?\s+cas", t, re.I)
+            if m:
+                val = int(m.group(1))
+                break
+        if val is not None and val > 0 and label not in seen:
+            out.append((label, val))
+            seen.add(label)
     if not out:
         return ""
     return "新規確定例は" + "、".join(f"{p}で{fmt_int(v)}例" for p, v in out if v > 0) + "でした。"
@@ -184,6 +218,8 @@ def facts_highlight(text: str) -> str:
     t = re.sub(r"\s+", " ", text)
     low = t.lower()
 
+    if ("mission conjointe" in low and "buta" in low) or ("buta" in low and "bas-uélé" in low):
+        return "SitRepでは、Bas-UéléのButaに合同ミッションが到着し、準備・対応強化が進められていることが記載されています。"
     if "supervision des actions" in low or "supervision" in low and "réponse par pilier" in low:
         return "SitRepでは、各対応ピラーの活動に対する監督が実施されたことが対応上の動きとして記載されています。"
     if "aucune nouvelle zone" in low:
