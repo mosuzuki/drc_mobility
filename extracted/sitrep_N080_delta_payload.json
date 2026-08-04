@@ -1,0 +1,96 @@
+{
+  "from_report": "N79",
+  "to_report": "N80",
+  "from_reporting_date": "2026-08-01",
+  "to_reporting_date": "2026-08-02",
+  "confirmed_cases": {
+    "previous": 3748,
+    "latest": 3802,
+    "change": 54
+  },
+  "confirmed_deaths": {
+    "previous": 1657,
+    "latest": 1707,
+    "change": 50
+  },
+  "health_zones": {
+    "previous_count": 48,
+    "latest_count": 51,
+    "new_health_zones": [
+      "Boma Mangbetu",
+      "Lubero",
+      "Makiso-Kisangani",
+      "Nia-Nia",
+      "Wanie-Rukula"
+    ],
+    "largest_increases": [
+      {
+        "health_zone": "Nia-Nia",
+        "change": 104,
+        "latest": 104
+      },
+      {
+        "health_zone": "Boma Mangbetu",
+        "change": 13,
+        "latest": 13
+      },
+      {
+        "health_zone": "Rwampara",
+        "change": 11,
+        "latest": 655
+      },
+      {
+        "health_zone": "Bunia",
+        "change": 9,
+        "latest": 914
+      },
+      {
+        "health_zone": "Katwa",
+        "change": 6,
+        "latest": 186
+      },
+      {
+        "health_zone": "Nizi",
+        "change": 5,
+        "latest": 402
+      },
+      {
+        "health_zone": "Bambu",
+        "change": 4,
+        "latest": 64
+      },
+      {
+        "health_zone": "Lita",
+        "change": 4,
+        "latest": 141
+      }
+    ]
+  },
+  "response": {
+    "contact_followup_rate_previous": 0.442,
+    "contact_followup_rate_latest": 0.792,
+    "contacts_under_followup_latest": 18276,
+    "contacts_seen_latest": 14466,
+    "alerts_reported_latest": 1265,
+    "alerts_investigated_latest": 1164,
+    "alert_investigation_rate_latest": 0.92,
+    "samples_analysed_latest": 340,
+    "positive_samples_latest": 72,
+    "travellers_total_latest": 253043,
+    "travellers_screened_latest": 248002,
+    "poe_screening_coverage_latest": 0.98
+  },
+  "uganda": {
+    "as_of_date": "2026-07-28",
+    "confirmed_cases": 20,
+    "confirmed_deaths": 2,
+    "imported_cases": 15,
+    "local_cases": 5,
+    "new_cases_last_24h": 0,
+    "no_reported_increase_days": 0,
+    "last_reported_increase_date": "2026-07-28",
+    "trend_basis": "daily_confirmation_chart",
+    "trend_status": "increase_on_latest_date",
+    "source_url": "https://evd-daily.health.go.ug/"
+  }
+}

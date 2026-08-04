@@ -1,15 +1,15 @@
 {
-  "updated_at_utc": "2026-08-03T02:53:07Z",
-  "article_url": "https://insp.cd/sitrep-n079-mve-b_01-08-2026/",
-  "pdf_path": "raw/sitreps/sitrep_N079.pdf",
-  "report_no": 79,
-  "reporting_date": "2026-08-01",
-  "publication_date": "2026-08-02",
-  "total_confirmed": 3748,
-  "total_deaths": 1657,
-  "mapped_health_zone_count": 48,
-  "mapped_cases_sum": 3648,
-  "unassigned_cases": 100,
-  "openai_fallback_used": false,
-  "openai_model": ""
+  "updated_at_utc": "2026-08-04T02:37:07Z",
+  "article_url": "https://insp.cd/sitrep-n080-mve-b_02-08-2026/",
+  "pdf_path": "raw/sitreps/sitrep_N080.pdf",
+  "report_no": 80,
+  "reporting_date": "2026-08-02",
+  "publication_date": "2026-08-03",
+  "total_confirmed": 3802,
+  "total_deaths": 1707,
+  "mapped_health_zone_count": 51,
+  "mapped_cases_sum": 3802,
+  "unassigned_cases": 0,
+  "openai_fallback_used": true,
+  "openai_model": "gpt-4.1-mini"
 }
