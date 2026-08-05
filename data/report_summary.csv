@@ -39,20 +39,20 @@ N39,2026-06-22,2026-06-23,1094,277.0,7,1,SitRep N39/MVB,Automatically updated fr
 N40,2026-06-23,2026-06-24,1118,291.0,7,1,SitRep N40/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
 N41,2026-06-24,2026-06-25,1155,304.0,7,1,SitRep N41/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
 N42,2026-06-25,2026-06-26,1203,321.0,7,1,SitRep N42/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
-N44,2026-06-27,2026-06-28,1274,360.0,20,2,SitRep N44/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
-N46,2026-06-29,2026-06-30,1333,399.0,20,2,SitRep N46/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
-N47,2026-06-30,2026-07-01,1406,438.0,20,2,SitRep N47/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
-N48,2026-07-01,2026-07-02,1460,452.0,20,2,SitRep N48/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
-N49,2026-07-02,2026-07-03,1502,473.0,20,2,SitRep N49/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
-N50,2026-07-03,2026-07-04,1528,492.0,20,2,SitRep N50/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
-N51,2026-07-04,2026-07-05,1561,506.0,20,2,SitRep N51/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading reporting year or operational counts as cumulative cases/deaths.
-N52,2026-07-05,2026-07-06,1624,521.0,20,2,SitRep N52/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
-N53,2026-07-06,2026-07-07,1708,580.0,20,2,SitRep N53/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
-N54,2026-07-07,2026-07-08,1759,600.0,20,2,SitRep N54/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
-N55,2026-07-08,2026-07-09,1792,625.0,20,2,SitRep N55/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
-N56,2026-07-09,2026-07-10,1830,648.0,20,2,SitRep N56/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
-N57,2026-07-10,2026-07-11,1873,672.0,20,2,SitRep N57/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
-N58,2026-07-11,2026-07-12,1926,702.0,20,2,SitRep N58/MVB,Verified from uploaded SitRep card/Table 1 totals; recent values backfilled to keep top panel and projections aligned.
+N44,2026-06-27,2026-06-28,1274,360,20,2,SitRep N44/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N46,2026-06-29,2026-06-30,1333,399,20,2,SitRep N46/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N47,2026-06-30,2026-07-01,1406,438,20,2,SitRep N47/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N48,2026-07-01,2026-07-02,1460,452,20,2,SitRep N48/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N49,2026-07-02,2026-07-03,1502,473,20,2,SitRep N49/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N50,2026-07-03,2026-07-04,1528,492,20,2,SitRep N50/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N51,2026-07-04,2026-07-05,1561,506,20,2,SitRep N51/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N52,2026-07-05,2026-07-06,1624,521,20,2,SitRep N52/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N53,2026-07-06,2026-07-07,1708,580,20,2,SitRep N53/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N54,2026-07-07,2026-07-08,1759,600,20,2,SitRep N54/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N55,2026-07-08,2026-07-09,1792,625,20,2,SitRep N55/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N56,2026-07-09,2026-07-10,1830,648,20,2,SitRep N56/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N57,2026-07-10,2026-07-11,1873,672,20,2,SitRep N57/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
+N58,2026-07-11,2026-07-12,1926,702,20,2,SitRep N58/MVB,Verified from uploaded SitRep table/card totals; corrected to avoid reading the reporting year or isolated/hospitalised count as cases/deaths.
 N60,2026-07-13,2026-07-14,2011,754.0,20,2,SitRep N60/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
 N61,2026-07-14,2026-07-15,2073,796.0,20,2,SitRep N61/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
 N62,2026-07-15,2026-07-16,2124,828.0,20,2,SitRep N62/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
@@ -71,3 +71,4 @@ N77,2026-07-30,2026-07-31,3605,1587,20,2,SitRep N77/MVB,Automatically updated fr
 N78,2026-07-31,2026-08-01,3674,1621,20,2,SitRep N78/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
 N79,2026-08-01,2026-08-02,3748,1657,20,2,SitRep N79/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
 N80,2026-08-02,2026-08-03,3802,1707,20,2,SitRep N80/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.
+N81,2026-08-03,2026-08-04,3874,1751,20,2,SitRep N81/MVB,Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.

@@ -100,7 +100,8 @@ HZ_ALIASES = {
 # These names are used for table parsing. The current dashboard's population file is
 # used at runtime to map canonical names to zone_id, lat/lon and province.
 KNOWN_NON_ZONE_ROWS = {
-    "sous total", "total", "ituri", "nord-kivu", "nord-kivi", "sud-kivu", "provinces", "zones de santé",
+    "sous total", "total", "ituri", "nord-kivu", "nord-kivi", "sud-kivu",
+    "haut-uele", "haut uele", "hautu ele", "tshopo", "provinces", "zones de santé",
 }
 
 SESSION = requests.Session()
@@ -773,11 +774,17 @@ def load_zone_lookup() -> dict[str, dict[str, Any]]:
     extra_zone_province = {
         "Boma Mangbetu": "Haut-Uele", "Rungu": "Haut-Uele", "Wamba": "Haut-Uele",
         "Isiro": "Haut-Uele", "Pawa": "Haut-Uele", "Makiso-Kisangani": "Tshopo",
-        "Lubunga": "Tshopo", "Mangobo": "Tshopo", "Adja": "Ituri", "Mahagi": "Ituri",
-        "Ariwara": "Ituri", "Masereka": "Nord-Kivu", "Vuhovi": "Nord-Kivu",
+        "Lubunga": "Tshopo", "Mangobo": "Tshopo", "Kabondo": "Tshopo", "Wanie-Rukula": "Tshopo",
+        "Miti-Murhesa": "Sud-Kivu",
+        "Adja": "Ituri", "Mahagi": "Ituri", "Ariwara": "Ituri", "Mangala": "Ituri", "Nia-Nia": "Ituri",
+        "Masereka": "Nord-Kivu", "Vuhovi": "Nord-Kivu", "Lubero": "Nord-Kivu",
     }
     for name, province in extra_zone_province.items():
-        lookup.setdefault(name, {"zone_id": "", "province": province, "lat": "", "lon": ""})
+        rec = lookup.setdefault(name, {"zone_id": "", "province": province, "lat": "", "lon": ""})
+        # Some library rows exist without province/geometry; keep the row but
+        # fill the province so downstream panels and deltas do not lose it.
+        if not norm_text(rec.get("province", "")):
+            rec["province"] = province
     return lookup
 
 
@@ -963,7 +970,77 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
         "notes": "Automatically extracted; response indicators may reflect national, provincial, or operational-summary level depending on SitRep reporting.",
     }
     t = norm_text(text)
-    # Contact follow-up rate, use the last/latest explicit contact follow-up rate if present.
+
+    # Robust parser for the newer vertically rendered SitRep tables.  It keeps
+    # extraction inside the named response sections so the Table 1 CFR does not
+    # get mistaken for the contact follow-up rate.
+    lines = [norm_text(x) for x in text.splitlines() if norm_text(x)]
+
+    def values_after(row_pat: str, start_pat: str | None = None, end_pat: str | None = None, max_values: int = 12) -> list[float]:
+        start_i = 0
+        if start_pat:
+            for k, line in enumerate(lines):
+                if re.search(start_pat, line, re.I):
+                    start_i = k
+                    break
+        end_i = len(lines)
+        if end_pat:
+            for k in range(start_i + 1, len(lines)):
+                if re.search(end_pat, lines[k], re.I):
+                    end_i = k
+                    break
+        for k in range(start_i, end_i):
+            if re.search(row_pat, lines[k], re.I):
+                vals = []
+                for cell in lines[k+1:end_i]:
+                    if len(vals) >= max_values:
+                        break
+                    if re.search(r"^(?:ND|NA|—|-)$", cell, re.I):
+                        continue
+                    v = to_float(cell if '%' in cell else cell)
+                    if v is not None:
+                        vals.append(v)
+                return vals
+        return []
+
+    contact_tot = values_after(r"^Total$", r"TABLEAU\s+4", r"3\.4|Points\s+d['’]entr", 3)
+    if len(contact_tot) >= 3:
+        cu = int(contact_tot[0]); cs = int(contact_tot[1]); rate = contact_tot[2] if contact_tot[2] <= 1 else contact_tot[2] / 100.0
+        if 0 < cs <= cu and 0 <= rate <= 1:
+            row["contacts_under_followup"] = cu
+            row["contacts_seen"] = cs
+            row["contact_followup_rate"] = rate
+
+    alert_tot = values_after(r"^Total\s+alertes\s+du\s+jour$", r"TABLEAU\s+3", r"3\.2|Laboratoire", 6)
+    alert_inv = values_after(r"^Alertes\s+investigu", r"TABLEAU\s+3", r"3\.2|Laboratoire", 6)
+    alert_rate = values_after(r"^Taux\s+d[’']investigation", r"TABLEAU\s+3", r"3\.2|Laboratoire", 6)
+    if alert_tot:
+        row["alerts_reported"] = int(alert_tot[-1])
+    if alert_inv:
+        row["alerts_investigated"] = int(alert_inv[-1])
+    if alert_rate:
+        ar = alert_rate[-1] if alert_rate[-1] <= 1 else alert_rate[-1] / 100.0
+        if 0 <= ar <= 1:
+            row["alert_investigation_rate"] = ar
+
+    poe_total = values_after(r"Nombre\s+de\s+personnes\s+pass", r"TABLEAU\s+5", r"4\s+Sant", 6)
+    poe_screen = values_after(r"%\s+des\s+voyageurs\s+screen", r"TABLEAU\s+5", r"4\s+Sant", 6)
+    if poe_total:
+        # ND columns are skipped by values_after; the global total is generally
+        # the largest count in this row, while some provinces may legitimately be zero.
+        row["travellers_total"] = int(max(poe_total))
+    if poe_screen:
+        pr = poe_screen[-1] if poe_screen[-1] <= 1 else poe_screen[-1] / 100.0
+        if 0 <= pr <= 1:
+            row["poe_screening_coverage"] = pr
+            if row.get("travellers_total"):
+                try:
+                    row["travellers_screened"] = int(round(float(row["travellers_total"]) * pr))
+                except Exception:
+                    pass
+
+    # Contact follow-up rate, use the latest explicit contact table/KPI rate;
+    # do not let Table 1 fatality ratios overwrite the section-specific value.
     contact_patterns = [
         # Standard prose/table order.
         r"Taux\s+de\s+suivi\s+de\s+contacts?\s*[:\-]?\s*(\d+[,.]?\d*)\s*%",
@@ -971,19 +1048,17 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
         r"contacts\s+suivis.*?Taux\s+de\s+Suivis?.{0,80}?(\d+[,.]?\d*)\s*%",
         # First-page KPI cards often extract as: "82,7% Taux de suivi des contacts".
         r"(\d{1,3}[,.]\d+)\s*%?\s*Taux\s+de\s+suivi\s+des?\s+contacts?",
-        # Contact table: Total 11 796 9 756 82,7%.
-        r"Total\s+\d[\d\s]*\s+\d[\d\s]*\s+(\d{1,3}[,.]\d+)\s*%",
     ]
     vals = []
     for pat in contact_patterns:
         vals.extend([to_float(m) for m in re.findall(pat, t, re.I | re.S)])
     vals = [v for v in vals if v is not None and 0 <= v <= 1]
-    if vals:
+    if vals and row.get("contact_followup_rate") in ("", None):
         row["contact_followup_rate"] = vals[-1]
 
     # Contact follow-up table: Total / contacts under follow-up / contacts seen / rate.
     cm = re.search(r"(?:Tableau\s+\d+[^\n]{0,120})?Suivi\s+des\s+contacts.*?Total\s+(\d[\d\s]*)\s+(\d[\d\s]*)\s+(\d{1,3}[,.]\d+)\s*%", t, re.I | re.S)
-    if cm:
+    if cm and row.get("contacts_under_followup") in ("", None):
         row["contacts_under_followup"] = to_int(cm.group(1)) or ""
         row["contacts_seen"] = to_int(cm.group(2)) or ""
         rate = to_float(cm.group(3) + "%")
@@ -993,7 +1068,7 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
     m = re.search(r"Pour\s+la\s+journ[ée]e\s+du\s+[^,]+,\s*(\d[\d\s]*)\s+alertes.*?dont\s+(\d[\d\s]*)\s*\((\d+[,.]?\d*)\s*%\)\s+investigu[ée]es", t, re.I | re.S)
     if not m:
         m = re.search(r"Au\s+total,\s*(\d[\d\s]*)\s+alertes.*?(\d[\d\s]*)\s+investigu[ée]s?.*?\((\d+[,.]?\d*)\s*%\)", t, re.I | re.S)
-    if m:
+    if m and row.get("alerts_reported") in ("", None):
         ar = to_int(m.group(1)); ai = to_int(m.group(2)); rate = to_float(m.group(3) + "%")
         row["alerts_reported"] = ar if ar is not None else ""
         row["alerts_investigated"] = ai if ai is not None else ""
@@ -1001,7 +1076,7 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
 
     # Alert-management table: Total Alertes du jour / Alertes investiguées / Taux d'investigation.
     am = re.search(r"Total\s+Alertes\s+du\s+jour\s+.*?(\d[\d\s]*)\s+Alertes\s+investigu[ée]es\s+.*?(\d[\d\s]*)\s+Taux\s+d[’']investigation\s+.*?(\d{1,3}[,.]\d+)\s*%", t, re.I | re.S)
-    if am:
+    if am and row.get("alerts_reported") in ("", None):
         ar = to_int(am.group(1)); ai = to_int(am.group(2)); rate = to_float(am.group(3) + "%")
         row["alerts_reported"] = ar if ar is not None else row["alerts_reported"]
         row["alerts_investigated"] = ai if ai is not None else row["alerts_investigated"]
@@ -1009,7 +1084,7 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
 
     # PoE/PoC screening table: global travellers and screening percentage.
     poe = re.search(r"Nombre\s+(?:de|des)\s+personnes\s+pass[ée]es\s+aux\s+PoE/PoC\s+(?:\d[\d\s]*\s+){2}(\d[\d\s]*)\s+%\s+des\s+voyageurs\s+screen[ée]s\s+(?:\d{1,3}[,.]\d+%\s+){2}(\d{1,3}[,.]\d+)\s*%", t, re.I | re.S)
-    if poe:
+    if poe and row.get("travellers_total") in ("", None):
         row["travellers_total"] = to_int(poe.group(1)) or ""
         rate = to_float(poe.group(2) + "%")
         if rate is not None:
@@ -1030,8 +1105,8 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
 
     poe_total = re.search(r"Voyageurs\s+pass[ée]s\s+par\s+le\s+PoE/PoC\s+(\d[\d\s]*)", t, re.I)
     poe_screen = re.search(r"Voyageurs\s+screen[ée]s\s+(\d[\d\s]*)(?:\s*\((\d+[,.]?\d*)\s*%\))?", t, re.I)
-    if poe_total: row["travellers_total"] = to_int(poe_total.group(1)) or ""
-    if poe_screen:
+    if poe_total and row.get("travellers_total") in ("", None): row["travellers_total"] = to_int(poe_total.group(1)) or ""
+    if poe_screen and row.get("travellers_screened") in ("", None):
         row["travellers_screened"] = to_int(poe_screen.group(1)) or ""
         if poe_screen.group(2):
             row["poe_screening_coverage"] = to_float(poe_screen.group(2) + "%") or ""

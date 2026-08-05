@@ -73,4 +73,11 @@ date,report_no,observed_sitrep,new_confirmed,new_confirmed_smoothed,rt_median,rt
 2026-07-24,N71,1,102.0,179.667,3.535,3.054,4.092,15.0,6.0,renewal_equation_approx_reported_cases
 2026-07-25,N72,1,125.0,98.333,1.862,1.528,2.269,15.0,6.0,renewal_equation_approx_reported_cases
 2026-07-26,N73,1,62.0,96.333,1.734,1.42,2.117,15.0,6.0,renewal_equation_approx_reported_cases
-2026-07-27,N74,1,98.0,95.0,1.728,1.417,2.108,15.0,6.0,renewal_equation_approx_reported_cases
+2026-07-27,N74,1,98.0,95.0,1.601,1.309,1.958,15.0,6.0,renewal_equation_approx_reported_cases
+2026-07-28,,0,81.667,80.556,1.259,1.012,1.566,15.0,6.0,renewal_equation_approx_reported_cases
+2026-07-29,,0,81.667,87.111,1.257,1.019,1.551,15.0,6.0,renewal_equation_approx_reported_cases
+2026-07-30,N77,1,81.667,81.667,1.092,0.879,1.357,15.0,6.0,renewal_equation_approx_reported_cases
+2026-07-31,N78,1,69.0,77.444,0.969,0.775,1.21,15.0,6.0,renewal_equation_approx_reported_cases
+2026-08-01,N79,1,74.0,74.889,0.884,0.705,1.108,15.0,6.0,renewal_equation_approx_reported_cases
+2026-08-02,N80,1,54.0,65.667,0.739,0.581,0.942,15.0,6.0,renewal_equation_approx_reported_cases
+2026-08-03,N81,1,72.0,66.667,0.724,0.57,0.921,15.0,6.0,renewal_equation_approx_reported_cases

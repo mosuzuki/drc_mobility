@@ -1,0 +1,74 @@
+{
+  "report_no": "N81",
+  "reporting_date": "2026-08-03",
+  "previous_report_no": "N80",
+  "previous_reporting_date": "2026-08-02",
+  "confirmed_cases": {
+    "previous": 3802,
+    "latest": 3874,
+    "change": 72
+  },
+  "confirmed_deaths": {
+    "previous": 1707,
+    "latest": 1751,
+    "change": 44
+  },
+  "province_new_cases_from_health_zone_delta": {
+    "Haut-Uele": 63,
+    "Ituri": 58,
+    "Nord-Kivu": 12
+  },
+  "top_health_zone_increases": [
+    {
+      "province": "Haut-Uele",
+      "health_zone": "Isiro",
+      "increase": 21
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Rwampara",
+      "increase": 19
+    },
+    {
+      "province": "Haut-Uele",
+      "health_zone": "Wamba",
+      "increase": 16
+    },
+    {
+      "province": "Haut-Uele",
+      "health_zone": "Boma Mangbetu",
+      "increase": 13
+    },
+    {
+      "province": "Haut-Uele",
+      "health_zone": "Pawa",
+      "increase": 12
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Bunia",
+      "increase": 11
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Katwa",
+      "increase": 9
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nia-Nia",
+      "increase": 8
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nizi",
+      "increase": 8
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Bambu",
+      "increase": 5
+    }
+  ],
+  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+}
