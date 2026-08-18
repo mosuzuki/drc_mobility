@@ -6,6 +6,7 @@ JSON files cannot remain stale when report_summary.csv has already advanced.
 """
 from __future__ import annotations
 
+import argparse
 import subprocess
 import sys
 from pathlib import Path
@@ -17,7 +18,7 @@ STATUS = ROOT / ".dashboard_update_all_status.md"
 STEPS = [
     ("INSP SitRep update", [sys.executable, "scripts/update_from_insp_sitrep.py"], False),
     ("Repair latest SitRep values", [sys.executable, "scripts/repair_latest_sitrep_values.py"], True),
-    ("Uganda EVD update", [sys.executable, "scripts/update_uganda_evd.py"], True),
+    ("Uganda EVD update", [sys.executable, "scripts/update_uganda_evd.py"], False),
     ("Health-zone activity status", [sys.executable, "scripts/generate_health_zone_activity_status.py"], True),
     ("Latest situation summary", [sys.executable, "scripts/generate_latest_situation.py"], True),
     ("Final size projection", [sys.executable, "scripts/generate_final_size_projection.py"], True),
@@ -29,9 +30,13 @@ STEPS = [
 
 
 def main() -> None:
+    ap = argparse.ArgumentParser()
+    ap.add_argument("--skip-sitrep", action="store_true", help="Regenerate downstream outputs without fetching INSP SitRep again")
+    args = ap.parse_args()
     lines = ["# Dashboard integrated update", "", f"Started at: {datetime.now(timezone.utc).isoformat(timespec='seconds')}", ""]
     hard_failed = False
-    for name, cmd, required in STEPS:
+    steps = STEPS[1:] if args.skip_sitrep else STEPS
+    for name, cmd, required in steps:
         lines.append(f"## {name}")
         try:
             proc = subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True, timeout=900)

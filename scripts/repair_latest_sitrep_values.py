@@ -158,11 +158,30 @@ def repair_unventilated(notes: list[str]) -> None:
     notes.append("cases_unventilated.csv set to verified unventilated Ituri cases for recent SitReps including N53")
 
 
+
+
+def repair_legacy_zone_name(notes: list[str]) -> None:
+    """Repair a legacy PDF split-name artefact: Boma Mangbetu was parsed as Boma."""
+    path = DATA / "cases_by_hz.csv"
+    if not path.exists():
+        return
+    df = pd.read_csv(path, dtype=str)
+    mask = (df.get("health_zone", "").astype(str) == "Boma") & (df.get("province", "").astype(str) == "Kongo Central") & (df.get("date", "").astype(str).between("2026-07-30", "2026-08-01"))
+    if mask.any():
+        df.loc[mask, "health_zone"] = "Boma Mangbetu"
+        df.loc[mask, "province"] = "Haut-Uele"
+        if "notes" in df.columns:
+            df.loc[mask, "notes"] = df.loc[mask, "notes"].fillna("").astype(str) + " Legacy split-name repair: Boma -> Boma Mangbetu."
+        df.to_csv(path, index=False)
+        notes.append(f"cases_by_hz.csv repaired {int(mask.sum())} legacy Boma Mangbetu split-name rows")
+
+
 def main() -> None:
     notes: list[str] = []
     repair_report_summary(notes)
     repair_response_indicators(notes)
     repair_unventilated(notes)
+    repair_legacy_zone_name(notes)
     body = ["# SitRep repair status", "", f"Updated at: {datetime.now(timezone.utc).isoformat(timespec='seconds')}", "", "## Actions"]
     body.extend([f"- {n}" for n in notes] or ["- No repair needed."])
     STATUS.write_text("\n".join(body) + "\n", encoding="utf-8")

@@ -148,6 +148,25 @@ def province_sentence_from_text_ja(text: str) -> str:
     if out:
         return "新規確定例は" + "、".join(f"{p}で{fmt_int(v)}例" for p, v in out if v > 0) + "でした。"
 
+    # New layout: "101 nouveaux cas ... provinces de l’Ituri (89 cas),
+    # du Nord-Kivu (8 cas)...". Restrict parsing to the short 24h sentence
+    # so cumulative province tables later in the PDF cannot be mistaken for
+    # daily incidence.
+    m_24h = re.search(r"(?:derni[èe]res?\s+24\s+heures[^.]{0,120}?|)(?:\d{1,4})\s+nouveaux?\s+cas[^.]{0,520}", t, re.I)
+    if m_24h:
+        snippet = m_24h.group(0)
+        for label, pats in aliases:
+            for pat in pats:
+                m = re.search(pat + r"[^()]{0,18}\(\s*(\d{1,4})(?:\s+cas)?\s*\)", snippet, re.I)
+                if m:
+                    val = int(m.group(1))
+                    if val > 0:
+                        out.append((label, val))
+                        seen.add(label)
+                    break
+    if out:
+        return "新規確定例は" + "、".join(f"{p}で{fmt_int(v)}例" for p, v in out if v > 0) + "でした。"
+
     for label, pats in aliases:
         val = None
         for pat in pats:

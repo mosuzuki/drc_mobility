@@ -145,7 +145,7 @@ def to_int(s: Any) -> int | None:
     m = re.search(r"-?\d[\d\s,.]*", txt)
     if not m:
         return None
-    val = m.group(0).replace(" ", "").replace(".", "").replace(",", ".")
+    val = re.sub(r"\s+", "", m.group(0)).replace(".", "").replace(",", ".")
     try:
         return int(float(val))
     except ValueError:
@@ -195,8 +195,10 @@ def parse_fr_date(raw: str | None) -> str | None:
 def report_number_from_text(text: str) -> int | None:
     txt = norm_text(text)
     patterns = [
-        r"SitRep\s*(?:MVE\s*)?N\s*[°ºo]?\s*0*(\d{1,3})",
-        r"sitrep[-_ ]?n\s*0*(\d{1,3})",
+        r"SitRep\s*(?:MVE\s*)?N\s*[°ºo_ -]?\s*0*(\d{1,3})",
+        r"sitrep[-_ ]?n[-_ ]?0*(\d{1,3})",
+        r"MVEBDB[-_ ]?0*(\d{1,3})(?:\D|$)",
+        r"MVE[_ -]*RDC[_ -]*N[°ºo_ -]*0*(\d{1,3})(?:\D|$)",
         r"N[°ºo]?\s*0*(\d{1,3})\s*/\s*MVB",
         r"^N[°ºo]?\s*0*(\d{1,3})$",
     ]
@@ -215,26 +217,95 @@ class SitRepArticle:
     reporting_date: str | None
 
 
+def _wp_rest_sitrep_candidates(site_root: str) -> list[SitRepArticle]:
+    """Discover recent SitReps from WordPress posts and media attachments.
+
+    INSP has changed how recent SitReps are published; some PDFs are uploaded to
+    the media library without a category-page link. The old category-only scraper
+    therefore stalled at N81. REST discovery is additive and safely falls back to
+    the category page when the endpoints are unavailable.
+    """
+    parsed = urlparse(site_root)
+    base = f"{parsed.scheme or 'https'}://{parsed.netloc or 'insp.cd'}"
+    out: list[SitRepArticle] = []
+    endpoints = [
+        ("posts", f"{base}/wp-json/wp/v2/posts"),
+        ("media", f"{base}/wp-json/wp/v2/media"),
+    ]
+    for kind, endpoint in endpoints:
+        for search_term in ("SitRep", "MVEBDB", "Ebola"):
+            try:
+                r = SESSION.get(endpoint, params={
+                    "search": search_term, "per_page": 100,
+                    "orderby": "date", "order": "desc",
+                }, timeout=TIMEOUT)
+                if r.status_code >= 400:
+                    continue
+                items = r.json()
+                if not isinstance(items, list):
+                    continue
+            except Exception as exc:
+                log(f"WordPress REST discovery failed for {kind}/{search_term}: {exc}")
+                continue
+            for item in items:
+                title_obj = item.get("title") or {}
+                title = title_obj.get("rendered", "") if isinstance(title_obj, dict) else str(title_obj)
+                title = BeautifulSoup(title, "html.parser").get_text(" ", strip=True)
+                slug = str(item.get("slug") or "")
+                url = str(item.get("source_url") or item.get("link") or "")
+                hay = " ".join([title, slug, url])
+                no = report_number_from_text(hay)
+                if no is None or not url:
+                    continue
+                d = parse_fr_date(hay.replace("_", "/").replace("-", "/"))
+                if not d:
+                    # WordPress publication date is only a fallback; the PDF itself
+                    # remains authoritative for Date de rapportage.
+                    wpdate = str(item.get("date") or "")[:10]
+                    d = wpdate if re.fullmatch(r"20\d{2}-\d{2}-\d{2}", wpdate) else None
+                out.append(SitRepArticle(title or slug or url, url, no, d))
+    # De-duplicate by report number and URL.
+    uniq: dict[tuple[int | None, str], SitRepArticle] = {}
+    for c in out:
+        uniq[(c.report_no, c.url)] = c
+    return list(uniq.values())
+
+
 def find_latest_article(category_url: str = CATEGORY_URL) -> SitRepArticle:
-    html = SESSION.get(category_url, timeout=TIMEOUT).text
-    soup = BeautifulSoup(html, "html.parser")
     candidates: list[SitRepArticle] = []
-    for a in soup.find_all("a", href=True):
-        text = norm_text(a.get_text(" ", strip=True))
-        href = urljoin(category_url, a["href"])
-        if "sitrep" not in (text + " " + href).lower():
-            continue
-        no = report_number_from_text(text) or report_number_from_text(href)
-        if no is None:
-            continue
-        date = parse_fr_date(text) or parse_fr_date(href.replace("_", "/").replace("-", "/"))
-        title = text or href
-        if href not in {c.url for c in candidates}:
-            candidates.append(SitRepArticle(title, href, no, date))
+    # 1) Legacy category-page discovery.
+    try:
+        resp = SESSION.get(category_url, timeout=TIMEOUT)
+        resp.raise_for_status()
+        soup = BeautifulSoup(resp.text, "html.parser")
+        for a in soup.find_all("a", href=True):
+            text = norm_text(a.get_text(" ", strip=True))
+            href = urljoin(category_url, a["href"])
+            if "sitrep" not in (text + " " + href).lower():
+                continue
+            no = report_number_from_text(text) or report_number_from_text(href)
+            if no is None:
+                continue
+            d = parse_fr_date(text) or parse_fr_date(href.replace("_", "/").replace("-", "/"))
+            candidates.append(SitRepArticle(text or href, href, no, d))
+    except Exception as exc:
+        log(f"Category-page discovery failed: {exc}")
+
+    # 2) WordPress REST posts/media discovery. This is essential for the current
+    # publication pattern, where newer PDFs may not appear on /category/sitrep/.
+    candidates.extend(_wp_rest_sitrep_candidates(category_url))
+
     if not candidates:
-        fail("No SitRep article links were found on the INSP category page.", f"URL: {category_url}")
+        fail("No SitRep article or media links were found on the INSP site.", f"URL: {category_url}")
+    # Keep one copy of each URL and prefer the highest report number.
+    by_url: dict[str, SitRepArticle] = {}
+    for c in candidates:
+        by_url[c.url] = c
+    candidates = list(by_url.values())
     candidates.sort(key=lambda c: (c.report_no or -1, c.reporting_date or ""), reverse=True)
-    return candidates[0]
+    latest = candidates[0]
+    log(f"Latest discovered SitRep candidate: N{latest.report_no} {latest.url}")
+    return latest
 
 
 def existing_max_report() -> tuple[int, str | None]:
@@ -595,6 +666,9 @@ def download_latest_pdf(article: SitRepArticle) -> Path:
     RAW.mkdir(parents=True, exist_ok=True)
     no = article.report_no or 0
     pdf_path = RAW / f"sitrep_N{no:03d}.pdf"
+    # REST media discovery may return the PDF itself rather than an article page.
+    if download_url(article.url, pdf_path):
+        return pdf_path
     html, urls = html_pdf_candidates(article.url, article)
     for u in urls:
         if download_url(u, pdf_path):
@@ -638,6 +712,18 @@ def find_date_field(text: str, field: str) -> str | None:
 
 
 def extract_total_confirmed(text: str) -> int | None:
+    # Newer SitReps expose an explicit KPI card "CUMUL DES CAS". Prefer it
+    # over generic "Cas confirmés" text, which may span province-table cells.
+    m = re.search(r"CUMUL\s+DES\s+CAS\s*\n\s*([0-9][0-9\s\u00a0\u202f]{2,10})\b", text, re.I)
+    if m:
+        val = int(re.sub(r"\D", "", m.group(1)))
+        if 0 < val < 20000 and val != 2026:
+            return val
+    m = re.search(r"cumule\s+([0-9][0-9\s\u00a0\u202f]{2,10})\s+cas\s+confirm", text, re.I)
+    if m:
+        val = int(re.sub(r"\D", "", m.group(1)))
+        if 0 < val < 20000:
+            return val
     # Prefer explicit KPI cards and province-summary tables. New SitReps use
     # vertically rendered cards such as:
     #   CAS CONFIRMES — 5 PROVINCES
@@ -645,12 +731,12 @@ def extract_total_confirmed(text: str) -> int | None:
     # This avoids accidentally reading the reporting year (2026).
     kpi = re.search(r"CAS\s+CONFIRM[ÉE]S?\s*[—-].{0,80}?\n\s*([0-9][0-9\s]{2,8})\b", text, re.I | re.S)
     if kpi:
-        val = int(kpi.group(1).replace(" ", ""))
+        val = int(re.sub(r"\D", "", kpi.group(1)))
         if 0 < val < 20000 and val != 2026:
             return val
     table_total = re.search(r"\bTotal\s+([0-9][0-9\s]{0,8})\s+([0-9][0-9\s]{0,8})\s+[0-9]+[,.]?[0-9]*\s*%", text, re.I)
     if table_total:
-        return int(table_total.group(1).replace(" ", ""))
+        return int(re.sub(r"\D", "", table_total.group(1)))
     # Province bullet lines, e.g. Ituri (563 cas), Nord-Kivu (32 cas), Sud-Kivu (3 cas).
     prov = re.search(r"Ituri\s*\((\d+)\s+cas\).*?Nord[- ]Kivu\s*\((\d+)\s+cas\).*?Sud[- ]Kivu\s*\((\d+)\s+cas\)", text, re.I | re.S)
     if prov:
@@ -665,21 +751,32 @@ def extract_total_confirmed(text: str) -> int | None:
     for pat in patterns:
         m = re.search(pat, text, re.I | re.S)
         if m:
-            val = int(m.group(1).replace(" ", ""))
+            val = int(re.sub(r"\D", "", m.group(1)))
             if 0 < val < 10000:
                 return val
     return None
 
 
 def extract_total_deaths(text: str) -> int | None:
+    # Prefer the explicit cumulative-deaths KPI card in the redesigned SitReps.
+    m = re.search(r"CUMUL\s+DES\s+\n?D[ÉE]C[ÈE]S(?:\s+CONFIRM[ÉE]S?\*{0,2})?\s*\n\s*([0-9][0-9\s\u00a0\u202f]{1,10})\b", text, re.I)
+    if m:
+        val = int(re.sub(r"\D", "", m.group(1)))
+        if 0 <= val < 20000 and val != 2026:
+            return val
+    m = re.search(r"cas\s+confirm[ée]s\s+dont\s+([0-9][0-9\s\u00a0\u202f]{1,10})\s+d[ée]c", text, re.I)
+    if m:
+        val = int(re.sub(r"\D", "", m.group(1)))
+        if 0 <= val < 20000:
+            return val
     kpi = re.search(r"D[ÉE]C[ÈE]S\s+CONFIRM[ÉE]S?.{0,80}?\n\s*([0-9][0-9\s]{1,8})\s*(?:[·(]|\n)", text, re.I | re.S)
     if kpi:
-        val = int(kpi.group(1).replace(" ", ""))
+        val = int(re.sub(r"\D", "", kpi.group(1)))
         if 0 <= val < 20000 and val != 2026:
             return val
     table_total = re.search(r"\bTotal\s+([0-9][0-9\s]{0,8})\s+([0-9][0-9\s]{0,8})\s+[0-9]+[,.]?[0-9]*\s*%", text, re.I)
     if table_total:
-        return int(table_total.group(2).replace(" ", ""))
+        return int(re.sub(r"\D", "", table_total.group(2)))
     patterns = [
         r"cumul\s+des?\s+d[ée]c[èe]s\s+parmi\s+les\s+confirm[ée]s?.{0,80}?(\d+)(?:\s|\()",
         r"cumul\s+d[ée]c[èe]s\s+parmi\s+les\s+confirm[ée]s?.{0,80}?(\d+)(?:\s|\()",
@@ -690,7 +787,7 @@ def extract_total_deaths(text: str) -> int | None:
     for pat in patterns:
         m = re.search(pat, text, re.I | re.S)
         if m:
-            val = int(m.group(1).replace(" ", ""))
+            val = int(re.sub(r"\D", "", m.group(1)))
             if 0 <= val < 10000:
                 return val
     return None
@@ -733,18 +830,24 @@ def canonical_zone_name(raw: str, known_names: set[str]) -> str | None:
     s = norm_text(raw)
     if not s:
         return None
+    # PDF cells sometimes split one health-zone name across lines or insert
+    # non-standard separator glyphs. Compare a separator-insensitive key first.
+    def zone_key(x: str) -> str:
+        x = strip_accents(norm_text(x)).lower().replace("zs ", "")
+        return re.sub(r"[^a-z0-9]+", " ", x).strip()
+    key = zone_key(s)
     for alias, canonical in HZ_ALIASES.items():
-        if strip_accents(alias).lower() == strip_accents(s).lower():
+        if zone_key(alias) == key:
             return canonical
-    s_clean = strip_accents(s).lower().replace("zs ", "").strip()
+    s_clean = key
     if s_clean in KNOWN_NON_ZONE_ROWS or len(s_clean) < 2:
         return None
     for name in known_names:
-        if strip_accents(name).lower() == s_clean:
+        if zone_key(name) == s_clean:
             return name
     # exact substring match only when the cell contains little else
     for name in sorted(known_names, key=len, reverse=True):
-        n = strip_accents(name).lower()
+        n = zone_key(name)
         if re.fullmatch(rf".*\b{re.escape(n)}\b.*", s_clean) and len(s_clean) <= len(n) + 10:
             return name
     return None
@@ -884,6 +987,10 @@ def extract_health_zone_rows(pdf_path: Path, known_lookup: dict[str, dict[str, A
     start = re.search(r"TABLEAU\s+2\s*[—-].{0,500}?(?:ZONE DE SANTE|Zone de sant[ée]|Province / Zone)", text, re.I | re.S)
     if not start:
         start = re.search(r"Tableau\s+1\..{0,300}?(?:zone de sant[ée]|province)", text, re.I | re.S)
+    if not start:
+        # Newer SitRep layout (N88+) drops the "Tableau" label and starts
+        # directly with "Province / Zone de santé - Nombre cumulatif".
+        start = re.search(r"Province\s*/?\s*Zone\s+de\s+sant[ée].{0,300}?Nombre\s+cumulatif", text, re.I | re.S)
     if start:
         # Stop before response sections or after TOTAL.
         section = text[start.start():]
@@ -918,21 +1025,51 @@ def extract_health_zone_rows(pdf_path: Path, known_lookup: dict[str, dict[str, A
                     i = j
                     continue
             # Explicit unassigned labels sometimes are longer than the alias.
-            if re.search(r"Autres\s+ZS|sans\s+fiche|non\s+ventil", raw_line, re.I):
-                nums=[]; j=i+1
-                while j < len(lines) and len(nums) < 2:
+            if re.search(r"Autres\s+ZS|sans\s+fiche|non\s+ventil|[ÀA]\s+ventiler", raw_line, re.I):
+                vals=[]; j=i+1
+                while j < len(lines) and len(vals) < 2:
                     if re.search(r"%", lines[j]):
                         j += 1; continue
-                    val = to_int(lines[j])
-                    if val is not None:
-                        nums.append(val)
+                    token = norm_text(lines[j])
+                    if token.upper() in {"NA", "ND", "-"}:
+                        vals.append(None)
+                    else:
+                        val = to_int(token)
+                        if val is not None:
+                            vals.append(val)
                     j += 1
-                if nums:
-                    unassigned_cases = nums[0]
-                    unassigned_deaths = nums[1] if len(nums) > 1 else None
+                if vals:
+                    # "A ventiler NA 59" means no unassigned case count but 59 deaths
+                    # pending health-zone attribution; it must not inflate case totals.
+                    unassigned_cases = vals[0] if vals[0] is not None else 0
+                    unassigned_deaths = vals[1] if len(vals) > 1 else None
                     i = j
                     continue
             i += 1
+
+    # 2b) Repair multi-line / ambiguous rows seen in the redesigned cumulative table.
+    # Makiso-Kisangani and Boma Mangbetu are sometimes split across PDF text lines.
+    for raw_name, canonical in [("Makiso-Kisangani", "Makiso-Kisangani"), ("Boma Mangbetu", "Boma Mangbetu")]:
+        parts = re.split(r"[- ]+", raw_name)
+        sep = r"(?:\s|[-‐‑–—]|[^\w%])+"
+        pat = sep.join(re.escape(x) for x in parts) + r"\s+(\d{1,5})\s+(\d{1,5})\s+\d+[,.]?\d*%"
+        m = re.search(pat, section if start else text, re.I)
+        if m and canonical in known_lookup:
+            add_row(canonical, int(m.group(1)), int(m.group(2)), " Repaired from a split health-zone name in PDF text extraction.")
+            if canonical == "Boma Mangbetu":
+                # A split cell can otherwise be misclassified as the unrelated
+                # health zone Boma (Kongo Central).
+                rows.pop("Boma", None)
+
+    # Tshopo is both a province name and, from later SitReps, a health-zone name.
+    # Only add it when the cumulative table contains at least two Tshopo rows;
+    # the smaller positive case count is the health-zone row, not the province subtotal.
+    if start and "Tshopo" in known_lookup:
+        sec = section
+        tm = [(int(a), int(b)) for a, b in re.findall(r"(?:^|\n)\s*Tshopo\s*\n?\s*(\d{1,5})\s*\n?\s*(\d{1,5})\s*\n?\s*\d+[,.]?\d*%", sec, re.I)]
+        if len(tm) >= 2:
+            cval, dval = min(tm, key=lambda x: x[0])
+            add_row("Tshopo", cval, dval, " Disambiguated from the Tshopo province subtotal.")
 
     # 3) Fallback for prose summaries, e.g. "Bunia (173), Rwampara (133)".
     #    Deaths are not available in that prose, but cases can still pass validation
@@ -1003,7 +1140,7 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
                 return vals
         return []
 
-    contact_tot = values_after(r"^Total$", r"TABLEAU\s+4", r"3\.4|Points\s+d['’]entr", 3)
+    contact_tot = values_after(r"^Total$", r"TABLEAU\s+4", r"3\.4|Points\s+d['’]entr", 3) if re.search(r"TABLEAU\s+4", t, re.I) else []
     if len(contact_tot) >= 3:
         cu = int(contact_tot[0]); cs = int(contact_tot[1]); rate = contact_tot[2] if contact_tot[2] <= 1 else contact_tot[2] / 100.0
         if 0 < cs <= cu and 0 <= rate <= 1:
@@ -1039,31 +1176,66 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
                 except Exception:
                     pass
 
-    # Contact follow-up rate, use the latest explicit contact table/KPI rate;
-    # do not let Table 1 fatality ratios overwrite the section-specific value.
-    contact_patterns = [
-        # Standard prose/table order.
-        r"Taux\s+de\s+suivi\s+de\s+contacts?\s*[:\-]?\s*(\d+[,.]?\d*)\s*%",
-        r"Taux\s+de\s+Suivis?\s*[:\-]?\s*(\d+[,.]?\d*)\s*%",
-        r"contacts\s+suivis.*?Taux\s+de\s+Suivis?.{0,80}?(\d+[,.]?\d*)\s*%",
-        # First-page KPI cards often extract as: "82,7% Taux de suivi des contacts".
-        r"(\d{1,3}[,.]\d+)\s*%?\s*Taux\s+de\s+suivi\s+des?\s+contacts?",
+    # Contact follow-up.  From SitRep N084 onward the page layout changed and
+    # broad cross-page regexes can accidentally pair the cumulative case/death
+    # cards with the CFR.  Prefer explicit surveillance prose with counts, then
+    # tightly bounded KPI patterns.
+    contact_prose_patterns = [
+        r"(?:La\s+proportion\s+des\s+contacts\s+suivis|Le\s+suivi\s+des\s+contacts)[^%]{0,120}?(\d{1,3}[,.]\d+)\s*%\s*\(\s*(\d[\d\s\u202f]*)\s+vus?\s+sur\s+(\d[\d\s\u202f]*)\s+[àa]\s+suivre",
+        r"(?:La\s+proportion\s+des\s+contacts\s+suivis|Le\s+suivi\s+des\s+contacts)[^%]{0,120}?(\d{1,3}[,.]\d+)\s*%",
     ]
-    vals = []
-    for pat in contact_patterns:
-        vals.extend([to_float(m) for m in re.findall(pat, t, re.I | re.S)])
-    vals = [v for v in vals if v is not None and 0 <= v <= 1]
-    if vals and row.get("contact_followup_rate") in ("", None):
-        row["contact_followup_rate"] = vals[-1]
+    cm = re.search(contact_prose_patterns[0], t, re.I | re.S)
+    if cm:
+        rate = to_float(cm.group(1) + "%")
+        seen = to_int(cm.group(2)); follow = to_int(cm.group(3))
+        if rate is not None and seen is not None and follow is not None and 0 <= seen <= follow:
+            row["contacts_under_followup"] = follow
+            row["contacts_seen"] = seen
+            row["contact_followup_rate"] = rate
+    elif row.get("contact_followup_rate") in ("", None):
+        cm = re.search(contact_prose_patterns[1], t, re.I | re.S)
+        if cm:
+            row["contact_followup_rate"] = to_float(cm.group(1) + "%") or ""
+
+    # Older N082/N083 first-page KPI: rate followed by seen / to-follow counts.
+    if row.get("contacts_under_followup") in ("", None):
+        cm = re.search(r"SUIVI\s+DES\s+CONTACTS\s+NATIONAL\s+(\d{1,3}[,.]\d+)\s*%\s+(\d[\d\s\u202f]*)\s*/\s*(\d[\d\s\u202f]*)\s+vus", t, re.I)
+        if cm:
+            row["contact_followup_rate"] = to_float(cm.group(1) + "%") or ""
+            row["contacts_seen"] = to_int(cm.group(2)) or ""
+            row["contacts_under_followup"] = to_int(cm.group(3)) or ""
+
+    if row.get("contact_followup_rate") in ("", None):
+        contact_patterns = [
+            r"Taux\s+de\s+suivi\s+des?\s+contacts?[^%]{0,50}?(\d{1,3}[,.]\d+)\s*%",
+            r"(\d{1,3}[,.]\d+)\s*%\s*.{0,50}?Taux\s+de\s+suivi\s+des?\s+contacts?",
+        ]
+        for pat in contact_patterns:
+            m = re.search(pat, t, re.I | re.S)
+            if m:
+                rate = to_float(m.group(1) + "%")
+                if rate is not None:
+                    row["contact_followup_rate"] = rate
+                    break
 
     # Contact follow-up table: Total / contacts under follow-up / contacts seen / rate.
-    cm = re.search(r"(?:Tableau\s+\d+[^\n]{0,120})?Suivi\s+des\s+contacts.*?Total\s+(\d[\d\s]*)\s+(\d[\d\s]*)\s+(\d{1,3}[,.]\d+)\s*%", t, re.I | re.S)
+    cm = re.search(r"Tableau\s+4[^\n]{0,120}.*?Suivi\s+des\s+contacts.*?Total\s+(\d[\d\s]*)\s+(\d[\d\s]*)\s+(\d{1,3}[,.]\d+)\s*%", t, re.I | re.S)
     if cm and row.get("contacts_under_followup") in ("", None):
         row["contacts_under_followup"] = to_int(cm.group(1)) or ""
         row["contacts_seen"] = to_int(cm.group(2)) or ""
         rate = to_float(cm.group(3) + "%")
         if rate is not None:
             row["contact_followup_rate"] = rate
+
+    # Newer surveillance prose: total alerts, then validated suspects, then
+    # investigated suspects with an explicit investigation percentage.
+    modern_alert = re.search(
+        r"(?:Au\s+total,?\s*|Au\s+terme\s+de\s+la\s+journ[ée]e[^,]*,?\s*)(\d[\d\s\u202f]*)\s+alertes\s+ont\s+[ée]t[ée]\s+enregistr[ée]es.*?(\d[\d\s\u202f]*)\s*\((\d{1,3}[,.]\d+)\s*%\)\s+ont\s+[ée]t[ée]\s+investigu[ée]es?",
+        t, re.I | re.S)
+    if modern_alert:
+        row["alerts_reported"] = to_int(modern_alert.group(1)) or ""
+        row["alerts_investigated"] = to_int(modern_alert.group(2)) or ""
+        row["alert_investigation_rate"] = to_float(modern_alert.group(3) + "%") or ""
 
     m = re.search(r"Pour\s+la\s+journ[ée]e\s+du\s+[^,]+,\s*(\d[\d\s]*)\s+alertes.*?dont\s+(\d[\d\s]*)\s*\((\d+[,.]?\d*)\s*%\)\s+investigu[ée]es", t, re.I | re.S)
     if not m:
@@ -1091,11 +1263,15 @@ def extract_response_indicators(text: str, report_date: str, report_no: str) -> 
             row["poe_screening_coverage"] = rate
 
     # Laboratory: prefer daily sample statement if available.
-    lab = re.search(r"(\d[\d\s]*)\s+nouveaux?\s+[ée]chantillons?.{0,80}?analys[ée]s?.{0,80}?(\d[\d\s]*)\s+(?:sont\s+)?revenus?\s+positifs?", t, re.I | re.S)
+    lab_modern = re.search(r"(\d[\d\s\u202f]*)\s+[ée]chantillons\s+ont\s+[ée]t[ée]\s+analys[ée]s,?\s+confirmant\s+(\d[\d\s\u202f]*)\s+nouveaux?\s+cas", t, re.I | re.S)
+    if lab_modern:
+        row["samples_analysed"] = to_int(lab_modern.group(1)) or ""
+        row["positive_samples"] = to_int(lab_modern.group(2)) or ""
+    lab = None if lab_modern else re.search(r"(\d[\d\s]*)\s+nouveaux?\s+[ée]chantillons?.{0,80}?analys[ée]s?.{0,80}?(\d[\d\s]*)\s+(?:sont\s+)?revenus?\s+positifs?", t, re.I | re.S)
     if lab:
         row["samples_analysed"] = to_int(lab.group(1)) or ""
         row["positive_samples"] = to_int(lab.group(2)) or ""
-    else:
+    elif not lab_modern:
         rec = re.search(r"[ÉE]chantillons\s+re[çc]us\s+(\d[\d\s]*)", t, re.I)
         ana = re.search(r"(?:Nbre\s+)?d[’']?[ée]chantillons\s+analys[ée]s\s+(\d[\d\s]*)", t, re.I)
         pos = re.search(r"(?:Nbre\s+(?:des\s+)?)?cas\s+positifs?\s+(\d[\d\s]*)", t, re.I)
@@ -1323,10 +1499,15 @@ def append_or_replace_csv(path: Path, new_rows: list[dict[str, Any]], key_cols: 
             if c not in df.columns:
                 df[c] = ""
         new_df = new_df[df.columns]
-        key_new = set(tuple(str(r.get(c, "")) for c in key_cols) for _, r in new_df.iterrows())
+        def key_value(v: Any) -> str:
+            if v is None or (isinstance(v, float) and pd.isna(v)):
+                return ""
+            txt = str(v)
+            return "" if txt.lower() == "nan" else txt
+        key_new = set(tuple(key_value(r.get(c, "")) for c in key_cols) for _, r in new_df.iterrows())
         keep = []
         for _, r in df.iterrows():
-            keep.append(tuple(str(r.get(c, "")) for c in key_cols) not in key_new)
+            keep.append(tuple(key_value(r.get(c, "")) for c in key_cols) not in key_new)
         out = pd.concat([df.loc[keep], new_df], ignore_index=True)
     else:
         out = new_df
@@ -1859,8 +2040,19 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
         # encore identifiées" rows.
         unassigned_cases = diff if 0 <= diff <= 100 else None
 
-    log(f"Deterministic validation: health_zone_sum={hz_sum}, unassigned_cases={unassigned_cases}, total_cases={total_cases}, rows={len(hz_rows)}")
-    if total_cases is not None and (hz_sum <= 0 or hz_sum + int(unassigned_cases or 0) != total_cases):
+    has_hz_cumulative_table = bool(re.search(r"Nombre\s+cumulatif", text, re.I))
+    hz_discrepancy = None if total_cases is None or hz_sum <= 0 else hz_sum + int(unassigned_cases or 0) - total_cases
+    summary_only_hz = hz_sum <= 0 and not has_hz_cumulative_table
+
+    log(f"Deterministic validation: health_zone_sum={hz_sum}, unassigned_cases={unassigned_cases}, total_cases={total_cases}, rows={len(hz_rows)}, cumulative_hz_table={has_hz_cumulative_table}")
+    if summary_only_hz:
+        # N84-N86 (and potentially future redesigned reports) provide national/provincial
+        # cumulative totals but no cumulative health-zone table. Do not invent a spatial
+        # distribution and do not block the whole dashboard update; update the summary
+        # and response indicators and leave that date absent from cases_by_hz.csv.
+        log("No cumulative health-zone table is present in this SitRep; proceeding with a summary-only spatial update.")
+        unassigned_cases = 0
+    elif total_cases is not None and (hz_sum <= 0 or abs(int(hz_discrepancy or 0)) > 1):
         if not openai_used:
             log("Deterministic validation failed; attempting OpenAI fallback.")
             try_openai("Health-zone counts did not validate against the total confirmed cases.")
@@ -1868,10 +2060,12 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
             if unassigned_cases is None and total_cases is not None:
                 diff = total_cases - hz_sum
                 unassigned_cases = diff if 0 <= diff <= 100 else None
-            log(f"Post-OpenAI validation: health_zone_sum={hz_sum}, unassigned_cases={unassigned_cases}, total_cases={total_cases}, rows={len(hz_rows)}, openai_used={openai_used}")
+            hz_discrepancy = None if total_cases is None or hz_sum <= 0 else hz_sum + int(unassigned_cases or 0) - total_cases
+            log(f"Post-OpenAI validation: health_zone_sum={hz_sum}, unassigned_cases={unassigned_cases}, total_cases={total_cases}, rows={len(hz_rows)}, discrepancy={hz_discrepancy}, openai_used={openai_used}")
 
-    if total_cases is None or hz_sum <= 0 or unassigned_cases is None or hz_sum + int(unassigned_cases or 0) != total_cases:
+    if not summary_only_hz and (total_cases is None or hz_sum <= 0 or unassigned_cases is None or abs(int(hz_discrepancy or 0)) > 1):
         detail = validation_detail("Extracted health-zone counts did not validate after deterministic extraction and optional OpenAI fallback.")
+        detail["health_zone_discrepancy"] = hz_discrepancy
         (EXTRACTED / f"sitrep_N{report_no:03d}_review.json").write_text(json.dumps(detail, indent=2), encoding="utf-8")
         fail(
             "Extracted health-zone counts did not validate against the total confirmed cases.",
@@ -1893,14 +2087,15 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
         "notes": "Automatically updated from INSP SitRep PDF. Uganda figures remain latest available DTM EVD snapshot values unless separately updated.",
     }
     append_or_replace_csv(DATA / "report_summary.csv", [report_row], ["report_no", "reporting_date"])
-    append_or_replace_csv(DATA / "cases_by_hz.csv", hz_rows, ["date", "health_zone"])
-    if unassigned_cases and int(unassigned_cases) > 0:
+    if hz_rows and not summary_only_hz:
+        append_or_replace_csv(DATA / "cases_by_hz.csv", hz_rows, ["date", "health_zone"])
+    if int(unassigned_cases or 0) > 0 or int(unassigned_deaths or 0) > 0:
         unassigned_row = {
             "date": report_date,
             "month": report_date[:7],
             "province": "Ituri",
             "category": "unventilated_unknown_health_zone",
-            "confirmed_cases": int(unassigned_cases),
+            "confirmed_cases": int(unassigned_cases or 0),
             "confirmed_deaths": int(unassigned_deaths) if unassigned_deaths is not None else "",
             "source": report_label,
             "source_date": report_date,
@@ -1927,6 +2122,9 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
         "total_deaths": total_deaths,
         "mapped_health_zone_count": len(hz_rows),
         "mapped_cases_sum": hz_sum,
+        "health_zone_discrepancy": hz_discrepancy,
+        "spatial_detail_available": bool(hz_rows),
+        "summary_only_spatial_update": summary_only_hz,
         "unassigned_cases": unassigned_cases,
         "openai_fallback_used": openai_used,
         "openai_model": (openai_payload or {}).get("_openai_model", "") if openai_used else "",
