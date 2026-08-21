@@ -125,6 +125,7 @@ def province_sentence_from_text_ja(text: str) -> str:
         ("Haut-Uélé", [r"Haut[-\s]?U[ée]l[ée]", r"Haut[-\s]?Uele", r"H[-\s]?U[ée]l[ée]", r"H[-\s]?Uele"]),
         ("Tshopo", [r"Tshopo"]),
         ("Sud-Kivu", [r"Sud[-\s]?Kivu", r"S[-\s]?Kivu"]),
+        ("Bas-Uélé", [r"Bas[-\s]?U[ée]l[ée]", r"Bas[-\s]?Uele"]),
     ]
     out = []
     seen = set()
@@ -158,6 +159,15 @@ def province_sentence_from_text_ja(text: str) -> str:
         for label, pats in aliases:
             for pat in pats:
                 m = re.search(pat + r"[^()]{0,18}\(\s*(\d{1,4})(?:\s+cas)?\s*\)", snippet, re.I)
+                if not m:
+                    # Some SitReps invert the final item: "et 1 au Bas Uélé".
+                    m_rev = re.search(r"(\d{1,4})\s+(?:cas\s+)?(?:au|en|dans le|dans la)\s+" + pat, snippet, re.I)
+                    if m_rev:
+                        val = int(m_rev.group(1))
+                        if val > 0:
+                            out.append((label, val))
+                            seen.add(label)
+                        break
                 if m:
                     val = int(m.group(1))
                     if val > 0:
@@ -237,6 +247,11 @@ def facts_highlight(text: str) -> str:
     t = re.sub(r"\s+", " ", text)
     low = t.lower()
 
+    # Prefer report-specific epidemiological changes over generic response text.
+    # N96, for example, contains references to Buta in response activities but
+    # the salient new development is the newly affected health zone Viadana.
+    if "viadana" in low and ("nouvelle zone de santé" in low or "nouvelle zone" in low):
+        return "SitRepでは、Bas-Uéléで新たにViadana保健区が影響地域として報告され、同州での地理的拡大が示されています。"
     if ("mission conjointe" in low and "buta" in low) or ("buta" in low and "bas-uélé" in low):
         return "SitRepでは、Bas-UéléのButaに合同ミッションが到着し、準備・対応強化が進められていることが記載されています。"
     if "supervision des actions" in low or "supervision" in low and "réponse par pilier" in low:

@@ -271,9 +271,14 @@ def _wp_rest_sitrep_candidates(site_root: str) -> list[SitRepArticle]:
     return list(uniq.values())
 
 
-def find_latest_article(category_url: str = CATEGORY_URL) -> SitRepArticle:
+def find_sitrep_articles(category_url: str = CATEGORY_URL) -> list[SitRepArticle]:
+    """Discover recent SitReps from both the legacy page and WordPress REST API.
+
+    Returning the recent set (rather than only the maximum report number) lets the
+    updater backfill a skipped SitRep when, for example, N96 is published before a
+    scheduled run has successfully ingested N94 and N95.
+    """
     candidates: list[SitRepArticle] = []
-    # 1) Legacy category-page discovery.
     try:
         resp = SESSION.get(category_url, timeout=TIMEOUT)
         resp.raise_for_status()
@@ -291,21 +296,46 @@ def find_latest_article(category_url: str = CATEGORY_URL) -> SitRepArticle:
     except Exception as exc:
         log(f"Category-page discovery failed: {exc}")
 
-    # 2) WordPress REST posts/media discovery. This is essential for the current
-    # publication pattern, where newer PDFs may not appear on /category/sitrep/.
     candidates.extend(_wp_rest_sitrep_candidates(category_url))
-
     if not candidates:
         fail("No SitRep article or media links were found on the INSP site.", f"URL: {category_url}")
-    # Keep one copy of each URL and prefer the highest report number.
-    by_url: dict[str, SitRepArticle] = {}
+
+    # One preferred candidate per report number. Prefer a direct PDF/media URL,
+    # then a candidate carrying a reporting date. This avoids ingesting the same
+    # SitRep twice when both a post and its media attachment are discovered.
+    by_no: dict[int, SitRepArticle] = {}
     for c in candidates:
-        by_url[c.url] = c
-    candidates = list(by_url.values())
-    candidates.sort(key=lambda c: (c.report_no or -1, c.reporting_date or ""), reverse=True)
-    latest = candidates[0]
+        if c.report_no is None:
+            continue
+        prev = by_no.get(c.report_no)
+        score = (int(".pdf" in c.url.lower()), int(bool(c.reporting_date)))
+        prev_score = (int(".pdf" in prev.url.lower()), int(bool(prev.reporting_date))) if prev else (-1, -1)
+        if prev is None or score > prev_score:
+            by_no[c.report_no] = c
+    out = sorted(by_no.values(), key=lambda c: (c.report_no or -1, c.reporting_date or ""))
+    if not out:
+        fail("SitRep links were found, but no report numbers could be identified.", f"URL: {category_url}")
+    log("Discovered SitReps: " + ", ".join(f"N{x.report_no}" for x in out[-12:]))
+    return out
+
+
+def find_latest_article(category_url: str = CATEGORY_URL) -> SitRepArticle:
+    latest = find_sitrep_articles(category_url)[-1]
     log(f"Latest discovered SitRep candidate: N{latest.report_no} {latest.url}")
     return latest
+
+
+def existing_report_numbers() -> set[int]:
+    path = DATA / "report_summary.csv"
+    if not path.exists():
+        return set()
+    df = pd.read_csv(path, dtype=str)
+    out: set[int] = set()
+    for value in df.get("report_no", []):
+        no = report_number_from_text(str(value))
+        if no is not None:
+            out.add(no)
+    return out
 
 
 def existing_max_report() -> tuple[int, str | None]:
@@ -881,6 +911,7 @@ def load_zone_lookup() -> dict[str, dict[str, Any]]:
         "Miti-Murhesa": "Sud-Kivu",
         "Adja": "Ituri", "Mahagi": "Ituri", "Ariwara": "Ituri", "Mangala": "Ituri", "Nia-Nia": "Ituri",
         "Masereka": "Nord-Kivu", "Vuhovi": "Nord-Kivu", "Lubero": "Nord-Kivu",
+        "Buta": "Bas-Uele", "Viadana": "Bas-Uele",
     }
     for name, province in extra_zone_province.items():
         rec = lookup.setdefault(name, {"zone_id": "", "province": province, "lat": "", "lon": ""})
@@ -2151,7 +2182,23 @@ def main() -> None:
     if args.article_url:
         article = SitRepArticle(title=args.article_url, url=args.article_url, report_no=report_number_from_text(args.article_url), reporting_date=parse_fr_date(args.article_url.replace("_", "/").replace("-", "/")))
     else:
-        article = find_latest_article(args.category_url)
+        # Do not look only at the newest report. A previous scheduled run may have
+        # ingested N96 while N94/N95 were temporarily undiscoverable or failed
+        # extraction. Backfill missing reports within a small recent window first.
+        articles = find_sitrep_articles(args.category_url)
+        existing = existing_report_numbers()
+        max_no, max_date = existing_max_report()
+        newest_no = max((a.report_no or 0) for a in articles)
+        lookback_floor = max(1, newest_no - 14)
+        missing = [a for a in articles if a.report_no is not None and a.report_no >= lookback_floor and a.report_no not in existing]
+        if not missing:
+            write_status("No newer or missing recent SitRep found", f"Latest article is N{newest_no}; dashboard maximum is N{max_no} ({max_date}); no gaps found in the recent 15-report window.", ok=True)
+            return
+        for article in missing:
+            log(f"Backfill/update candidate: N{article.report_no} {article.url}")
+            pdf_path = download_latest_pdf(article)
+            update_dashboard(pdf_path, article, force=False)
+        return
 
     max_no, max_date = existing_max_report()
     if not args.force and article.report_no is not None and article.report_no <= max_no:

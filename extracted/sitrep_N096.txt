@@ -82,8 +82,6 @@ Bas Uélé. Une nouvelle zone de santé est touchée (Viadana) dans la province 
  
  
  
- 
- 
 Provinces touchées et Zones de santé touchées 
 TASK FORCE PRESIDENTIELLE EBOLA 17 
 Ministère de la Santé Publique, Hygiène et Prévoyance Sociale 
@@ -91,7 +89,6 @@ Institut National de Santé Publique
 Centre d’Opérations d’Urgence de Santé Publique  
 Système de gestion de l’incident MVE17 
  
-  
  
 Résumé des points clés au cours de dernières 24 heures 
  
@@ -114,16 +111,14 @@ Désormais, 56 des 151 zones de santé des six provinces sont affectées depuis 
 début de l’épidémie en RDC. L’Ituri compte 28 zones de santé touchées sur 36, 
 suivi du Nord-Kivu (12/34), du Haut-Uélé (6/13), de la Tshopo (7/23), du Sud-Kivu 
 (1/34) et Bas Uélé (2/11). 
- 
 CUMUL DES 
 CAS 
     5 208  
- 
-CUMUL DES       
+CUMUL DES     
 DÉCÈS 
 CONFIRMÉS 
      2 476 
-PATIENS EN         
+PATIENS EN     
 ISOLEMENT/CTE 
       730 
 CUMUL DES 
@@ -133,8 +128,7 @@ TAUX DE SUIVI DES
 CONTACTS  
 (Du Jour) 
 84,0 % 
- 
-                              
+     
 LETALITE 
          47,5% 
 6 Provinces touchées 
@@ -146,7 +140,6 @@ touchées sur 151
 246 Aires de santé 
 touchées 
 Sur 3104 (7,9%) 
- 
 
 
 --- PAGE 2 ---
@@ -764,7 +757,6 @@ Total
  
  
  
- 
 DPS 
 Nouvelles Alertes 
 Reçues 
@@ -790,7 +782,6 @@ Décédés
 Vivants 
 Décédés Vivants 
 Décédés 
- 
 Haut-Uélé  
 14 
 7 
@@ -893,12 +884,8 @@ Likati et descente conjointe avec le parquet à Buta ayant permis de lever la r�
 décontamination. 
 CARTOGRAPHIE DES CAS de 21 derniers jours  
 Situation des alertes notifiées par province, au 18 août 2026 
- 
- 
- 
 Évolution de cas par date de début des symptômes au cours de 21 
 derniers jours 
- 
 
 
 --- PAGE 5 ---
@@ -1265,8 +1252,6 @@ Le renforcement des interventions prioritaires
 engagement communautaire) demeure essentiel 
 pour interrompre rapidement les chaînes de 
 transmission. 
- 
- 
 MESSAGES CLES   
 ▪ 
 Du 24 avril au 15 mai 2026, l'épidémie est passée 
@@ -1283,13 +1268,12 @@ de santé publique de portée nationale puis
 continentale, accompagnée de la mobilisation des 
 64 et de soutien. 
 CHRONOLOGIE DES FAITS CLÉS 
-  
 
 
 --- PAGE 10 ---
 
   
-10 
+10
  
  
  
@@ -1368,5 +1352,3 @@ Ministère de la Santé Publique, Hygiène et Prévoyance Sociale
 Institut National de Santé Publique 
 Centre d’Opérations d’Urgence de Santé Publique  
 Système de gestion de l’incident MVE17 
- 
-  

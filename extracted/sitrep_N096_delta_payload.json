@@ -1,67 +1,69 @@
 {
-  "from_report": "N93",
+  "from_report": "N95",
   "to_report": "N96",
-  "from_reporting_date": "2026-08-15",
+  "from_reporting_date": "2026-08-17",
   "to_reporting_date": "2026-08-18",
   "confirmed_cases": {
-    "previous": 4945,
+    "previous": 5105,
     "latest": 5208,
-    "change": 263
+    "change": 103
   },
   "confirmed_deaths": {
-    "previous": 2325,
+    "previous": 2420,
     "latest": 2476,
-    "change": 151
+    "change": 56
   },
   "health_zones": {
     "previous_count": 55,
-    "latest_count": 55,
-    "new_health_zones": [],
+    "latest_count": 56,
+    "new_health_zones": [
+      "Viadana"
+    ],
     "largest_increases": [
       {
         "health_zone": "Bunia",
-        "change": 62,
+        "change": 25,
         "latest": 1219
       },
       {
         "health_zone": "Rwampara",
-        "change": 30,
+        "change": 16,
         "latest": 879
       },
       {
-        "health_zone": "Katwa",
-        "change": 25,
-        "latest": 310
-      },
-      {
         "health_zone": "Nizi",
-        "change": 24,
+        "change": 15,
         "latest": 558
       },
       {
-        "health_zone": "Mangala",
-        "change": 17,
-        "latest": 173
-      },
-      {
-        "health_zone": "Nia-Nia",
-        "change": 14,
-        "latest": 178
-      },
-      {
         "health_zone": "Isiro",
-        "change": 13,
+        "change": 8,
         "latest": 55
       },
       {
+        "health_zone": "Mangala",
+        "change": 8,
+        "latest": 173
+      },
+      {
+        "health_zone": "Butembo",
+        "change": 6,
+        "latest": 124
+      },
+      {
+        "health_zone": "Katwa",
+        "change": 4,
+        "latest": 310
+      },
+      {
         "health_zone": "Lita",
-        "change": 13,
+        "change": 3,
         "latest": 186
       }
     ]
   },
   "response": {
-    "contact_followup_rate_previous": 0.853,
+    "contact_followup_rate_previous": 0.841,
     "contact_followup_rate_latest": 0.84,
     "contacts_under_followup_latest": 22043,
     "contacts_seen_latest": 18517,
