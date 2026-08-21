@@ -1,7 +1,18 @@
 {
-  "report_no": "N96",
-  "reporting_date": "2026-08-18",
-  "total_confirmed": 5208,
-  "total_deaths": 2476,
-  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+  "updated_at_utc": "2026-08-21T12:50:09Z",
+  "article_url": "https://insp.cd/sitrep-n097-mvebdb-19-08-2026/",
+  "pdf_path": "raw/sitreps/sitrep_N097.pdf",
+  "report_no": 97,
+  "reporting_date": "2026-08-19",
+  "publication_date": "2026-08-20",
+  "total_confirmed": 5290,
+  "total_deaths": 2516,
+  "mapped_health_zone_count": 56,
+  "mapped_cases_sum": 5290,
+  "health_zone_discrepancy": 0,
+  "spatial_detail_available": true,
+  "summary_only_spatial_update": false,
+  "unassigned_cases": 0,
+  "openai_fallback_used": false,
+  "openai_model": ""
 }
