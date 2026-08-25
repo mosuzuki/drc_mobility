@@ -1,7 +1,18 @@
 {
-  "report_no": "N100",
-  "reporting_date": "2026-08-22",
-  "total_confirmed": 5514,
-  "total_deaths": 2642,
-  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+  "updated_at_utc": "2026-08-25T12:49:14Z",
+  "article_url": "https://insp.cd/wp-content/uploads/2026/08/SitRep_MVEBDB_101_23_08_2026.pdf",
+  "pdf_path": "raw/sitreps/sitrep_N101.pdf",
+  "report_no": 101,
+  "reporting_date": "2026-08-23",
+  "publication_date": "2026-08-24",
+  "total_confirmed": 5584,
+  "total_deaths": 2680,
+  "mapped_health_zone_count": 57,
+  "mapped_cases_sum": 5584,
+  "health_zone_discrepancy": 0,
+  "spatial_detail_available": true,
+  "summary_only_spatial_update": false,
+  "unassigned_cases": 0,
+  "openai_fallback_used": false,
+  "openai_model": ""
 }
