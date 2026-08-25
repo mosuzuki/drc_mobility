@@ -1,18 +1,7 @@
 {
-  "updated_at_utc": "2026-08-24T01:21:06Z",
-  "article_url": "https://insp.cd/sitrep-n0100-mvebdb-22-08-2026/",
-  "pdf_path": "raw/sitreps/sitrep_N100.pdf",
-  "report_no": 100,
+  "report_no": "N100",
   "reporting_date": "2026-08-22",
-  "publication_date": "2026-08-23",
   "total_confirmed": 5514,
   "total_deaths": 2642,
-  "mapped_health_zone_count": 57,
-  "mapped_cases_sum": 5514,
-  "health_zone_discrepancy": 0,
-  "spatial_detail_available": true,
-  "summary_only_spatial_update": false,
-  "unassigned_cases": 0,
-  "openai_fallback_used": false,
-  "openai_model": ""
+  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
 }

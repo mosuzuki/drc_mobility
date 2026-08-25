@@ -247,11 +247,17 @@ def facts_highlight(text: str) -> str:
     t = re.sub(r"\s+", " ", text)
     low = t.lower()
 
-    # Prefer report-specific epidemiological changes over generic response text.
-    # N96, for example, contains references to Buta in response activities but
-    # the salient new development is the newly affected health zone Viadana.
-    if "viadana" in low and ("nouvelle zone de santé" in low or "nouvelle zone" in low):
+    # Prefer the CURRENT report's headline / page-1 epidemiological statement.
+    # Later pages can mention health zones first affected in older reports (e.g.
+    # Viadana), which previously caused a stale qualitative highlight to survive
+    # even when the current SitRep explicitly said that no new zone was affected.
+    headline = low[:5000]
+    if "aucune nouvelle zone" in headline:
+        return "SitRepでは、新たに影響を受けた保健区は報告されず、既存の影響地域で対応活動が継続されています。"
+    if "viadana" in headline and ("nouvelle zone de santé" in headline or "nouvelle zone" in headline):
         return "SitRepでは、Bas-Uéléで新たにViadana保健区が影響地域として報告され、同州での地理的拡大が示されています。"
+    if "mutwanga" in headline and ("nouvelle zone de santé" in headline or "nouvelle zone" in headline):
+        return "SitRepでは、Nord-KivuのMutwanga保健区が新たに影響地域として報告され、同州内での地理的拡大が示されています。"
     if ("mission conjointe" in low and "buta" in low) or ("buta" in low and "bas-uélé" in low):
         return "SitRepでは、Bas-UéléのButaに合同ミッションが到着し、準備・対応強化が進められていることが記載されています。"
     if "supervision des actions" in low or "supervision" in low and "réponse par pilier" in low:
