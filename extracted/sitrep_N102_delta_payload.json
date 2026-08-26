@@ -1,0 +1,92 @@
+{
+  "from_report": "N101",
+  "to_report": "N102",
+  "from_reporting_date": "2026-08-23",
+  "to_reporting_date": "2026-08-24",
+  "confirmed_cases": {
+    "previous": 5584,
+    "latest": 5656,
+    "change": 72
+  },
+  "confirmed_deaths": {
+    "previous": 2680,
+    "latest": 2715,
+    "change": 35
+  },
+  "health_zones": {
+    "previous_count": 57,
+    "latest_count": 58,
+    "new_health_zones": [
+      "Ganga"
+    ],
+    "largest_increases": [
+      {
+        "health_zone": "Bunia",
+        "change": 14,
+        "latest": 1312
+      },
+      {
+        "health_zone": "Bambu",
+        "change": 12,
+        "latest": 139
+      },
+      {
+        "health_zone": "Nizi",
+        "change": 10,
+        "latest": 622
+      },
+      {
+        "health_zone": "Lita",
+        "change": 7,
+        "latest": 204
+      },
+      {
+        "health_zone": "Rwampara",
+        "change": 7,
+        "latest": 920
+      },
+      {
+        "health_zone": "Mangala",
+        "change": 6,
+        "latest": 203
+      },
+      {
+        "health_zone": "Katwa",
+        "change": 3,
+        "latest": 351
+      },
+      {
+        "health_zone": "Isiro",
+        "change": 2,
+        "latest": 70
+      }
+    ]
+  },
+  "response": {
+    "contact_followup_rate_previous": 0.8340000000000001,
+    "contact_followup_rate_latest": 0.809,
+    "contacts_under_followup_latest": 24106,
+    "contacts_seen_latest": 19495,
+    "alerts_reported_latest": 0,
+    "alerts_investigated_latest": 0,
+    "alert_investigation_rate_latest": null,
+    "samples_analysed_latest": 0,
+    "positive_samples_latest": 0,
+    "travellers_total_latest": 0,
+    "travellers_screened_latest": 98,
+    "poe_screening_coverage_latest": 1.0
+  },
+  "uganda": {
+    "as_of_date": "2026-07-28",
+    "confirmed_cases": 20,
+    "confirmed_deaths": 2,
+    "imported_cases": 15,
+    "local_cases": 5,
+    "new_cases_last_24h": 0,
+    "no_reported_increase_days": 0,
+    "last_reported_increase_date": "2026-07-28",
+    "trend_basis": "daily_confirmation_chart",
+    "trend_status": "increase_on_latest_date",
+    "source_url": "https://evd-daily.health.go.ug/"
+  }
+}
