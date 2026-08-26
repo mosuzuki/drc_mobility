@@ -254,6 +254,8 @@ def facts_highlight(text: str) -> str:
     headline = low[:5000]
     if "aucune nouvelle zone" in headline:
         return "SitRepでは、新たに影響を受けた保健区は報告されず、既存の影響地域で対応活動が継続されています。"
+    if "ganga" in headline and ("nouvelle zone de santé" in headline or "nouvelle zone" in headline):
+        return "SitRepでは、Bas-UéléのGanga保健区が新たに影響地域として報告され、同州での地理的拡大が示されています。"
     if "viadana" in headline and ("nouvelle zone de santé" in headline or "nouvelle zone" in headline):
         return "SitRepでは、Bas-Uéléで新たにViadana保健区が影響地域として報告され、同州での地理的拡大が示されています。"
     if "mutwanga" in headline and ("nouvelle zone de santé" in headline or "nouvelle zone" in headline):

@@ -165,6 +165,9 @@ else:
         errors.append(f'health_zone_activity_status.csv reference_report_no {sorted(ref_nos)} != latest report_summary {latest_no}')
     if latest_date and ref_dates != {latest_date}:
         errors.append(f'health_zone_activity_status.csv reference_date {sorted(ref_dates)} != latest report_summary {latest_date}')
+    latest_hz_rows = [r for r in read_csv(DATA/'cases_by_hz.csv') if r.get('date') == latest_date and to_float(r.get('confirmed_cases')) > 0]
+    if latest_hz_rows and len(hz_activity) != len(latest_hz_rows):
+        errors.append(f'health_zone_activity_status.csv has {len(hz_activity)} zones but latest cases_by_hz has {len(latest_hz_rows)}')
     for i, r in enumerate(hz_activity, start=1):
         days = to_float(r.get('days_since_last_increase'))
         cases_v = to_float(r.get('cumulative_confirmed'))

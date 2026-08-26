@@ -84,6 +84,21 @@ def main() -> None:
         raise SystemExit(f"Invalid latest reporting_date: {ref_date_s}")
     ref_no = latest.get("report_no", "")
 
+    # Only zones present in the latest SitRep are currently affected. Historical
+    # rows are still used to determine the last report date on which each current
+    # zone increased, but zones removed by later reconciliation must not be carried
+    # forward as still affected.
+    latest_keys: set[tuple[str, str]] = set()
+    for r in cases:
+        d = parse_date(str(r.get("date") or r.get("source_date") or ""))
+        if d != ref_date or to_int(r.get("confirmed_cases"), 0) <= 0:
+            continue
+        hz = norm_name(r.get("health_zone") or "")
+        prov = norm_name(r.get("province") or "")
+        hz_norm = hz.lower()
+        if hz and prov and "autres" not in hz_norm and "non ventil" not in hz_norm and "unventil" not in hz_norm:
+            latest_keys.add((prov, hz))
+
     grouped: dict[tuple[str, str], list[dict]] = defaultdict(list)
     for r in cases:
         hz = norm_name(r.get("health_zone") or "")
@@ -96,7 +111,8 @@ def main() -> None:
         hz_norm = hz.lower()
         if "autres" in hz_norm or "non ventil" in hz_norm or "unventil" in hz_norm:
             continue
-        grouped[(prov, hz)].append(r)
+        if (prov, hz) in latest_keys:
+            grouped[(prov, hz)].append(r)
 
     out = []
     for (province, hz), rows in grouped.items():
