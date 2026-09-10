@@ -1,0 +1,77 @@
+{
+  "report_no": "N116",
+  "reporting_date": "2026-09-07",
+  "previous_report_no": "N115",
+  "previous_reporting_date": "2026-09-06",
+  "confirmed_cases": {
+    "previous": 6686,
+    "latest": 6757,
+    "change": 71
+  },
+  "confirmed_deaths": {
+    "previous": 3226,
+    "latest": 3267,
+    "change": 41
+  },
+  "province_new_cases_from_health_zone_delta": {
+    "Bas Uélé": 4,
+    "Haut-Uélé": 256,
+    "Ituri": 5406,
+    "Nord-Kivu": 1066,
+    "Sud-Kivu": 3,
+    "Tshopo": 22
+  },
+  "top_health_zone_increases": [
+    {
+      "province": "Ituri",
+      "health_zone": "Bunia",
+      "increase": 1502
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Rwampara",
+      "increase": 992
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nizi",
+      "increase": 709
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mongbwalu",
+      "increase": 638
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Katwa",
+      "increase": 468
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mangala",
+      "increase": 295
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Lita",
+      "increase": 245
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nia-Nia",
+      "increase": 227
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Butembo",
+      "increase": 211
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Beni",
+      "increase": 181
+    }
+  ],
+  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+}

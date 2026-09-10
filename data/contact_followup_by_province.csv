@@ -84,3 +84,8 @@ date,province,contacts_under_followup,contacts_seen,followup_rate,target_rate,so
 2026-07-27,Nord-Kivu,4908.0,4056.0,0.826,0.95,SitRep N74/MVB,Province-level contact follow-up table from uploaded SitRep N74.
 2026-07-27,Sud-Kivu,0.0,0.0,,0.95,SitRep N74/MVB,Contact follow-up closed in Sud-Kivu.
 2026-07-27,Tshopo,30.0,30.0,1.0,0.95,SitRep N74/MVB,Province-level contact follow-up table from uploaded SitRep N74.
+2026-09-07,Bas Uélé,152,107,0.704,0.95,SitRep N116/MVEBDB,Province-level contact follow-up from official INSP SitRep N116.
+2026-09-07,Haut-Uélé,623,422,0.677,0.95,SitRep N116/MVEBDB,Province-level contact follow-up from official INSP SitRep N116.
+2026-09-07,Ituri,13289,12054,0.907,0.95,SitRep N116/MVEBDB,Province-level contact follow-up from official INSP SitRep N116.
+2026-09-07,Nord-Kivu,9833,8580,0.873,0.95,SitRep N116/MVEBDB,Province-level contact follow-up from official INSP SitRep N116.
+2026-09-07,Tshopo,282,196,0.695,0.95,SitRep N116/MVEBDB,Province-level contact follow-up from official INSP SitRep N116.

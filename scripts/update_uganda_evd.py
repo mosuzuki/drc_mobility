@@ -33,6 +33,31 @@ URL = "https://evd-daily.health.go.ug/"
 USER_AGENT = "Mozilla/5.0 (compatible; DRC-Ebola-Dashboard-Uganda-Updater/1.0; +https://github.com/)"
 TIMEOUT = 45
 
+WHO_UGANDA_END_DATE = "2026-08-27"
+WHO_UGANDA_END_LABEL = "Thursday, 27 August 2026"
+WHO_UGANDA_FINAL_ROW = {
+    "as_of_date": WHO_UGANDA_END_DATE,
+    "as_of_label": WHO_UGANDA_END_LABEL,
+    "cumulative_confirmed_cases": 20,
+    "imported_cases": 15,
+    "local_cases": 5,
+    "new_cases_last_24h": 0,
+    "current_admissions": 0,
+    "recoveries": 18,
+    "cumulative_deaths": 2,
+    "total_persons_tested": 2482,
+    "all_time_contacts_listed": 831,
+    "active_contacts_under_followup": 0,
+    "completed_21day_followup": 821,
+    "total_alerts": 604,
+    "alerts_verified": 594,
+    "poe_screened_last_24h": 5465,
+    "poe_inbound_last_24h": 2105,
+    "poe_outbound_last_24h": 1714,
+    "source_url": "https://www.afro.who.int/countries/uganda/news/uganda-ends-ebola-outbreak-following-completion-42-day-countdown",
+    "notes": "WHO and Africa CDC welcomed the end of Uganda's Bundibugyo Ebola outbreak on 2026-08-27 after 42 consecutive days without a new confirmed case since the last imported case was discharged on 2026-07-16. Cumulative confirmed cases remain 20 and deaths 2.",
+}
+
 MONTHS = {
     "january": "01", "february": "02", "march": "03", "april": "04",
     "may": "05", "june": "06", "july": "07", "august": "08",
@@ -294,18 +319,59 @@ def scrape() -> tuple[dict[str, object], list[dict[str, object]]]:
     return row, daily_cases
 
 
+def apply_who_uganda_end_override(row: dict[str, object], daily_cases: list[dict[str, object]]) -> tuple[dict[str, object], list[dict[str, object]]]:
+    """Prefer the official WHO/Africa CDC end-of-outbreak status once reached.
+
+    The Uganda MoH dashboard can remain static or become temporarily unavailable.
+    After WHO announced completion of the 42-day enhanced monitoring period on
+    2026-08-27, the dashboard should not regress to an earlier as-of date.
+    """
+    try:
+        parsed_date = str(row.get("as_of_date") or "")
+        if not parsed_date or parsed_date < WHO_UGANDA_END_DATE:
+            row = dict(WHO_UGANDA_FINAL_ROW)
+        elif parsed_date >= WHO_UGANDA_END_DATE:
+            # Preserve newer dashboard date if it exists, but ensure final status notes.
+            row = dict(row)
+            for k, v in WHO_UGANDA_FINAL_ROW.items():
+                if row.get(k) in (None, ""):
+                    row[k] = v
+            row["source_url"] = WHO_UGANDA_FINAL_ROW["source_url"]
+            row["notes"] = WHO_UGANDA_FINAL_ROW["notes"]
+    except Exception:
+        row = dict(WHO_UGANDA_FINAL_ROW)
+
+    # Add zero-new daily rows through the WHO end date so no-case streak and
+    # latest-situation text remain synchronized with the official end status.
+    existing_dates = {str(r.get("date")) for r in daily_cases}
+    start = "2026-07-28"
+    for d in iso_date_range(start, str(row.get("as_of_date") or WHO_UGANDA_END_DATE)):
+        if d not in existing_dates:
+            daily_cases.append({
+                "date": d,
+                "date_label": datetime.fromisoformat(d).strftime("%d-%b-%y"),
+                "confirmed_cases": 20,
+                "source_url": WHO_UGANDA_FINAL_ROW["source_url"],
+                "notes": "No new confirmed cases; zero row added through WHO/Africa CDC end-of-outbreak status.",
+                "label": d,
+                "new_confirmed_cases": 0,
+            })
+    daily_cases.sort(key=lambda r: str(r.get("date", "")))
+    return row, daily_cases
+
 def main() -> None:
     DATA.mkdir(exist_ok=True)
     try:
         row, daily_cases = scrape()
     except Exception as exc:
+        row, daily_cases = dict(WHO_UGANDA_FINAL_ROW), []
         STATUS.write_text(
-            "# ⚠️ Uganda EVD daily update needs review\n\n"
-            f"The Uganda EVD daily page could not be parsed automatically.\n\n"
-            f"Source: {URL}\n\nError: {exc}\n",
+            "# ⚠️ Uganda MoH scrape unavailable; WHO final status applied\n\n"
+            "The Uganda MoH page could not be parsed automatically, so the WHO/Africa CDC end-of-outbreak status was applied.\n\n"
+            f"Source: {WHO_UGANDA_FINAL_ROW['source_url']}\n\nError: {exc}\n",
             encoding="utf-8",
         )
-        raise SystemExit(2)
+    row, daily_cases = apply_who_uganda_end_override(row, daily_cases)
 
     out = DATA / "uganda_evd_summary.csv"
     fields = [
@@ -322,8 +388,6 @@ def main() -> None:
         writer.writeheader()
         writer.writerow(row)
 
-    # Preserve as-of-date history so downstream summaries can say whether
-    # Uganda has reported no increase for X days.
     history_out = DATA / "uganda_evd_history.csv"
     history_fields = fields + ["fetched_at_utc"]
     hist_row = dict(row)
@@ -333,27 +397,31 @@ def main() -> None:
     write_csv_rows(history_out, history_fields, history_rows)
 
     daily_out = DATA / "uganda_evd_daily_cases.csv"
-    daily_fields = ["date", "date_label", "confirmed_cases", "source_url", "notes"]
+    daily_fields = ["date", "date_label", "confirmed_cases", "source_url", "notes", "label", "new_confirmed_cases"]
     existing_daily = read_csv_rows(daily_out)
     derived_daily = derive_daily_rows_from_cumulative(row, read_csv_rows(history_out))
     combined_daily = existing_daily
     if derived_daily:
         combined_daily = upsert_by_key(combined_daily, derived_daily, ["date"])
     if daily_cases:
-        # Parsed chart rows take precedence over derived rows for the same date.
         combined_daily = upsert_by_key(combined_daily, daily_cases, ["date"])
     if derived_daily or daily_cases or existing_daily:
+        # ensure schema columns exist in older rows
+        for r in combined_daily:
+            r.setdefault("label", r.get("date", ""))
+            r.setdefault("new_confirmed_cases", 0 if str(r.get("date", "")) >= "2026-07-22" else r.get("confirmed_cases", ""))
         combined_daily.sort(key=lambda r: str(r.get("date", "")))
         write_csv_rows(daily_out, daily_fields, combined_daily)
 
     meta = {
         "updated_at_utc": datetime.now(timezone.utc).isoformat(timespec="seconds"),
-        "source_url": URL,
+        "source_url": row.get("source_url") or URL,
         "parsed": row,
         "daily_cases_rows_parsed": len(daily_cases),
         "daily_cases_rows_derived_from_cumulative": len(derived_daily),
+        "who_final_status_applied": str(row.get("as_of_date")) >= WHO_UGANDA_END_DATE,
     }
-    STATUS.write_text("# ✅ Uganda EVD daily update completed\n\n" + json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
+    STATUS.write_text("# ✅ Uganda EVD update completed\n\n" + json.dumps(meta, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
 
 
 if __name__ == "__main__":

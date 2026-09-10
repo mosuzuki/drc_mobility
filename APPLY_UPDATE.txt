@@ -1,12 +1,5 @@
-DRC Ebola dashboard N93 update package
+Apply this patch by copying the contents of this folder to the repository root.
 
-This package contains only files changed by the N82-N93 backfill and automatic-update repair.
+This patch updates DRC SitRep-derived dashboard data through validated SitRep N116, updates Uganda to the WHO/Africa CDC 2026-08-27 end-of-outbreak status, and fixes the GitHub Actions workflow to run the integrated updater.
 
-Apply it by copying the contents over the root of your existing drc_mobility-main repository, preserving directories and overwriting files with the same names.
-
-Latest included SitRep: N93 (reporting date 2026-08-15)
-Confirmed cases: 4,945
-Confirmed deaths: 2,325
-Affected health zones: 55
-
-The raw SitRep PDFs and intermediate extracted text are intentionally omitted to keep this package below the ChatGPT upload file-count limit. They are not required for the dashboard to display the updated data or for the repaired updater to run going forward.
+After upload, run the GitHub Action “Auto-update latest INSP SitRep” manually once.

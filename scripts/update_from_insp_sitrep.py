@@ -19,6 +19,7 @@ workflow can create a review issue.
 from __future__ import annotations
 
 import argparse
+import base64
 import csv
 import json
 import math
@@ -95,13 +96,26 @@ HZ_ALIASES = {
     # still valid SitRep rows. They are retained with blank geometry so they
     # contribute to totals while not being mapped as polygons/centroids.
     "Mangala": "Mangala",
+
+    "Biena": "Biena",
+    "Kayna": "Kayna",
+    "Manguredjipa": "Manguredjipa",
+    "Mutwanga": "Mutwanga",
+    "Gombari": "Gombari",
+    "Bafwasende": "Bafwasende",
+    "Viadana": "Viadana",
+    "Ganga": "Ganga",
+    "Buta": "Buta",
+    "Wanie Rukula": "Wanie-Rukula",
+    "Wanie-Rukula": "Wanie-Rukula",
+    "Lubero": "Lubero",
 }
 
 # These names are used for table parsing. The current dashboard's population file is
 # used at runtime to map canonical names to zone_id, lat/lon and province.
 KNOWN_NON_ZONE_ROWS = {
     "sous total", "total", "ituri", "nord-kivu", "nord-kivi", "sud-kivu",
-    "haut-uele", "haut uele", "hautu ele", "tshopo", "provinces", "zones de santé",
+    "haut-uele", "haut uele", "haut-uélé", "haut uele", "hautu ele", "bas uele", "bas-uele", "bas-uélé", "bas uélé", "tshopo", "provinces", "zones de santé",
 }
 
 SESSION = requests.Session()
@@ -370,6 +384,41 @@ def _unique_urls(urls: Iterable[str]) -> list[str]:
     return out
 
 
+def _decode_pdfemb_data_value(value: str, base_url: str) -> list[str]:
+    """Decode INSP WordPress PDF Embedder URLs.
+
+    Recent INSP posts link to /?pdfemb-data=<base64url JSON> rather than to the
+    PDF itself. The JSON contains the real `url`, for example
+    https://insp.cd/wp-content/uploads/2026/09/SitRep_MVEBDB_117_08_09_2026.pdf.
+    Without decoding this, the scheduled updater can discover the article but
+    cannot download the PDF, which leaves downstream dashboard files stale.
+    """
+    out: list[str] = []
+    if not value:
+        return out
+    raw = unquote(str(value)).strip().strip('"\'')
+    # The value is URL-safe base64 without guaranteed padding.
+    for candidate in [raw, raw.replace('-', '+').replace('_', '/')]:
+        try:
+            padded = candidate + ('=' * ((4 - len(candidate) % 4) % 4))
+            decoded = base64.b64decode(padded).decode('utf-8', errors='ignore')
+            obj = json.loads(decoded)
+        except Exception:
+            continue
+        stack = [obj]
+        while stack:
+            item = stack.pop()
+            if isinstance(item, dict):
+                for v in item.values():
+                    stack.append(v)
+            elif isinstance(item, list):
+                stack.extend(item)
+            elif isinstance(item, str):
+                if '.pdf' in item.lower() or '/download/' in item.lower():
+                    out.append(urljoin(base_url, item.replace('\\/', '/')))
+    return out
+
+
 def _urls_from_text(text: str, base_url: str) -> list[str]:
     """Find direct and encoded PDF/viewer URLs in HTML, scripts and REST-rendered content."""
     urls: list[str] = []
@@ -378,16 +427,29 @@ def _urls_from_text(text: str, base_url: str) -> list[str]:
     urls.extend(re.findall(r"https?://[^\"'<>\s)]+(?:\.pdf|/download/)[^\"'<>\s)]*", txt, flags=re.I))
     # Relative PDF URLs.
     urls.extend(urljoin(base_url, u) for u in re.findall(r"(?:(?:/wp-content/|wp-content/|/download/|download/)[^\"'<>\s)]+\.pdf[^\"'<>\s)]*)", txt, flags=re.I))
+
+    # INSP PDF Embedder pattern: /?pdfemb-data=<base64url JSON with url>.
+    for emb in re.findall(r"pdfemb-data=([A-Za-z0-9_\-=]+)", txt, flags=re.I):
+        urls.extend(_decode_pdfemb_data_value(emb, base_url))
+    for val in re.findall(r"[?&]pdfemb-data=([^\"'<>\s&]+)", txt, flags=re.I):
+        urls.extend(_decode_pdfemb_data_value(val, base_url))
+
     # Query params / encoded values in PDF.js, dFlip, WonderPlugin, etc.
     for val in re.findall(r"(?:file|src|pdf|source|url|href)\s*[:=]\s*[\"']([^\"']+)[\"']", txt, flags=re.I):
         decoded = unquote(val)
+        if 'pdfemb-data=' in decoded:
+            for parsed_val in parse_qs(urlparse(decoded).query).get('pdfemb-data', []):
+                urls.extend(_decode_pdfemb_data_value(parsed_val, base_url))
         if ".pdf" in decoded.lower() or "/download/" in decoded.lower():
-            urls.append(urljoin(base_url, decoded))
+            urls.append(urljoin(base_url, decoded.replace('\\/', '/')))
     # data-source, data-pdf, data-file attributes are common in WP PDF viewers.
     for val in re.findall(r"data-[a-z0-9_-]*\s*=\s*[\"']([^\"']+)[\"']", txt, flags=re.I):
         decoded = unquote(val)
+        if 'pdfemb-data=' in decoded:
+            for parsed_val in parse_qs(urlparse(decoded).query).get('pdfemb-data', []):
+                urls.extend(_decode_pdfemb_data_value(parsed_val, base_url))
         if ".pdf" in decoded.lower() or "/download/" in decoded.lower():
-            urls.append(urljoin(base_url, decoded))
+            urls.append(urljoin(base_url, decoded.replace('\\/', '/')))
     return _unique_urls(urls)
 
 
@@ -423,6 +485,13 @@ def guessed_wp_upload_pdf_candidates(article: SitRepArticle | None, article_url:
         f"SitRep_MVE_RDC_N{no:03d}_{dmy_us}.pdf",
         f"SitRep-MVE-RDC-N{no}_{dd}_{mm}_{yy}.pdf",
         f"SitRep_MVE_RDC_N°{no}_{dd}_{mm}_{yy}.pdf",
+        f"SitRep_MVEBDB_{no:03d}_{dmy_us}.pdf",
+        f"SitRep_MVEBDB_{no}_{dmy_us}.pdf",
+        f"SITREP_MVEBDB_{no:03d}_{dmy_us}.pdf",
+        f"SITREP_MVEBDB_{no}_{dmy_us}.pdf",
+        f"SitRep_MVEBD_{no:03d}_{dmy_us}.pdf",
+        f"SITREP_MVE_{no:03d}.pdf",
+        f"SITREP_MVE_{no}.pdf",
     ]
     bases = [
         f"https://insp.cd/wp-content/uploads/{yyyy}/{mm}/",
@@ -524,6 +593,8 @@ def html_pdf_candidates(article_url: str, article: SitRepArticle | None = None) 
     for u in list(urls):
         parsed = urlparse(u)
         qs = parse_qs(parsed.query)
+        for parsed_val in qs.get("pdfemb-data", []):
+            more.extend(_decode_pdfemb_data_value(parsed_val, article_url))
         for key in ("file", "src", "pdf", "source"):
             for val in qs.get(key, []):
                 if ".pdf" in val.lower() or "/download/" in val.lower():
@@ -911,7 +982,9 @@ def load_zone_lookup() -> dict[str, dict[str, Any]]:
         "Miti-Murhesa": "Sud-Kivu",
         "Adja": "Ituri", "Mahagi": "Ituri", "Ariwara": "Ituri", "Mangala": "Ituri", "Nia-Nia": "Ituri",
         "Masereka": "Nord-Kivu", "Vuhovi": "Nord-Kivu", "Lubero": "Nord-Kivu",
-        "Buta": "Bas-Uele", "Viadana": "Bas-Uele",
+        "Buta": "Bas-Uele", "Viadana": "Bas-Uele", "Ganga": "Bas-Uele",
+        "Biena": "Nord-Kivu", "Kayna": "Nord-Kivu", "Manguredjipa": "Nord-Kivu", "Mutwanga": "Nord-Kivu",
+        "Gombari": "Haut-Uele", "Bafwasende": "Tshopo", "Tshopo": "Tshopo",
     }
     for name, province in extra_zone_province.items():
         rec = lookup.setdefault(name, {"zone_id": "", "province": province, "lat": "", "lon": ""})
@@ -1100,6 +1173,7 @@ def extract_health_zone_rows(pdf_path: Path, known_lookup: dict[str, dict[str, A
         tm = [(int(a), int(b)) for a, b in re.findall(r"(?:^|\n)\s*Tshopo\s*\n?\s*(\d{1,5})\s*\n?\s*(\d{1,5})\s*\n?\s*\d+[,.]?\d*%", sec, re.I)]
         if len(tm) >= 2:
             cval, dval = min(tm, key=lambda x: x[0])
+            rows.pop("Tshopo", None)
             add_row("Tshopo", cval, dval, " Disambiguated from the Tshopo province subtotal.")
 
     # 3) Fallback for prose summaries, e.g. "Bunia (173), Rwampara (133)".

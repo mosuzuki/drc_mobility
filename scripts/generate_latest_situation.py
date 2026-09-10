@@ -211,6 +211,13 @@ def uganda_summary_ja() -> str:
     imported = fmt_int(num(r.get("imported_cases") or r.get("cumulative_imported_cases")))
     local = fmt_int(num(r.get("local_cases") or r.get("cumulative_local_cases")))
     asof = r.get("as_of_date", "")
+    notes = str(r.get("notes") or "")
+    if asof >= "2026-08-27" and ("WHO" in notes or "end" in notes.lower() or "終息" in notes):
+        return (
+            f"WHOとAfrica CDCは2026年8月27日、最後の輸入例の退院後42日間に新規確定例がなかったことを踏まえ、"
+            f"ウガンダのBundibugyo Ebola outbreakの終息を確認しました。累積確定例は{cases}例、死亡例は{deaths}例、"
+            f"輸入例は{imported}例、国内感染例は{local}例です。"
+        )
     daily = [x for x in read_csv(DATA / "uganda_evd_daily_cases.csv") if x.get("date")]
     daily.sort(key=lambda x: x.get("date", ""))
     zero_days = None
