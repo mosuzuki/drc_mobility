@@ -4433,7 +4433,7 @@ function updateAssessmentPanel() {
       `Les données nationales vont jusqu'au ${nationalDate}, mais les données régionales s'arrêtent au ${detailDate}. Le risque actuel n'est pas évalué.`
     );
     for (const id of ['assessmentLocal','assessmentCapital','assessmentCrossBorder']) {
-      setAssessmentCard(id, { level: 'uncertain', category: staleCategory, text: staleText, drivers: textByLang('過去のN116等による数値判定は表示していません。', 'Historical numeric risk labels are withheld.', 'Anciennes classifications chiffrées masquées.') });
+      setAssessmentCard(id, { level: 'uncertain', category: staleCategory, text: staleText, drivers: textByLang('地域別データの更新が遅れているため、古い数値によるリスク判定は表示していません。', 'Historical numeric risk labels are withheld.', 'Anciennes classifications chiffrées masquées.') });
     }
     const u = document.getElementById('assessmentUpdated');
     if (u) u.textContent = textByLang(`評価保留／地域別 ${detailDate}`, `Assessment withheld / regions ${detailDate}`, `Évaluation suspendue / zones ${detailDate}`);

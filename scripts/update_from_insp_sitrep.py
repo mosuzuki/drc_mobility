@@ -2091,6 +2091,22 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
     report_no = article.report_no or report_number_from_text(text)
     if report_no is None:
         fail("Could not extract SitRep report number.", f"Article: {article.url}")
+    # Since N117 the INSP publishes wide, multi-page cumulative tables with
+    # wrapped health-zone names. The legacy pdfplumber parser can silently
+    # drop entire provinces. Use the strictly reconciled layout parser instead.
+    if report_no >= 117:
+        from import_sitrep_archive import extract_report, apply_reports
+        modern = extract_report(pdf_path)
+        if modern['report_no'] != f'N{report_no}':
+            raise ValueError(f'SitRep number mismatch: article N{report_no} vs PDF {modern["report_no"]}')
+        if not force and report_no in existing_report_numbers():
+            write_status('SitRep already imported', f'N{report_no} already recorded from full INSP PDF.', ok=True)
+            return False
+        apply_reports([modern])
+        write_status('SitRep INSP cumulative-table update completed',
+            f'N{report_no}: {modern["date"]}; {modern["cases"]} cases, {modern["deaths"]} confirmed deaths; '
+            f'{len(modern["zones"])} reconciled health zones.', ok=True)
+        return True
     report_label = f"SitRep N{report_no}/MVB"
     report_date = find_date_field(text, "Date de rapportage") or article.reporting_date
     publication_date = find_date_field(text, "Date de publication")

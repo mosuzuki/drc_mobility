@@ -89,3 +89,82 @@ date,province,contacts_under_followup,contacts_seen,followup_rate,target_rate,so
 2026-09-07,Ituri,13289,12054,0.907,0.95,SitRep N116/MVEBDB,Province-level contact follow-up from official INSP SitRep N116.
 2026-09-07,Nord-Kivu,9833,8580,0.873,0.95,SitRep N116/MVEBDB,Province-level contact follow-up from official INSP SitRep N116.
 2026-09-07,Tshopo,282,196,0.695,0.95,SitRep N116/MVEBDB,Province-level contact follow-up from official INSP SitRep N116.
+2026-09-08,Bas-Uélé,152,108,0.710526,0.95,INSP SitRep N117 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-08,Haut-Uélé,11,7,0.636364,0.95,INSP SitRep N117 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-08,Ituri,12446,11210,0.900691,0.95,INSP SitRep N117 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-08,Nord-Kivu,10358,8733,0.843116,0.95,INSP SitRep N117 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-08,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N117 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-08,Tshopo,268,223,0.832090,0.95,INSP SitRep N117 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-09,Bas-Uélé,152,122,0.802632,0.95,INSP SitRep N118 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-09,Nord-Kivu,10600,9131,0.861415,0.95,INSP SitRep N118 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-09,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N118 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-09,Tshopo,284,237,0.834507,0.95,INSP SitRep N118 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-10,Bas-Uélé,134,104,0.776119,0.95,INSP SitRep N119 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-10,Haut-Uélé,1755,1335,0.760684,0.95,INSP SitRep N119 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-10,Ituri,15118,13606,0.899987,0.95,INSP SitRep N119 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-10,Nord-Kivu,11381,9865,0.866796,0.95,INSP SitRep N119 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-10,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N119 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-10,Tshopo,284,207,0.728873,0.95,INSP SitRep N119 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-11,Bas-Uélé,132,102,0.772727,0.95,INSP SitRep N120 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-11,Haut-Uélé,11,6,0.545455,0.95,INSP SitRep N120 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-11,Ituri,13401,11959,0.892396,0.95,INSP SitRep N120 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-11,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N120 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-11,Tshopo,256,206,0.804688,0.95,INSP SitRep N120 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-12,Bas-Uélé,181,151,0.834254,0.95,INSP SitRep N121 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-12,Haut-Uélé,11,6,0.545455,0.95,INSP SitRep N121 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-12,Nord-Kivu,12310,10780,0.875711,0.95,INSP SitRep N121 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-12,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N121 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-12,Tshopo,255,209,0.819608,0.95,INSP SitRep N121 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-13,Bas-Uélé,179,149,0.832402,0.95,INSP SitRep N122 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-13,Haut-Uélé,11,6,0.545455,0.95,INSP SitRep N122 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-13,Ituri,14346,12561,0.875575,0.95,INSP SitRep N122 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-13,Nord-Kivu,11774,8146,0.691863,0.95,INSP SitRep N122 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-13,Sud Ubangi,39,16,0.410256,0.95,INSP SitRep N122 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-13,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N122 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-14,Bas-Uélé,186,146,0.784946,0.95,INSP SitRep N123 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-14,Haut-Uélé,11,7,0.636364,0.95,INSP SitRep N123 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-14,Nord-Kivu,12490,10854,0.869015,0.95,INSP SitRep N123 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-14,Sud Ubangi,39,16,0.410256,0.95,INSP SitRep N123 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-14,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N123 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-14,Tshopo,18,8,0.444444,0.95,INSP SitRep N123 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-15,Bas-Uélé,249,169,0.678715,0.95,INSP SitRep N124 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-15,Haut-Uélé,11,7,0.636364,0.95,INSP SitRep N124 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-15,Ituri,17576,16066,0.914087,0.95,INSP SitRep N124 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-15,Nord-Kivu,13386,11146,0.832661,0.95,INSP SitRep N124 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-15,Sud Ubangi,39,16,0.410256,0.95,INSP SitRep N124 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-15,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N124 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-15,Tshopo,30,18,0.600000,0.95,INSP SitRep N124 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-16,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N125 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-17,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N126 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-18,Sud-Kivu,9,5,0.555556,0.95,INSP SitRep N127 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-27,Nord-Kivu,21,20,0.952381,0.95,INSP SitRep N136 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-29,Haut-Uélé,976,807,0.826844,0.95,INSP SitRep N138 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-30,Haut-Uélé,2082,1616,0.776177,0.95,INSP SitRep N139 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-09-30,Nord-Kivu,14665,11595,0.790658,0.95,INSP SitRep N139 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-10,Haut-Uélé,13,6,0.461538,0.95,INSP SitRep N149 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-10,Ituri,36,13,0.361111,0.95,INSP SitRep N149 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-10,Nord-Kivu,34,6,0.176471,0.95,INSP SitRep N149 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-11,Ituri,36,13,0.361111,0.95,INSP SitRep N150 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-11,Nord-Kivu,34,6,0.176471,0.95,INSP SitRep N150 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-12,Haut-Uélé,13,6,0.461538,0.95,INSP SitRep N151 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-12,Ituri,36,13,0.361111,0.95,INSP SitRep N151 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-12,Nord-Kivu,34,6,0.176471,0.95,INSP SitRep N151 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-13,Ituri,36,13,0.361111,0.95,INSP SitRep N152 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-13,Nord-Kivu,34,6,0.176471,0.95,INSP SitRep N152 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-14,Haut-Uélé,13,6,0.461538,0.95,INSP SitRep N153 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-14,Ituri,36,15,0.416667,0.95,INSP SitRep N153 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-14,Nord-Kivu,34,6,0.176471,0.95,INSP SitRep N153 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-15,Nord-Kivu,34,6,0.176471,0.95,INSP SitRep N154 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-16,Haut-Uélé,13,6,0.461538,0.95,INSP SitRep N155 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-16,Nord-Kivu,34,6,0.176471,0.95,INSP SitRep N155 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-19,Bas-Uélé,743,741,0.997308,0.95,INSP SitRep N158 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-19,Haut-Uélé,1694,1576,0.930342,0.95,INSP SitRep N158 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-19,Nord-Kivu,19316,15394,0.796956,0.95,INSP SitRep N158 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-19,Sud Ubangi,44,44,1.000000,0.95,INSP SitRep N158 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-19,Tshopo,1204,1041,0.864618,0.95,INSP SitRep N158 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-20,Bas-Uélé,748,740,0.989305,0.95,INSP SitRep N159 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-20,Haut-Uélé,1430,1286,0.899301,0.95,INSP SitRep N159 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-20,Ituri,6879,6382,0.927751,0.95,INSP SitRep N159 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-20,Nord-Kivu,19675,14423,0.733062,0.95,INSP SitRep N159 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-20,Sud Ubangi,112,109,0.973214,0.95,INSP SitRep N159 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
+2026-10-20,Tshopo,1286,1077,0.837481,0.95,INSP SitRep N159 / MVE-BDBV (uploaded original PDF),Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.
