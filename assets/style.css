@@ -2189,3 +2189,21 @@ main > .grid-two:first-of-type .right-analysis-panel {
 /* Explicitly reveal a zone-data stale warning only when the national snapshot has advanced. */
 #healthZoneActivityNote[hidden]{display:none!important;}
 #healthZoneActivityNote:not([hidden]){display:block; margin:10px 0; padding:10px 12px; border-left:3px solid #b45309; background:rgba(180,83,9,0.08); font-weight:600; line-height:1.45;}
+
+/* Distinguish current national totals from historical regional detail. */
+.data-consistency-notice, .map-data-notice {
+  display: block;
+  border: 1px solid #dda366;
+  background: #fff9f0;
+  color: #75400d;
+  border-radius: 10px;
+  padding: 12px 15px;
+  font-size: .9rem;
+  line-height: 1.55;
+  font-weight: 650;
+  margin: 0 0 16px;
+}
+.data-consistency-notice[hidden], .map-data-notice[hidden] { display: none !important; }
+.map-data-notice { font-size: .82rem; margin: 10px 0 12px; padding: 9px 12px; }
+.hz-status-badge.stale { background: #f2f4f7 !important; color: #475467 !important; border-color: #d0d5dd !important; }
+.hz-activity-card.stale { background: #f8f9fa; border-color: #d0d5dd; color: #475467; }

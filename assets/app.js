@@ -343,6 +343,51 @@ function initLanguageControls() {
   applyStaticLanguage();
 }
 
+function latestNationalSummary() {
+  return (reportSummary || []).filter(r => r.reporting_date && Number(r.drc_confirmed_cases) > 0)
+    .slice().sort((a, b) => String(a.reporting_date).localeCompare(String(b.reporting_date))).slice(-1)[0] || null;
+}
+
+function healthZoneFreshness() {
+  const national = latestNationalSummary();
+  const nationalDate = String(national?.reporting_date || '');
+  const detailsDate = (cases || []).reduce((d, r) => String(r.date || '') > d ? String(r.date) : d, '');
+  const lagDays = nationalDate && detailsDate ? Math.max(0, daysBetweenIso(detailsDate, nationalDate)) : NaN;
+  return { national, nationalDate, detailsDate, lagDays, stale: !Number.isFinite(lagDays) || lagDays > 7 };
+}
+
+function refreshFreshnessNotices() {
+  const info = healthZoneFreshness();
+  const national = info.national;
+  const source = String(national?.report_no || '').startsWith('ECDC-') ? 'ECDC / INSP' : 'INSP SitRep';
+  const globalEl = document.getElementById('dataConsistencyNotice');
+  const mapEl = document.getElementById('healthZoneMapNotice');
+  if (!globalEl && !mapEl) return;
+  if (!info.stale) {
+    if (globalEl) { globalEl.hidden = true; globalEl.textContent = ''; }
+    if (mapEl) { mapEl.hidden = true; mapEl.textContent = ''; }
+    return;
+  }
+  const nationalLabel = displayDateLabel(info.nationalDate);
+  const detailLabel = info.detailsDate ? displayDateLabel(info.detailsDate) : '—';
+  if (globalEl) {
+    globalEl.hidden = false;
+    globalEl.textContent = textByLang(
+      `データの基準日が異なります。全国集計：${nationalLabel}（${source}）／ヘルスゾーン別詳細：${detailLabel}。KPIは全国最新値ですが、地図・地域別リスク・ヘルスゾーン別の経過日数は最新ではありません。地域別データに基づく行政判断には使用しないでください。`,
+      `Data dates differ. National totals: ${info.nationalDate} (${source}); health-zone details: ${info.detailsDate || 'unavailable'}. National KPIs are current to the published snapshot; map and regional risk/elapsed-day information are outdated and must not guide administrative decisions.`,
+      `Dates de référence différentes. Totaux nationaux : ${info.nationalDate} (${source}) ; zones de santé : ${info.detailsDate || 'indisponibles'}. Ne pas utiliser les données régionales anciennes pour les décisions.`
+    );
+  }
+  if (mapEl) {
+    mapEl.hidden = false;
+    mapEl.textContent = textByLang(
+      `過去の地域別データ（${detailLabel}時点）。全国最新集計（${nationalLabel}）を地図化したものではありません。`,
+      `Historical health-zone snapshot (${info.detailsDate}). This is NOT a map of the latest national totals (${info.nationalDate}).`,
+      `Données historiques par zone (${info.detailsDate}) ; ce n'est PAS une carte des totaux nationaux du ${info.nationalDate}.`
+    );
+  }
+}
+
 function updateDataStatusText() {
   const statusEl = document.getElementById('dataStatus');
   const updatedEl = document.getElementById('lastUpdated');
@@ -363,7 +408,10 @@ function updateDataStatusText() {
       `Totaux nationaux vérifiés par l'ECDC (${latestReporting}). Données par zone plus anciennes (${lastZoneDate}), impropres aux décisions actuelles.`
     );
     statusEl.textContent = textByLang(`DRC全国集計：${latestReporting}（ECDC確認）`, `DRC national snapshot: ${latestReporting} (ECDC)`, `Situation nationale RDC : ${latestReporting} (ECDC)`);
-    updatedEl.textContent = message;
+    updatedEl.textContent = textByLang(
+      `全国値 ${latestReporting}／ヘルスゾーン ${displayDateLabel(lastZoneDate)}。地域別情報は未同期です。`,
+      `National ${latestReporting} / zones ${displayDateLabel(lastZoneDate)}. Regional data are out of sync.`,
+      `National ${latestReporting} / zones ${displayDateLabel(lastZoneDate)}. Données régionales non synchronisées.`);
     return;
   }
   if (currentLang === 'ja') {
@@ -1383,23 +1431,23 @@ function setEpiKpis() {
   const kpiUganda = document.getElementById('kpiUganda');
   const kpiScenario = document.getElementById('kpiScenario');
   if (!kpiTotal) return;
-  const d = selectedCaseDate();
-  const meta = reportSummaryForDate(d);
-  const rows = caseRowsLatest();
-  const mappedCases = rows.reduce((a,b)=>a+toNumber(b.confirmed_cases),0);
-  const mappedDeaths = rows.reduce((a,b)=>a+toNumber(b.confirmed_deaths),0);
-  if (caseDisplayMode === 'recent') {
-    kpiTotal.textContent = fmt.format(Math.round(mappedCases));
-    kpiKinshasa.textContent = fmt.format(Math.round(mappedDeaths));
-    if (kpiTotalMeta) kpiTotalMeta.textContent = textByLang(`直近1週間の地図化可能な増加分；${displayDateLabel(comparisonCaseDate(d))}〜${displayDateLabel(d)}`, `Mappable increase in the most recent week; ${displayDateLabel(comparisonCaseDate(d))} to ${displayDateLabel(d)}`, `Augmentation mappable de la dernière semaine ; ${displayDateLabel(comparisonCaseDate(d))} au ${displayDateLabel(d)}`);
-    kpiKinshasaShare.textContent = textByLang(`地図化可能なhealth-zone増加分；${displayDateLabel(comparisonCaseDate(d))}〜${displayDateLabel(d)}`, `Mappable health-zone increase; ${displayDateLabel(comparisonCaseDate(d))} to ${displayDateLabel(d)}`, `Augmentation mappable par zone de santé ; ${displayDateLabel(comparisonCaseDate(d))} au ${displayDateLabel(d)}`);
-  } else {
-    kpiTotal.textContent = fmt.format(toNumber(meta?.drc_confirmed_cases) || Math.round(mappedCases));
-    kpiKinshasa.textContent = fmt.format(toNumber(meta?.drc_confirmed_deaths) || Math.round(mappedDeaths));
-    if (kpiTotalMeta) kpiTotalMeta.textContent = meta?.report_no ? textByLang(`${meta.report_no}、報告日 ${displayDateLabel(meta.reporting_date || d)}`, `${meta.report_no}, reporting ${displayDateLabel(meta.reporting_date || d)}`, `${meta.report_no}, rapport ${displayDateLabel(meta.reporting_date || d)}`) : textByLang(`報告日 ${displayDateLabel(d)}`, `Reporting ${displayDateLabel(d)}`, `Rapport ${displayDateLabel(d)}`);
-    const cfr = (toNumber(meta?.drc_confirmed_deaths) || mappedDeaths) / Math.max((toNumber(meta?.drc_confirmed_cases) || mappedCases), 1);
-    kpiKinshasaShare.textContent = textByLang(`確定例におけるCFR ${pct(cfr)}；${meta?.report_no || ''}`, `${pct(cfr)} CFR among confirmed; ${meta?.report_no || ''}`, `CFR parmi les cas confirmés ${pct(cfr)} ; ${meta?.report_no || ''}`);
-  }
+  // These cards are NATIONAL totals, not the currently selected historical map date.
+  const meta = latestNationalSummary();
+  const nationalCases = Number(meta?.drc_confirmed_cases);
+  const nationalDeaths = Number(meta?.drc_confirmed_deaths);
+  const validNational = Number.isFinite(nationalCases) && nationalCases > 0 &&
+    Number.isFinite(nationalDeaths) && nationalDeaths >= 0 && nationalDeaths <= nationalCases;
+  kpiTotal.textContent = validNational ? fmt.format(Math.round(nationalCases)) : '—';
+  kpiKinshasa.textContent = validNational ? fmt.format(Math.round(nationalDeaths)) : '—';
+  const nationalDate = meta?.reporting_date ? displayDateLabel(meta.reporting_date) : '—';
+  const nationalSource = String(meta?.report_no || '').startsWith('ECDC-') ? 'ECDC確認・INSP由来' : (meta?.report_no || 'INSP');
+  if (kpiTotalMeta) kpiTotalMeta.textContent = textByLang(
+    `全国最新 ${nationalDate}（${nationalSource}）`,
+    `National latest ${nationalDate} (${nationalSource})`,
+    `National : ${nationalDate} (${nationalSource})`);
+  if (kpiKinshasaShare) kpiKinshasaShare.textContent = validNational
+    ? textByLang(`粗CFR ${pct(nationalDeaths / nationalCases)}／全国最新 ${nationalDate}`, `Crude CFR ${pct(nationalDeaths / nationalCases)} / national ${nationalDate}`, `CFR brut ${pct(nationalDeaths / nationalCases)} / national ${nationalDate}`)
+    : textByLang('全国確定死亡例データなし', 'National deaths unavailable', 'Décès nationaux indisponibles');
   const ug = latestUgandaEvdSummary();
   const ugCases = toNumber(ug?.cumulative_confirmed_cases);
   const ugDeaths = toNumber(ug?.cumulative_deaths);
@@ -3697,6 +3745,19 @@ function updateFinalSizeProjectionChart() {
   const scenario = document.getElementById('finalSizeScenarioSelect')?.value || 'ensemble';
   const summaryEl = document.getElementById('finalSizeSummary');
   const statsEl = document.getElementById('finalSizeStats');
+  const freshness = healthZoneFreshness();
+  if (freshness.stale) {
+    if (summaryEl) summaryEl.innerHTML = '';
+    if (statsEl) statsEl.textContent = textByLang(
+      `全国集計は${displayDateLabel(freshness.nationalDate)}時点です。詳細SitRepが${displayDateLabel(freshness.detailsDate)}で止まっているため、モデルの最新性・適切性を確認できず、最終サイズ予測を保留します。`,
+      `Latest national total ${freshness.nationalDate}; detailed SitRep only through ${freshness.detailsDate}. Final-size forecasts are withheld pending a current full report.`,
+      `Total national au ${freshness.nationalDate} ; SitRep détaillé au ${freshness.detailsDate}. Prévision de taille finale suspendue.`);
+    Plotly.newPlot(el, [], { margin: { l: 40, r: 20, t: 20, b: 40 }, annotations: [
+      { x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', showarrow: false,
+        text: textByLang('推定保留：最新詳細データ未取得', 'Forecast withheld: latest detailed data missing', 'Estimation suspendue : données détaillées manquantes'), font: { size: 13, color: '#667085' } }],
+      paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { responsive: true, displayModeBar: false });
+    return;
+  }
   const record = getFinalSizeProjectionRecord(selectedCaseDate());
   const proj = finalProjectionScenarioData(record, scenario);
 
@@ -4091,6 +4152,22 @@ function makeForecast(selectedDate = selectedCaseDate()) {
 function updateForecastChart() {
   const el = document.getElementById('forecastChart');
   if (!el) return;
+  const freshness = healthZoneFreshness();
+  if (freshness.stale) {
+    Plotly.newPlot(el, [], {
+      margin: { l: 40, r: 20, t: 20, b: 40 },
+      annotations: [{ x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', showarrow: false,
+        text: textByLang('最新SitRep詳細データ不足のため予測を保留', 'Projection withheld: latest detailed SitRep missing', 'Projection suspendue : SitRep détaillé manquant'),
+        font: { size: 13, color: '#667085' } }],
+      paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
+    }, { responsive: true, displayModeBar: false });
+    const stats = document.getElementById('forecastStats');
+    if (stats) stats.textContent = textByLang(
+      `全国集計は${displayDateLabel(freshness.nationalDate)}まで更新されていますが、最終の地域別SitRepは${displayDateLabel(freshness.detailsDate)}です。古い報告日に基づく短期予測は表示しません。`,
+      `National data: ${freshness.nationalDate}; latest detailed SitRep: ${freshness.detailsDate}. Historical short-term projections are withheld.`,
+      `Données nationales : ${freshness.nationalDate} ; SitRep détaillé : ${freshness.detailsDate}. Anciennes projections masquées.`);
+    return;
+  }
   const fc = makeForecast(selectedCaseDate());
   if (!fc) {
     Plotly.newPlot('forecastChart', [], {
@@ -4345,6 +4422,27 @@ function crossBorderRiskAssessment() {
 }
 
 function updateAssessmentPanel() {
+  const freshness = healthZoneFreshness();
+  if (freshness.stale) {
+    const detailDate = freshness.detailsDate ? displayDateLabel(freshness.detailsDate) : '—';
+    const nationalDate = freshness.nationalDate ? displayDateLabel(freshness.nationalDate) : '—';
+    const staleCategory = textByLang('評価保留（地域別データ未更新）', 'Withheld — regional data outdated', 'Évaluation suspendue — données régionales anciennes');
+    const staleText = textByLang(
+      `全国値は${nationalDate}まで更新されていますが、地域別データは${detailDate}時点です。最新の地域別リスクを判断できません。`,
+      `National data extend to ${nationalDate}, but regional observations end on ${detailDate}; current regional risk cannot be assessed.`,
+      `Les données nationales vont jusqu'au ${nationalDate}, mais les données régionales s'arrêtent au ${detailDate}. Le risque actuel n'est pas évalué.`
+    );
+    for (const id of ['assessmentLocal','assessmentCapital','assessmentCrossBorder']) {
+      setAssessmentCard(id, { level: 'uncertain', category: staleCategory, text: staleText, drivers: textByLang('過去のN116等による数値判定は表示していません。', 'Historical numeric risk labels are withheld.', 'Anciennes classifications chiffrées masquées.') });
+    }
+    const u = document.getElementById('assessmentUpdated');
+    if (u) u.textContent = textByLang(`評価保留／地域別 ${detailDate}`, `Assessment withheld / regions ${detailDate}`, `Évaluation suspendue / zones ${detailDate}`);
+    const m = document.getElementById('publicHealthAssessmentMeta');
+    if (m) m.textContent = textByLang('地域別データ未同期', 'Regional data not synchronized', 'Données régionales non synchronisées');
+    return;
+  }
+  const m = document.getElementById('publicHealthAssessmentMeta');
+  if (m) m.textContent = textByLang('現在の指標に基づく評価', 'Assessment based on available indicators', 'Évaluation fondée sur les indicateurs');
   const fc = makeForecast(selectedCaseDate());
   setAssessmentCard('assessmentLocal', localTrajectoryAssessment(fc));
   setAssessmentCard('assessmentCapital', capitalRiskAssessment());
@@ -4402,10 +4500,10 @@ function updateHealthZoneActivityPanel() {
   }
   summaryEl.innerHTML = [
     mkCard(`${referenceNo || '—'} / ${displayDateLabel(referenceDate)}`, textByLang('基準SitRep', 'Reference SitRep', 'SitRep de référence')),
-    mkCard(fmt.format(rows.length), textByLang('影響ヘルスゾーン', 'Affected health zones', 'Zones de santé touchées')),
-    mkCard(fmt.format(counts.active_0_21 || 0), textByLang('0〜21日以内に新規症例報告あり', 'New case reported within 0–21 days', 'Nouveau cas rapporté ≤21 jours'), 'active'),
-    mkCard(fmt.format(counts.watch_22_41 || 0), textByLang('22〜41日新規症例報告なし', 'No new case report for 22–41 days', 'Aucun nouveau cas 22–41 j'), 'watch'),
-    mkCard(fmt.format(counts.cooldown_42_plus || 0), textByLang('42日以上新規症例報告なし', 'No new case report for 42+ days', 'Aucun nouveau cas ≥42 j'), 'cooldown')
+    mkCard(fmt.format(rows.length), hzOutdated ? textByLang('当時の影響ヘルスゾーン', 'Affected zones at reference date', 'Zones touchées à la date de référence') : textByLang('影響ヘルスゾーン', 'Affected health zones', 'Zones de santé touchées')),
+    mkCard(fmt.format(counts.active_0_21 || 0), textByLang('0〜21日以内に新規症例報告あり', 'New case reported within 0–21 days', 'Nouveau cas rapporté ≤21 jours'), hzOutdated ? 'stale' : 'active'),
+    mkCard(fmt.format(counts.watch_22_41 || 0), textByLang('22〜41日新規症例報告なし', 'No new case report for 22–41 days', 'Aucun nouveau cas 22–41 j'), hzOutdated ? 'stale' : 'watch'),
+    mkCard(fmt.format(counts.cooldown_42_plus || 0), textByLang('42日以上新規症例報告なし', 'No new case report for 42+ days', 'Aucun nouveau cas ≥42 j'), hzOutdated ? 'stale' : 'cooldown')
   ].join('');
 
   const q = normalizedString(searchEl?.value || '');
@@ -4433,18 +4531,17 @@ function updateHealthZoneActivityPanel() {
     tbody.innerHTML = `<tr><td colspan="6">${textByLang('検索条件に一致するヘルスゾーンはありません。', 'No health zones match the search.', 'Aucune zone de santé ne correspond à la recherche.')}</td></tr>`;
   } else {
     tbody.innerHTML = visible.map(r => {
-      const cls = healthZoneStatusClass(r);
+      const cls = hzOutdated ? 'stale' : healthZoneStatusClass(r);
       return `<tr>
         <td>${escapeHtml(r.province || '')}</td>
         <td><strong>${escapeHtml(r.health_zone || '')}</strong></td>
         <td class="num">${fmt.format(Math.round(toNumber(r.cumulative_confirmed)))}</td>
         <td>${displayDateLabel(r.last_increase_report_date)}</td>
-        <td class="num">${fmt.format(Math.round(toNumber(r.days_since_last_increase)))}${textByLang('日', 'd', ' j')}</td>
-        <td><span class="hz-status-badge ${cls}">${escapeHtml(healthZoneStatusLabel(r))}</span></td>
+        <td class="num">${fmt.format(Math.round(toNumber(r.days_since_last_increase)))}${textByLang('日（当時）', 'd (then)', ' j (à la date)')}</td>
+        <td><span class="hz-status-badge ${cls}">${escapeHtml(hzOutdated ? textByLang('現在判定不可', 'Not current', 'Non actuel') : healthZoneStatusLabel(r))}</span></td>
       </tr>`;
     }).join('');
   }
-  if (noteEl) noteEl.textContent = '';
 }
 
 
@@ -4586,6 +4683,7 @@ function updateDashboard() {
   const destRows = groupByDestination(selectedFlows());
   updateKpis(destRows);
   setEpiKpis();
+  refreshFreshnessNotices();
   updateLatestSituationSummary();
   updateAssessmentPanel();
   updateEpiTimelineChart();

@@ -27,6 +27,7 @@ STEPS = [
     ("Reported-case Rt estimates", [sys.executable, "scripts/generate_rt_estimates.py"], True),
     ("Delay-adjusted CFR estimates", [sys.executable, "scripts/generate_cfr_estimates.py"], True),
     ("Dashboard output validation", [sys.executable, "scripts/validate_dashboard_outputs.py"], True),
+    ("Frontend national/regional data integrity", ["node", "scripts/test_frontend_data_consistency.cjs"], True),
 ]
 
 
