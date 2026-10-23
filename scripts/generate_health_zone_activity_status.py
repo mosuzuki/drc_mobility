@@ -83,6 +83,17 @@ def main() -> None:
     if not ref_date:
         raise SystemExit(f"Invalid latest reporting_date: {ref_date_s}")
     ref_no = latest.get("report_no", "")
+    # ECDC/WHO national-only snapshots do not contain health-zone data. Never
+    # extrapolate last-case-report dates from them; preserve the most recent real
+    # health-zone table as its own dated snapshot.
+    case_dates = sorted({str(r.get('date','')) for r in cases if str(r.get('date','')) <= ref_date_s})
+    if ref_date_s not in case_dates and case_dates:
+        ref_date_s = case_dates[-1]
+        ref_date = parse_date(ref_date_s)
+        for s in reversed(summary):
+            if s.get('reporting_date') == ref_date_s and not s.get('report_no','').startswith('ECDC-'):
+                ref_no = s.get('report_no','')
+                break
 
     # Only zones present in the latest SitRep are currently affected. Historical
     # rows are still used to determine the last report date on which each current

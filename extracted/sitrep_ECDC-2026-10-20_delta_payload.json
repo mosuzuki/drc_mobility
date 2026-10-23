@@ -1,0 +1,19 @@
+{
+  "report_no": "ECDC-2026-10-20",
+  "reporting_date": "2026-10-20",
+  "previous_report_no": "ECDC-2026-10-19",
+  "previous_reporting_date": "2026-10-19",
+  "confirmed_cases": {
+    "previous": 9637,
+    "latest": 9704,
+    "change": 67
+  },
+  "confirmed_deaths": {
+    "previous": 4646,
+    "latest": 4687,
+    "change": 41
+  },
+  "province_new_cases_from_health_zone_delta": {},
+  "top_health_zone_increases": [],
+  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+}

@@ -17,6 +17,7 @@ STATUS = ROOT / ".dashboard_update_all_status.md"
 
 STEPS = [
     ("INSP SitRep update", [sys.executable, "scripts/update_from_insp_sitrep.py"], False),
+    ("ECDC nationally validated fallback", [sys.executable, "scripts/update_from_ecdc.py"], False),
     ("Repair latest SitRep values", [sys.executable, "scripts/repair_latest_sitrep_values.py"], True),
     ("Uganda EVD update", [sys.executable, "scripts/update_uganda_evd.py"], False),
     ("Health-zone activity status", [sys.executable, "scripts/generate_health_zone_activity_status.py"], True),

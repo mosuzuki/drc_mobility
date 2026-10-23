@@ -2185,3 +2185,7 @@ main > .grid-two:first-of-type .right-analysis-panel {
     min-height: 280px !important;
   }
 }
+
+/* Explicitly reveal a zone-data stale warning only when the national snapshot has advanced. */
+#healthZoneActivityNote[hidden]{display:none!important;}
+#healthZoneActivityNote:not([hidden]){display:block; margin:10px 0; padding:10px 12px; border-left:3px solid #b45309; background:rgba(180,83,9,0.08); font-weight:600; line-height:1.45;}

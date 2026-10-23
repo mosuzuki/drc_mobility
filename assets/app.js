@@ -355,6 +355,17 @@ function updateDataStatusText() {
   const latestReporting = latestSummary?.reporting_date ? displayDateLabel(latestSummary.reporting_date) : textByLang('最新報告日', 'latest reporting date', 'dernière date de rapport');
   const latestPublished = latestSummary?.publication_date ? displayDateLabel(latestSummary.publication_date) : textByLang('最新公開日', 'latest publication date', 'dernière date de publication');
   const ugLatest = latestUgandaEvdSummary();
+  if (String(latestReport).startsWith('ECDC-')) {
+    const lastZoneDate = (cases || []).reduce((v,r)=>(r.date || '') > v ? r.date : v, '');
+    const message = textByLang(
+      `DRC全国値はECDC公表・INSP由来の${latestReporting}時点の確定例・死亡例です。詳細SitRep未取得のため、ヘルスゾーン別分布・リスク表示は${displayDateLabel(lastZoneDate)}時点の古いデータです。`,
+      `National confirmed cases/deaths are from an ECDC-verified INSP snapshot (${latestReporting}). Health-zone detail is older (${lastZoneDate}) and must not be used for current risk decisions.`,
+      `Totaux nationaux vérifiés par l'ECDC (${latestReporting}). Données par zone plus anciennes (${lastZoneDate}), impropres aux décisions actuelles.`
+    );
+    statusEl.textContent = textByLang(`DRC全国集計：${latestReporting}（ECDC確認）`, `DRC national snapshot: ${latestReporting} (ECDC)`, `Situation nationale RDC : ${latestReporting} (ECDC)`);
+    updatedEl.textContent = message;
+    return;
+  }
   if (currentLang === 'ja') {
     statusEl.textContent = `SitRep ${firstReport.replace(/^N/i, 'N')}–${latestReport}まで更新済み（最新 ${latestReport}）`;
     const ugMsg = ugLatest ? `ウガンダ症例はUganda Ministry of Health EVD daily page（${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}）から自動取得し、最新は${displayDateLabel(ugLatest.as_of_date)}時点です。` : 'ウガンダ症例はUganda Ministry of Health EVD daily page（https://evd-daily.health.go.ug/）から自動取得する設定です。';
@@ -1994,7 +2005,9 @@ function updateLatestSituationSummary() {
     if (ugandaEl) ugandaEl.textContent = ugandaSummary || formatUgandaLatestSituation();
     if (metaEl) {
       const prev = ls.previous_report_no ? `${ls.previous_report_no}→${ls.report_no}` : ls.report_no;
-      metaEl.textContent = `${prev}、報告日 ${displayDateLabel(ls.report_date)}。`;
+      metaEl.textContent = String(ls.report_no || '').startsWith('ECDC-')
+        ? `ECDC公表（INSP由来の全国値）、集計日 ${displayDateLabel(ls.report_date)}。詳細SitRepは未取得。`
+        : `${prev}、報告日 ${displayDateLabel(ls.report_date)}。`;
     }
     return;
   }
@@ -4379,6 +4392,14 @@ function updateHealthZoneActivityPanel() {
     return acc;
   }, {});
   const mkCard = (value, label, cls='') => `<div class="hz-activity-card ${cls}"><strong>${escapeHtml(value)}</strong><span>${escapeHtml(label)}</span></div>`;
+  const latestNationalDate = (reportSummary || []).reduce((a,r)=>(r.reporting_date || '')>(a || '') ? r.reporting_date : a,'');
+  const hzOutdated = latestNationalDate && latestNationalDate > referenceDate;
+  if (noteEl) {
+    noteEl.hidden = !hzOutdated;
+    noteEl.textContent = hzOutdated
+      ? textByLang(`注意：この表は${displayDateLabel(referenceDate)}時点の保健区データです。全国の最新データ（${displayDateLabel(latestNationalDate)}）とは同期していません。各保健区の隔離判断には使用しないでください。`, `CAUTION: health-zone data are only available through ${referenceDate}, older than the national snapshot (${latestNationalDate}); do not use for decisions on quarantine.`, `ATTENTION : données par zone au ${referenceDate}, antérieures aux totaux nationaux du ${latestNationalDate}. Ne pas utiliser pour décider d'une quarantaine.`)
+      : '';
+  }
   summaryEl.innerHTML = [
     mkCard(`${referenceNo || '—'} / ${displayDateLabel(referenceDate)}`, textByLang('基準SitRep', 'Reference SitRep', 'SitRep de référence')),
     mkCard(fmt.format(rows.length), textByLang('影響ヘルスゾーン', 'Affected health zones', 'Zones de santé touchées')),

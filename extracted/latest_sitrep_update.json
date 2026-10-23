@@ -1,7 +1,7 @@
 {
-  "report_no": "N116",
-  "reporting_date": "2026-09-07",
-  "total_confirmed": 6757,
-  "total_deaths": 3267,
+  "report_no": "ECDC-2026-10-20",
+  "reporting_date": "2026-10-20",
+  "total_confirmed": 9704,
+  "total_deaths": 4687,
   "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
 }

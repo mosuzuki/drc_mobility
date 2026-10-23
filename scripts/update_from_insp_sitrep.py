@@ -311,6 +311,22 @@ def find_sitrep_articles(category_url: str = CATEGORY_URL) -> list[SitRepArticle
         log(f"Category-page discovery failed: {exc}")
 
     candidates.extend(_wp_rest_sitrep_candidates(category_url))
+    # Independent archive retains original INSP PDFs when WordPress category or
+    # REST API stops indexing fresh SitReps. The PDF is still read and validated
+    # by update_dashboard(), never the archive's narrative as a replacement.
+    for mirror in ("https://ebola-tracker.org/reports/", "https://ebola-tracker.org/en/reports/"):
+        try:
+            rr=SESSION.get(mirror,timeout=TIMEOUT);rr.raise_for_status()
+            ss=BeautifulSoup(rr.text,"html.parser")
+            for link in ss.select("a[href]"):
+                label=norm_text(link.get_text(" ",strip=True))
+                href=urljoin(mirror,link["href"])
+                hay=f"{label} {href}"
+                no=report_number_from_text(hay)
+                if no and ("sitrep" in hay.lower() or "pdf" in href.lower()):
+                    candidates.append(SitRepArticle(label or href,href,no,parse_fr_date(hay)))
+        except Exception as exc:
+            log(f"Mirror discovery unavailable at {mirror}: {exc}")
     if not candidates:
         fail("No SitRep article or media links were found on the INSP site.", f"URL: {category_url}")
 
@@ -2083,9 +2099,11 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
     if not publication_date:
         publication_date = datetime.utcnow().date().isoformat()
 
-    max_no, max_date = existing_max_report()
-    if not force and report_no <= max_no and (max_date is None or report_date <= max_date):
-        write_status("No newer SitRep found", f"Latest article was N{report_no} ({report_date}), but dashboard already has N{max_no} ({max_date}).", ok=True)
+    # Backfill gaps even when newer national snapshots already exist. Comparing
+    # with max report number/date was wrong: it discarded every missing earlier
+    # SitRep after a long outage and prevented health-zone histories recovering.
+    if not force and report_no in existing_report_numbers():
+        write_status("SitRep already imported", f"N{report_no} ({report_date}) is already in the full SitRep archive.", ok=True)
         return False
 
     total_cases = extract_total_confirmed(text)
@@ -2263,15 +2281,33 @@ def main() -> None:
         existing = existing_report_numbers()
         max_no, max_date = existing_max_report()
         newest_no = max((a.report_no or 0) for a in articles)
-        lookback_floor = max(1, newest_no - 14)
+        # Do not forget backlog after 15 days offline. Work from oldest missing
+        # reports, in bounded batches to stay within GitHub Actions run limits.
+        lookback_floor = max(1, max_no - 2)
         missing = [a for a in articles if a.report_no is not None and a.report_no >= lookback_floor and a.report_no not in existing]
+        if len(missing) > 8:
+            log(f"Backlog: {len(missing)} missing SitReps; processing earliest 4 and most recent 4 now.")
+            missing = missing[:4] + missing[-4:]
         if not missing:
-            write_status("No newer or missing recent SitRep found", f"Latest article is N{newest_no}; dashboard maximum is N{max_no} ({max_date}); no gaps found in the recent 15-report window.", ok=True)
+            if newest_no < max_no:
+                fail("Source discovery has regressed behind current stored data", f"Discovered N{newest_no}, CSV has N{max_no}. Check INSP/mirror sources; ECDC fallback may still provide national counts.")
+            write_status("No newer or missing INSP SitRep found", f"Latest official article N{newest_no}; last full SitRep N{max_no} ({max_date}); an external national snapshot may be newer. No fabricated zone-level data.", ok=True)
             return
+        failures = []
+        successes = []
         for article in missing:
             log(f"Backfill/update candidate: N{article.report_no} {article.url}")
-            pdf_path = download_latest_pdf(article)
-            update_dashboard(pdf_path, article, force=False)
+            try:
+                pdf_path = download_latest_pdf(article)
+                update_dashboard(pdf_path, article, force=False)
+                successes.append(article.report_no)
+            except (Exception, SystemExit) as exc:
+                failures.append((article.report_no, str(exc)))
+                log(f"N{article.report_no} FAILED; continuing other missing SitReps: {exc}")
+        if failures:
+            write_status("SitRep PDF backfill incomplete", f"Imported: {successes}\nFailures: {failures}\nMissing reports will be retried in subsequent runs.", ok=False)
+            raise SystemExit(2)
+        write_status("SitRep backfill completed for this batch", f"Imported: {successes}; remaining gaps will be retried next run.", ok=True)
         return
 
     max_no, max_date = existing_max_report()

@@ -351,8 +351,9 @@ def main() -> None:
     dc = int(round(lc - pc)) if lc == lc and pc == pc else None
     dd = int(round(ld - pd)) if ld == ld and pd == pd else None
     deltas, prov_delta = zone_deltas(latest_date, prev_date)
-    text = sitrep_text(latest_no)
-    province_sentence = province_sentence_from_text_ja(text) or province_sentence_ja(prov_delta)
+    external = str(latest_no).startswith('ECDC-')
+    text = '' if external else sitrep_text(latest_no)
+    province_sentence = '' if external else (province_sentence_from_text_ja(text) or province_sentence_ja(prov_delta))
     zone_sentence = top_zones_sentence_ja(deltas)
     if prev:
         numeric = (
@@ -367,8 +368,10 @@ def main() -> None:
     # health-zone histories can include reclassification noise. The top panel
     # keeps validated cumulative/province-level numbers plus one qualitative
     # SitRep sentence.
-    fallback = facts_highlight(text)
-    qualitative, generated_by, model = openai_highlight(text, fallback)
+    fallback = ('ECDCが公表したINSP由来の全国集計を反映しています。ヘルスゾーン別の最新SitRep表は未取得のため、地域別の評価には使用しないでください。' if external else facts_highlight(text))
+    qualitative, generated_by, model = (fallback, 'ecdc_verified_national_snapshot', '') if external else openai_highlight(text, fallback)
+    if external and prev_date and (datetime.fromisoformat(latest_date)-datetime.fromisoformat(prev_date)).days > 1:
+        numeric = numeric.replace('増加しました。', '増加しました（複数日間の差分であり、当日新規例数ではありません）。', 1)
     drc_summary = numeric + qualitative
     ug = uganda_summary_ja()
     result = {

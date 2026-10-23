@@ -30,10 +30,20 @@ warnings=[]
 report=latest(read_csv(DATA/'report_summary.csv'),'reporting_date')
 latest_no=report.get('report_no') or report.get('source_sitrep')
 latest_date=report.get('reporting_date')
+external_national_only=str(latest_no).startswith('ECDC-')
 latest_cases=to_float(report.get('drc_confirmed_cases'))
 latest_deaths=to_float(report.get('drc_confirmed_deaths'))
 if not latest_no or not latest_date:
     errors.append('report_summary.csv has no latest report_no/reporting_date')
+else:
+    try:
+        stale=(date.today()-date.fromisoformat(latest_date)).days
+        if stale > 7:
+            errors.append(f'Latest national snapshot {latest_date} is {stale} days old; scheduled update has stalled')
+        elif stale > 3:
+            warnings.append(f'Latest national snapshot is {stale} days old; check INSP and ECDC')
+    except ValueError:
+        errors.append(f'Invalid latest reporting date {latest_date}')
 if not math.isfinite(latest_cases) or latest_cases <= 0:
     errors.append('latest report_summary has invalid DRC confirmed cases')
 if not math.isfinite(latest_deaths) or latest_deaths < 0:
@@ -76,12 +86,12 @@ for fname in ['final_size_projection.json','true_infection_estimate.json']:
                 errors.append(f'{fname}: latest current_cumulative_cases {cc} != report_summary {latest_cases}')
 
 
-# Response indicators must be available for the latest SitRep, because the
+# Response indicators must be available for the latest *full* SitRep, because the
 # left-lower response panel defaults to contact_followup_rate.
 resp_rows = read_csv(DATA/'response_indicators.csv')
 resp_latest = [r for r in resp_rows if r.get('report_no') == latest_no and str(r.get('admin_level','')).lower() == 'national']
 if not resp_latest:
-    errors.append(f'response_indicators.csv has no national row for latest SitRep {latest_no}')
+    (warnings if external_national_only else errors).append(f'response_indicators.csv has no national row for latest report {latest_no}; no reliable latest indicators available')
 else:
     rr = resp_latest[-1]
     cf = to_float(rr.get('contact_followup_rate'))
@@ -157,27 +167,27 @@ for i, r in enumerate(ai_rows, start=1):
 # Health-zone activity status panel must be generated for the latest SitRep.
 hz_activity = read_csv(DATA/'health_zone_activity_status.csv')
 if not hz_activity:
-    errors.append('health_zone_activity_status.csv missing or empty')
+    (warnings if external_national_only else errors).append('health_zone_activity_status.csv missing or empty')
 else:
     ref_nos = {r.get('reference_report_no') for r in hz_activity}
     ref_dates = {r.get('reference_date') for r in hz_activity}
     if latest_no and ref_nos != {latest_no}:
-        errors.append(f'health_zone_activity_status.csv reference_report_no {sorted(ref_nos)} != latest report_summary {latest_no}')
+        (warnings if external_national_only else errors).append(f'health_zone_activity_status.csv reference_report_no {sorted(ref_nos)} != latest report_summary {latest_no}')
     if latest_date and ref_dates != {latest_date}:
-        errors.append(f'health_zone_activity_status.csv reference_date {sorted(ref_dates)} != latest report_summary {latest_date}')
+        (warnings if external_national_only else errors).append(f'health_zone_activity_status.csv reference_date {sorted(ref_dates)} != latest report_summary {latest_date}')
     latest_hz_rows = [r for r in read_csv(DATA/'cases_by_hz.csv') if r.get('date') == latest_date and to_float(r.get('confirmed_cases')) > 0]
     if latest_hz_rows and len(hz_activity) != len(latest_hz_rows):
-        errors.append(f'health_zone_activity_status.csv has {len(hz_activity)} zones but latest cases_by_hz has {len(latest_hz_rows)}')
+        (warnings if external_national_only else errors).append(f'health_zone_activity_status.csv has {len(hz_activity)} zones but latest cases_by_hz has {len(latest_hz_rows)}')
     for i, r in enumerate(hz_activity, start=1):
         days = to_float(r.get('days_since_last_increase'))
         cases_v = to_float(r.get('cumulative_confirmed'))
         if not math.isfinite(days) or days < 0:
-            errors.append(f'health_zone_activity_status.csv row {i} has invalid days_since_last_increase')
+            (warnings if external_national_only else errors).append(f'health_zone_activity_status.csv row {i} has invalid days_since_last_increase')
         if not math.isfinite(cases_v) or cases_v <= 0:
-            errors.append(f'health_zone_activity_status.csv row {i} has invalid cumulative_confirmed')
+            (warnings if external_national_only else errors).append(f'health_zone_activity_status.csv row {i} has invalid cumulative_confirmed')
         hz_name = str(r.get('health_zone','')).lower()
         if 'autres' in hz_name or 'non ventil' in hz_name or 'unventil' in hz_name:
-            errors.append('health_zone_activity_status.csv must not include unventilated/aggregate rows as health zones')
+            (warnings if external_national_only else errors).append('health_zone_activity_status.csv must not include unventilated/aggregate rows as health zones')
 
 # Rt and delay-adjusted CFR estimates must be generated through the latest SitRep.
 rt_rows = read_csv(DATA/'rt_estimates.csv')
@@ -248,7 +258,7 @@ if warnings:
     body += [f'- {w}' for w in warnings]
 if not errors:
     body.append('## ✅ All required checks passed')
-    body.append(f'- Latest DRC SitRep: {latest_no} / {latest_date} / confirmed {round(latest_cases)} / deaths {round(latest_deaths)}')
+    body.append(f'- Latest national source: {latest_no} / {latest_date} / confirmed {round(latest_cases)} / deaths {round(latest_deaths)}')
     body.append(f'- Uganda as-of date: {ug.get("as_of_date","")}')
 STATUS.write_text('\n'.join(body)+'\n',encoding='utf-8')
 if errors:
