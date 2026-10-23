@@ -3747,69 +3747,114 @@ function updateFinalSizeProjectionChart() {
   const el = document.getElementById('finalSizeChart');
   if (!el) return;
   refreshFinalSizeScenarioOptions();
-  const scenario = document.getElementById('finalSizeScenarioSelect')?.value || 'ai_linked';
+  const scenario = document.getElementById('finalSizeScenarioSelect')?.value || 'branching';
   const summaryEl = document.getElementById('finalSizeSummary');
   const statsEl = document.getElementById('finalSizeStats');
+  const emptyPlot = (message) => Plotly.newPlot(el, [], {
+    margin:{l:62,r:24,t:24,b:60},
+    annotations:[{text:message,x:.5,y:.5,xref:'paper',yref:'paper',showarrow:false,font:{size:13,color:'#667085'}}],
+    paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)'
+  },{responsive:true,displayModeBar:false});
   const freshness = healthZoneFreshness();
   if (freshness.stale) {
-    if (summaryEl) summaryEl.innerHTML = '';
-    if (statsEl) statsEl.textContent = textByLang(
-      `全国集計は${displayDateLabel(freshness.nationalDate)}時点です。詳細SitRepが${displayDateLabel(freshness.detailsDate)}で止まっているため、モデルの最新性・適切性を確認できず、最終サイズ予測を保留します。`,
-      `Latest national total ${freshness.nationalDate}; detailed SitRep only through ${freshness.detailsDate}. Final-size forecasts are withheld pending a current full report.`,
-      `Total national au ${freshness.nationalDate} ; SitRep détaillé au ${freshness.detailsDate}. Prévision de taille finale suspendue.`);
-    Plotly.newPlot(el, [], { margin: { l: 40, r: 20, t: 20, b: 40 }, annotations: [
-      { x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', showarrow: false,
-        text: textByLang('推定保留：最新詳細データ未取得', 'Forecast withheld: latest detailed data missing', 'Estimation suspendue : données détaillées manquantes'), font: { size: 13, color: '#667085' } }],
-      paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)' }, { responsive: true, displayModeBar: false });
+    if (summaryEl) summaryEl.innerHTML='';
+    if (statsEl) statsEl.textContent=textByLang(
+      `全国集計は${displayDateLabel(freshness.nationalDate)}時点、地域別詳細は${displayDateLabel(freshness.detailsDate)}までです。現在の予測は保留します。`,
+      `National data through ${freshness.nationalDate}, regional SitRep through ${freshness.detailsDate}; forecast withheld.`,
+      `Données nationales au ${freshness.nationalDate}, SitRep régional au ${freshness.detailsDate} ; prévision suspendue.`);
+    emptyPlot(textByLang('推定保留：最新詳細データ未取得','Forecast withheld: detailed data missing','Prévision suspendue'));
     return;
   }
   const record = getFinalSizeProjectionRecord(selectedCaseDate());
-  const proj = finalProjectionScenarioData(record, scenario);
-
+  const proj = finalProjectionScenarioData(record,scenario);
   if (!record || !proj || !Array.isArray(proj.trajectory) || !proj.trajectory.length) {
-    if (summaryEl) summaryEl.innerHTML = '';
-    if (statsEl) {
-      statsEl.textContent = textByLang(
-        '最終サイズ推定JSONがまだ生成されていないか、このSitRep時点では十分な観測点がありません。',
-        'Final-size projection JSON has not been generated yet, or there are insufficient observations for this SitRep time point.',
-        'Le JSON de projection de la taille finale n’a pas encore été généré, ou les observations sont insuffisantes pour ce point SitRep.'
-      );
-    }
-    Plotly.newPlot('finalSizeChart', [], {
-      margin: { l: 62, r: 24, t: 18, b: 64 },
-      annotations: [{ text: textByLang('最終サイズ推定データなし', 'No final-size projection data', 'Données de projection indisponibles'), x: 0.5, y: 0.5, xref: 'paper', yref: 'paper', showarrow: false, font: { size: 13, color: '#667085' } }],
-      paper_bgcolor: 'rgba(0,0,0,0)', plot_bgcolor: 'rgba(0,0,0,0)'
-    }, { responsive: true, displayModeBar: false });
+    if (summaryEl) summaryEl.innerHTML='';
+    if (statsEl) statsEl.textContent=textByLang('この報告日の予測データはありません。','No projection for the selected SitRep.','Prévision indisponible pour ce SitRep.');
+    emptyPlot(textByLang('予測データなし','No forecast available','Aucune prévision'));
     return;
   }
 
   updateFinalSizeBasisToggleAvailability(record);
-  const reportedProj = proj;
-  const adjustedFactor = getAdjustedMultiplierForRecord(record);
-  const adjustedProj = adjustedFactor ? scaledFinalProjection(proj, adjustedFactor) : null;
-  const selectedBasis = getSelectedFinalSizeBasis();
-  const activeBasis = selectedBasis === 'adjusted' && adjustedProj ? 'adjusted' : 'reported';
-  const chartProj = activeBasis === 'adjusted' ? adjustedProj : reportedProj;
-  const fs = chartProj.final_size || {};
-  const ed = chartProj.end_date || {};
-  const rt = chartProj.rt || {};
-  const reportedFs = reportedProj.final_size || {};
-  const adjustedFs = adjustedProj?.final_size || null;
-  const adjustedMedian = toNumber(trueInfectionEstimateData?.estimated_infections?.median);
-  const adjustedPi90 = trueInfectionEstimateData?.estimated_infections?.pi90;
-  const multiplierMedian = toNumber(trueInfectionEstimateData?.multiplier?.median || adjustedFactor);
+  const adjustedFactor=getAdjustedMultiplierForRecord(record);
+  const adjustedProj=adjustedFactor ? scaledFinalProjection(proj,adjustedFactor) : null;
+  const adjustedSelected=getSelectedFinalSizeBasis()==='adjusted' && Boolean(adjustedProj);
+  const chartProj=adjustedSelected ? adjustedProj : proj;
+  const fs=chartProj.final_size||{};
+  const ed=proj.end_date||{};
+  const projectionDate=record.reporting_date||selectedCaseDate();
+  const baseCum=Number(record.current_cumulative_cases ?? latestObservedCumulative(projectionDate));
+  const currentCum=baseCum*(adjustedSelected ? adjustedFactor : 1);
+  const fmtNumber=(v)=>Number.isFinite(Number(v)) ? fmt.format(Math.round(Number(v))) : '—';
+  const endDateDisplay=ed.median ? formatDateLong(ed.median) : textByLang('推定不能','Not estimated','Non estimée');
+  const endNote=ed.median
+    ? textByLang(`90%予測区間 ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}`,
+      `90% PI ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}`,
+      `IP 90 % ${formatDateLong(ed.pi90?.[0])}–${formatDateLong(ed.pi90?.[1])}`)
+    : textByLang(`260日以内に終息条件に達しない確率 ${Number.isFinite(ed.not_reached_probability)?Math.round(ed.not_reached_probability*100)+'%':'不明'}`,
+      `Probability end condition not met by 260 days: ${Number.isFinite(ed.not_reached_probability)?Math.round(ed.not_reached_probability*100)+'%':'unknown'}`,
+      `Probabilité de non-extinction à 260 jours : ${Number.isFinite(ed.not_reached_probability)?Math.round(ed.not_reached_probability*100)+'%':'inconnue'}`);
   if (summaryEl) {
-    const w = proj.weights || {};
-    const weightNote = Number.isFinite(w.lightgbm) ? `LightGBM ${Math.round(100*w.lightgbm)}% / Branching ${Math.round(100*(w.branching_process||0))}%` : 'Branching process';
-    const isAi = scenario.startsWith('ai_');
-    const censored = proj.end_date?.median === null;
-    const caption = textByLang(
-      `モデル：${finalSizeScenarioLabel(scenario)}。${isAi ? `短期28日の地域別LightGBM予測とBranchingを接続（${weightNote}）、29日目以降は将来Rtのシナリオを仮定。` : '報告確定例を用いたBranching単独モデル。'}${censored ? ' 260日以内に42日間連続ゼロへ到達しない軌道が多く、終息日は推定不能。' : ''} 表示する「最終規模」は最大260日後の累積値であり、終息時の最終症例数とは限りません。`,
-      `Model: ${finalSizeScenarioLabel(scenario)}. ${isAi ? `First 28 days: LightGBM-linked branching (${weightNote}), followed by assumed Rt scenario.` : 'Standalone branching forecast.'} ${censored ? 'Many simulations do not reach 42 zero days within 260 days; no extinction date is reported.' : ''} The reported total is a 260-day horizon projection, not a guaranteed final size.`,
-      `Modèle : ${finalSizeScenarioLabel(scenario)}. ${isAi ? `LightGBM + branchement durant 28 jours (${weightNote}), puis scénario Rt.` : 'Branchement seul.'} ${censored ? 'Extinction non atteinte dans de nombreuses trajectoires à 260 jours.' : ''} Le cumul à 260 jours n’est pas la taille finale certaine.`
-    );
-    statsEl.textContent = caption;
+    const baseFs=proj.final_size||{};
+    const adjustedFs=adjustedProj?.final_size;
+    const card=(title,value,details)=>`<div class="final-size-stat-card"><span>${title}</span><strong>${value}</strong><small>${details}</small></div>`;
+    const interval=(f)=>`${fmtNumber(f?.pi90?.[0])}–${fmtNumber(f?.pi90?.[1])}`;
+    summaryEl.innerHTML=[
+      card(textByLang('260日後の累積確定例','Confirmed cases at 260 days','Cas confirmés à 260 jours'),fmtNumber(baseFs.median),
+        textByLang('90%予測区間 ','90% PI ','IP 90 % ')+interval(baseFs)),
+      card(textByLang('報告補正後（参考）','Reporting-adjusted (reference)','Corrigé du sous-signalement'),
+        adjustedFs ? fmtNumber(adjustedFs.median) : '—',
+        adjustedFs ? textByLang('90%予測区間 ','90% PI ','IP 90 % ')+interval(adjustedFs)
+                   : textByLang('最新SitRepのみ算出','Only for latest SitRep','SitRep récent seulement')),
+      card(textByLang('42日間連続ゼロ到達日','42-day zero-case threshold','42 jours consécutifs sans cas'),endDateDisplay,endNote)
+    ].join('');
+  }
 
+  const observed=dailyObservedSeriesUntil(projectionDate)
+    .filter(r=>String(r.date)<=String(projectionDate)).slice(-70);
+  const obsDates=observed.map(r=>r.date);
+  const multiplier=adjustedSelected ? adjustedFactor : 1;
+  const obsCum=observed.map(r=>Number(r.cumulative)*multiplier);
+  const points=[{date:projectionDate,median:currentCum,q05:currentCum,q25:currentCum,q75:currentCum,q95:currentCum}]
+    .concat(chartProj.trajectory||[]);
+  const x=points.map(r=>r.date);
+  const median=points.map(r=>Number(r.median));
+  const traces=[
+    {type:'scatter',mode:'lines',name:textByLang('観測累積症例','Observed cumulative','Cumul observé'),
+      x:obsDates,y:obsCum,line:{color:'#64748b',width:2.5},
+      hovertemplate:'%{x}<br>%{y:,.0f}<extra></extra>'},
+    {type:'scatter',mode:'lines',x,y:points.map(r=>r.q05),line:{width:0},hoverinfo:'skip',showlegend:false},
+    {type:'scatter',mode:'lines',name:'90% PI',x,y:points.map(r=>r.q95),line:{width:0},
+      fill:'tonexty',fillcolor:'rgba(46,144,250,.14)',hoverinfo:'skip'},
+    {type:'scatter',mode:'lines',x,y:points.map(r=>r.q25),line:{width:0},hoverinfo:'skip',showlegend:false},
+    {type:'scatter',mode:'lines',name:'50% PI',x,y:points.map(r=>r.q75),line:{width:0},
+      fill:'tonexty',fillcolor:'rgba(46,144,250,.24)',hoverinfo:'skip'},
+    {type:'scatter',mode:'lines',name:textByLang('予測中央値','Forecast median','Médiane prévue'),
+      x,y:median,line:{color:'#175cd3',width:3},hovertemplate:'%{x}<br>%{y:,.0f}<extra></extra>'}
+  ];
+  const lines=[{type:'line',x0:projectionDate,x1:projectionDate,y0:0,y1:1,yref:'paper',
+    line:{dash:'dot',width:1.7,color:'#667085'}}];
+  const annotations=[{x:projectionDate,y:1.02,xref:'x',yref:'paper',xanchor:'left',
+    text:textByLang('予測開始','Forecast start','Début prévision'),showarrow:false,font:{size:10,color:'#667085'}}];
+  if (ed.median && ed.median<=x[x.length-1]) {
+    lines.push({type:'line',x0:ed.median,x1:ed.median,y0:0,y1:1,yref:'paper',line:{dash:'dash',width:1.6,color:'#12b76a'}});
+  }
+  Plotly.newPlot(el,traces,{
+    margin:{l:70,r:25,t:43,b:78},
+    xaxis:{type:'date',title:textByLang('日付','Date','Date'),tickangle:-25,nticks:6,gridcolor:'#eef3f8',automargin:true},
+    yaxis:{title:adjustedSelected?textByLang('報告補正後推定累積数','Adjusted estimated infections','Infections corrigées')
+      :textByLang('累積確定例','Cumulative confirmed cases','Cas confirmés cumulés'),
+      rangemode:'tozero',gridcolor:'#e7eef7',automargin:true},
+    legend:{orientation:'h',x:.5,xanchor:'center',y:1.17,yanchor:'bottom'},
+    shapes:lines,annotations,
+    paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)'
+  },{responsive:true,displayModeBar:false});
+  if (statsEl) {
+    const rtMedian=Number(proj.rt?.median);
+    const rtNote=Number.isFinite(rtMedian) ? ` Rt ${rtMedian.toFixed(2)}.` : '';
+    statsEl.textContent=textByLang(
+      `${finalSizeScenarioLabel(scenario)}：${formatDateLong(projectionDate)}（${record.report_no||''}）時点から260日後までの累積値です。${scenario.startsWith('ai_')?'最初の28日をLightGBM＋Branchingに接続し、その先は仮定した伝播制御シナリオを適用。':'Branching単独の疫学シミュレーション。'}${rtNote} 260日後の累積は真の最終規模とは限りません。予測区間は実験的推定です。`,
+      `${finalSizeScenarioLabel(scenario)}: cumulative cases at 260 days from ${projectionDate} (${record.report_no||''}). ${scenario.startsWith('ai_')?'LightGBM-linked branching for 28 days, then an assumed Rt control scenario.':'Branching-only simulation.'}${rtNote} Not necessarily the eventual outbreak final size; exploratory intervals.`,
+      `${finalSizeScenarioLabel(scenario)} : cumul à 260 jours depuis ${projectionDate}. ${scenario.startsWith('ai_')?'28 jours LightGBM + branchement, puis scénario de contrôle Rt supposé.':'Simulation par branchement.'}${rtNote} Pas nécessairement le total final réel.`);
   }
 }
 
@@ -4069,39 +4114,83 @@ function currentMlForecastSelection() {
 }
 
 function updateMlForecastChart(data, model) {
-  const horizon = Number(document.getElementById('forecastHorizonSelect')?.value || 14);
-  const count = Math.ceil(horizon / 7);
-  const record = data.models[model];
-  if (!record?.weeks?.length) return;
-  const weekly = record.weeks.slice(0,count);
-  const obsRows = dailyObservedSeriesUntil(data.report_date).slice(-21);
-  const obs = [];
-  // Show weekly observed totals on the same 7-day units as the forecast.
-  for (let i=0;i<3;i++) {
-    const group = obsRows.slice(i*7,(i+1)*7);
-    if(group.length) obs.push({ x:group[group.length-1].date, y:group.reduce((t,r)=>t+Math.max(0,Number(r.incidence)||0),0) });
+  const horizon = Number(document.getElementById('forecastHorizonSelect')?.value || 7);
+  const count = Math.max(1, Math.min(4, Math.ceil(horizon / 7)));
+  const record = data.models?.[model];
+  const weeks = (record?.weeks || []).slice(0, count);
+  if (!weeks.length) return;
+
+  // Align observed seven-day windows to the SitRep forecast origin. Each
+  // forecast week is displayed as a point WITH vertical prediction intervals:
+  // a one-week selection otherwise rendered as a lone dot and no visible band.
+  const origin = data.report_date;
+  const obsRows = dailyObservedSeriesUntil(origin);
+  const observed = [];
+  for (let ago = 3; ago >= 1; ago--) {
+    const weekEnd = addDaysIso(origin, -(ago - 1) * 7);
+    const weekStart = addDaysIso(weekEnd, -7);
+    const rows = obsRows.filter(r => String(r.date) > weekStart && String(r.date) <= weekEnd);
+    if (rows.length) observed.push({ date: weekEnd, cases: rows.reduce((t, r) => t + Math.max(0, Number(r.incidence) || 0), 0) });
   }
-  const x=weekly.map(r=>r.to);
-  const traces=[
-    {type:'bar',name:textByLang('観測（週別）','Observed weekly','Observé hebdomadaire'),x:obs.map(r=>r.x),y:obs.map(r=>r.y),marker:{color:'#667085',opacity:.65}},
-    {type:'scatter',mode:'lines',x,y:weekly.map(r=>r.q05),line:{width:0},hoverinfo:'skip',showlegend:false},
-    {type:'scatter',mode:'lines',name:'90% PI',x,y:weekly.map(r=>r.q95),fill:'tonexty',fillcolor:'rgba(46,144,250,.14)',line:{width:0}},
-    {type:'scatter',mode:'lines',x,y:weekly.map(r=>r.q25),line:{width:0},hoverinfo:'skip',showlegend:false},
-    {type:'scatter',mode:'lines',name:'50% PI',x,y:weekly.map(r=>r.q75),fill:'tonexty',fillcolor:'rgba(46,144,250,.21)',line:{width:0}},
-    {type:'scatter',mode:'lines+markers',name:textByLang('週別予測中央値','Weekly median','Médiane hebdomadaire'),x,y:weekly.map(r=>r.median),line:{width:2.5,color:'#175cd3'}}
+  const x = weeks.map(r => r.to);
+  const median = weeks.map(r => Number(r.median));
+  const q05 = weeks.map(r => Number(r.q05));
+  const q25 = weeks.map(r => Number(r.q25));
+  const q75 = weeks.map(r => Number(r.q75));
+  const q95 = weeks.map(r => Number(r.q95));
+  const observedLabel = textByLang('観測（週別）', 'Observed (weekly)', 'Observé (semaine)');
+  const medianLabel = textByLang('予測中央値', 'Forecast median', 'Médiane prévue');
+  const traces = [
+    { type:'bar', name: observedLabel, x: observed.map(r => r.date), y: observed.map(r => r.cases),
+      width: 4.8 * 24 * 3600 * 1000, marker: { color:'#64748b', opacity:.6 },
+      hovertemplate: '%{x}<br>%{y:,.0f}<extra></extra>' }
   ];
-  Plotly.newPlot('forecastChart',traces,{margin:{l:62,r:25,t:33,b:85},
-    xaxis:{tickangle:-35,gridcolor:'#eef3f8',title:'Date'},
-    yaxis:{title:textByLang('週別新規確定例','Weekly new confirmed cases','Nouveaux cas hebdomadaires'),rangemode:'tozero',gridcolor:'#e7eef7'},
-    legend:{orientation:'h',x:.5,xanchor:'center',y:1.12},paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)'},{responsive:true,displayModeBar:false});
-  const totals=weekly.reduce((v,r)=>v+Number(r.median||0),0);
-  const b=data.backtest || {};
-  const label={ensemble:'Branching＋LightGBM（実験的）',lightgbm:'LightGBM',branching:'Branching process',chronos2:'Chronos-2'}[model]||model;
-  const w=Math.round((Number(data.experimental_lightgbm_weight)||0)*100);
-  document.getElementById('forecastStats').textContent=textByLang(
-    `${label}：今後${horizon}日の新規確定例 約${fmt.format(Math.round(totals))}例（週別中央値の合計）。過去${b.n_origins||0}基準日の週別MAE：Branching ${b.branching_mae_weekly??'—'}例、LightGBM ${b.lightgbm_mae_weekly??'—'}例、単純外挿 ${b.persistence_mae_weekly??'—'}例。${model==='ensemble'?'LightGBM重み '+w+'%（予測軌道を組み合わせて算出）。':''}予測区間は単一流行の暫定的な校正に基づきます。`,
-    `${label}: approx. ${fmt.format(Math.round(totals))} new cases over ${horizon} days (sum of weekly medians). Weekly MAE across ${b.n_origins||0} origins: branching ${b.branching_mae_weekly??'—'}, LightGBM ${b.lightgbm_mae_weekly??'—'}, persistence ${b.persistence_mae_weekly??'—'}. ${model==='ensemble'?'LightGBM sample-path weight '+w+'%.':''} Forecast intervals are exploratory, not independently calibrated.`,
-    `${label} : environ ${fmt.format(Math.round(totals))} nouveaux cas sur ${horizon} jours. MAE hebdomadaire : branchement ${b.branching_mae_weekly??'—'}, LightGBM ${b.lightgbm_mae_weekly??'—'}, persistance ${b.persistence_mae_weekly??'—'}. Intervalles exploratoires.`);
+  if (weeks.length > 1) {
+    traces.push(
+      { type:'scatter', mode:'lines', x, y:q05, line:{width:0}, hoverinfo:'skip', showlegend:false },
+      { type:'scatter', mode:'lines', name:'90% PI', x, y:q95, line:{width:0}, fill:'tonexty',
+        fillcolor:'rgba(46,144,250,.12)', hoverinfo:'skip' },
+      { type:'scatter', mode:'lines', x, y:q25, line:{width:0}, hoverinfo:'skip', showlegend:false },
+      { type:'scatter', mode:'lines', name:'50% PI', x, y:q75, line:{width:0}, fill:'tonexty',
+        fillcolor:'rgba(46,144,250,.22)', hoverinfo:'skip' }
+    );
+  }
+  // Error bars are always drawn, including for the 7-day / one-point case.
+  traces.push({type:'scatter', mode:weeks.length > 1 ? 'lines+markers' : 'markers',
+    name:medianLabel, x, y:median, line:{color:'#175cd3',width:3},
+    marker:{color:'#175cd3',size:10, symbol:'circle'},
+    error_y:{type:'data',symmetric:false,array:q95.map((v,i)=>Math.max(0,v-median[i])),
+      arrayminus:q05.map((v,i)=>Math.max(0,median[i]-v)), visible:true,
+      color:'#81a6e6',width:7,thickness:2},
+    customdata:weeks.map(r=>[r.from,r.q05,r.q25,r.q75,r.q95]),
+    hovertemplate: '%{customdata[0]} – %{x}<br>Median: %{y:,.0f}<br>90% PI: %{customdata[1]:,.0f}–%{customdata[4]:,.0f}<extra></extra>'
+  });
+  const firstDate = observed.length ? observed[0].date : origin;
+  const endDate = weeks[weeks.length - 1].to;
+  const plotEnd = addDaysIso(endDate, 3);
+  Plotly.newPlot('forecastChart',traces,{
+    margin:{l:62,r:26,t:42,b:72},
+    xaxis:{type:'date',range:[addDaysIso(firstDate,-4),plotEnd],tickangle:-25,gridcolor:'#eef3f8',
+      title:textByLang('週の終了日','Week ending','Fin de semaine'),automargin:true},
+    yaxis:{title:textByLang('週別新規確定例','Weekly new confirmed cases','Nouveaux cas hebdomadaires'),rangemode:'tozero',gridcolor:'#e7eef7',automargin:true},
+    legend:{orientation:'h',x:.5,xanchor:'center',y:1.18,yanchor:'bottom'},
+    shapes:[{type:'line',x0:origin,x1:origin,y0:0,y1:1,yref:'paper',line:{width:1.5,dash:'dot',color:'#667085'}}],
+    annotations:[{x:origin,y:1.01,xref:'x',yref:'paper',text:textByLang('予測開始','Forecast start','Début prévision'),
+      showarrow:false,font:{size:10,color:'#667085'},xanchor:'right'}],
+    bargap:.2, paper_bgcolor:'rgba(0,0,0,0)',plot_bgcolor:'rgba(0,0,0,0)'
+  },{responsive:true,displayModeBar:false});
+  const totals = weeks.reduce((v,r)=>v+Number(r.median||0),0);
+  const b=data.backtest||{};
+  const labels = {
+    ensemble: textByLang('Branching＋LightGBM（実験的）','Branching + LightGBM (experimental)','Branchement + LightGBM (expérimental)'),
+    lightgbm:'LightGBM',branching:'Branching process',chronos2:'Chronos-2'
+  };
+  const weight=Math.round((Number(data.experimental_lightgbm_weight)||0)*100);
+  const stats=document.getElementById('forecastStats');
+  if (stats) stats.textContent=textByLang(
+    `${labels[model]||model}：今後${horizon}日間の週別予測中央値の合計 約${fmt.format(Math.round(totals))}例。点の縦線は90%予測区間です。過去${b.n_origins||0}時点の週別MAE：Branching ${b.branching_mae_weekly??'—'}例、LightGBM ${b.lightgbm_mae_weekly??'—'}例。${model==='ensemble'?`実験的LightGBM重み${weight}%。`:''} 単一流行による暫定推定です。`,
+    `${labels[model]||model}: approximately ${fmt.format(Math.round(totals))} cases in the next ${horizon} days (sum of weekly medians). Vertical whiskers denote 90% PIs. Weekly backtest MAE (${b.n_origins||0} origins): branching ${b.branching_mae_weekly??'—'}; LightGBM ${b.lightgbm_mae_weekly??'—'}. Experimental; limited within-outbreak validation.`,
+    `${labels[model]||model} : ${fmt.format(Math.round(totals))} cas sur ${horizon} jours (somme des médianes hebdomadaires). Barres verticales : IP 90 %. MAE hebdomadaire : branchement ${b.branching_mae_weekly??'—'}, LightGBM ${b.lightgbm_mae_weekly??'—'}. Résultats expérimentaux.`);
 }
 
 function updateForecastChart() {

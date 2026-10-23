@@ -28,6 +28,7 @@ STEPS = [
     ("Pooled regional LightGBM short-term forecast", [sys.executable, "scripts/generate_ml_short_forecast.py"], True),
     ("Branching and ML-linked final-size scenarios", [sys.executable, "scripts/generate_final_size_projection.py"], True),
     ("Forecast consistency and leakage-guard tests", [sys.executable, "scripts/test_ml_forecast_outputs.py"], True),
+    ("Forecast plot rendering regression tests", ["node", "scripts/test_forecast_render.cjs"], True),
     ("Dashboard output validation", [sys.executable, "scripts/validate_dashboard_outputs.py"], True),
     ("Frontend national/regional data integrity", ["node", "scripts/test_frontend_data_consistency.cjs"], True),
 ]
