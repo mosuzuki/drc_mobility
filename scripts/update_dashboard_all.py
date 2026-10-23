@@ -22,10 +22,12 @@ STEPS = [
     ("Uganda EVD update", [sys.executable, "scripts/update_uganda_evd.py"], False),
     ("Health-zone activity status", [sys.executable, "scripts/generate_health_zone_activity_status.py"], True),
     ("Latest situation summary", [sys.executable, "scripts/generate_latest_situation.py"], True),
-    ("Final size projection", [sys.executable, "scripts/generate_final_size_projection.py"], True),
     ("Reporting-adjusted infection estimate", [sys.executable, "scripts/estimate_true_infections.py"], True),
     ("Reported-case Rt estimates", [sys.executable, "scripts/generate_rt_estimates.py"], True),
     ("Delay-adjusted CFR estimates", [sys.executable, "scripts/generate_cfr_estimates.py"], True),
+    ("Pooled regional LightGBM short-term forecast", [sys.executable, "scripts/generate_ml_short_forecast.py"], True),
+    ("Branching and ML-linked final-size scenarios", [sys.executable, "scripts/generate_final_size_projection.py"], True),
+    ("Forecast consistency and leakage-guard tests", [sys.executable, "scripts/test_ml_forecast_outputs.py"], True),
     ("Dashboard output validation", [sys.executable, "scripts/validate_dashboard_outputs.py"], True),
     ("Frontend national/regional data integrity", ["node", "scripts/test_frontend_data_consistency.cjs"], True),
 ]

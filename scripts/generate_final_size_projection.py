@@ -15,7 +15,7 @@ import csv
 import json
 import math
 from dataclasses import dataclass
-from datetime import date, datetime, timedelta
+from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
 
 import numpy as np
@@ -184,6 +184,11 @@ def simulate_branching(points: list[ReportPoint], rng: np.random.Generator) -> d
             "q95": round(float(np.quantile(vals, 0.95)), 1),
         })
     fs = traj[:, -1]
+    frac_ended = float(end_seen.mean())
+    end_summary = ({
+            "median": add_days(selected, round(float(np.quantile(end_offset, 0.50)))),
+            "pi90": [add_days(selected, round(float(np.quantile(end_offset, 0.05)))), add_days(selected, round(float(np.quantile(end_offset, 0.95))))],
+        } if frac_ended >= 0.95 else {"median": None, "pi90": [None,None], "not_reached_probability": round(1-frac_ended,3)})
     return {
         "model": "branching_process",
         "scenario": "baseline_branching_process",
@@ -200,10 +205,9 @@ def simulate_branching(points: list[ReportPoint], rng: np.random.Generator) -> d
             "pi50": [round(float(np.quantile(fs, 0.25))), round(float(np.quantile(fs, 0.75)))],
             "pi90": [round(float(np.quantile(fs, 0.05))), round(float(np.quantile(fs, 0.95)))],
         },
-        "end_date": {
-            "median": add_days(selected, round(float(np.quantile(end_offset, 0.50)))),
-            "pi90": [add_days(selected, round(float(np.quantile(end_offset, 0.05)))), add_days(selected, round(float(np.quantile(end_offset, 0.95))))],
-        },
+        "end_date": end_summary,
+        "final_size_interpretation": "Cumulative count at the 260-day simulation horizon, not guaranteed extinction size",
+        "end_fraction_within_horizon": round(frac_ended,3),
         "trajectory": trajectory,
     }
 
@@ -424,72 +428,134 @@ def ensemble_projection(branching: dict | None, historical: dict | None, current
     }
 
 
+
+def simulate_ml_linked(points: list[ReportPoint], short: dict, rng: np.random.Generator, scenario: str = 'baseline') -> dict | None:
+    """Stochastic branching paths, conditioned on 28-day LightGBM weekly forecasts.
+
+    Weekly AI incidence is drawn from correlated calibrated-lognormal samples;
+    these constrain but do not replace first-28-day branching counts. After day 28,
+    the complete simulated daily history seeds a renewal process under the named
+    future-control scenario. End dates are censored if zero run not seen by day 260.
+    """
+    if not short or not short.get('models', {}).get('lightgbm'): return None
+    if short.get('report_date') != points[-1].reporting_date.isoformat(): return None
+    daily=interpolate_daily(points)
+    history=np.array([max(0,float(r['incidence'])) for r in daily],dtype=float)
+    if len(history)<28:return None
+    w=generation_interval_weights(12,5,40)
+    rt=estimate_rt(history.tolist(),w,10)
+    sampled_rt=np.clip(rng.gamma(rt['shape'],1/max(rt['rate'],1e-10),N_SIM),.05,4)
+    inc=np.repeat(history[None,:],N_SIM,axis=0)
+    cum=np.full(N_SIM,points[-1].cumulative)
+    traj=np.empty((N_SIM,MAX_FUTURE_DAYS),dtype=float)
+    week=short['models']['lightgbm']['weeks']
+    weight=float(np.clip(short.get('experimental_lightgbm_weight',0),0,.65))
+    # The linked scenario remains visually informative even if the ML weight is
+    # suppressed due to missing validation, but this is explicitly signaled.
+    sig=float(np.clip(short['models']['lightgbm'].get('log_sigma',.45),.15,1.2))
+    common=rng.normal(size=N_SIM)
+    week_values=np.array([np.maximum(0,(x['median']+1)*np.exp(sig*(.65*common+math.sqrt(1-.65**2)*rng.normal(size=N_SIM)))-1) for x in week])
+    recent7=np.maximum(0,history[-7:]); profile=(recent7+1)/sum(recent7+1)
+    zero=np.zeros(N_SIM,dtype=np.int16)
+    end=np.full(N_SIM,MAX_FUTURE_DAYS,dtype=np.int16)
+    seen=np.zeros(N_SIM,dtype=bool)
+    # Intervention assumptions on Rt AFTER the 28-day data-driven horizon.
+    targets={'baseline':.75,'improved':.52,'delayed':.96}
+    target=targets.get(scenario,.75)
+    for h in range(1,MAX_FUTURE_DAYS+1):
+        lag=min(len(w)-1,inc.shape[1]); infectious=inc[:,-lag:]@w[1:lag+1][::-1]
+        # Scenarios share an identical 28-day short-term phase. Their
+        # hypothetical intervention pathways diverge only from day 29.
+        if h<=28:
+            r=.75+(sampled_rt-.75)*np.exp(-h/35.)
+        else:
+            transition_base=.75+(sampled_rt-.75)*np.exp(-28/35.)
+            r=target+(transition_base-target)*np.exp(-(h-28)/(25 if scenario=='improved' else 55 if scenario=='delayed' else 35))
+        mu=np.maximum(0,r*infectious)
+        # gamma-poisson reporting-process overdispersion
+        beta=rng.gamma(DISPERSION_K, np.maximum(0,mu)/DISPERSION_K)
+        new=rng.poisson(beta).astype(float)
+        if h<=28 and weight>0:
+            day_share=profile[(h-1)%7]
+            ai_target=week_values[(h-1)//7]*day_share
+            # Blend on the expectation scale then sample integer counts. This
+            # is not an independent ensemble of posterior draws.
+            new=rng.poisson(np.maximum(0,(1-weight)*new+weight*ai_target)).astype(float)
+        inc=np.column_stack((inc,new))
+        cum+=new;traj[:,h-1]=cum
+        zero=np.where(new==0,zero+1,0)
+        newly=(~seen)&(zero>=END_ZERO_DAYS)
+        end[newly]=h-END_ZERO_DAYS+1
+        seen|=newly
+    selected=points[-1].reporting_date
+    wanted=sorted(set(list(range(1,22))+list(range(28,MAX_FUTURE_DAYS+1,7))+[MAX_FUTURE_DAYS]))
+    trajectory=[]
+    for h in wanted:
+        qs=np.quantile(traj[:,h-1],[.05,.25,.50,.75,.95]); qs=np.maximum(qs,points[-1].cumulative)
+        trajectory.append({'date':add_days(selected,h),'q05':round(float(qs[0]),1),'q25':round(float(qs[1]),1),'median':round(float(qs[2]),1),'q75':round(float(qs[3]),1),'q95':round(float(qs[4]),1)})
+    final=np.maximum(traj[:,-1],points[-1].cumulative)
+    fs=np.quantile(final,[.05,.25,.50,.75,.95])
+    reached=seen.mean()
+    # Date intervals only if at least 95% paths actually ended; avoid false
+    # precision from treating right-censored 260-day trajectories as extinction.
+    if reached>=.95:
+        end_q=np.quantile(end,[.05,.50,.95]); ed={'median':add_days(selected,int(end_q[1])),'pi90':[add_days(selected,int(end_q[0])),add_days(selected,int(end_q[2]))]}
+    else: ed={'median':None,'pi90':[None,None], 'not_reached_probability':round(float(1-reached),3)}
+    return {'model':'lightgbm_conditioned_branching','scenario':scenario,
+       'final_size':{'median':round(float(fs[2])),'pi50':[round(float(fs[1])),round(float(fs[3]))], 'pi90':[round(float(fs[0])),round(float(fs[4]))]},
+       'end_date':ed,'trajectory':trajectory,
+       'rt':{'median':round(float(np.median(sampled_rt)),3),'q025':round(float(np.quantile(sampled_rt,.025)),3),'q975':round(float(np.quantile(sampled_rt,.975)),3)},
+       'weights':{'branching_process':round(1-weight,2),'lightgbm':round(weight,2)},
+       'forecast_cutoff_days':28, 'projection_horizon_days':MAX_FUTURE_DAYS,
+       'final_size_interpretation':'260-day horizon cumulative total; true eventual final size can be larger if transmission continues',
+       'end_fraction_within_horizon':round(float(reached),3),
+       'control_target_rt_after_short_horizon':target}
+
 def main() -> None:
     reports = read_reports()
-    hist_lib = load_historical_library()
-    rng = np.random.default_rng(SEED)
-    dates: dict[str, dict] = {}
+    rng=np.random.default_rng(SEED)
+    short_path=ROOT/'data/short_term_ml_forecast.json'
+    short=json.loads(short_path.read_text(encoding='utf8')) if short_path.exists() else None
+    dates={}
     for i in range(len(reports)):
-        subset = reports[: i + 1]
-        if len(subset) < MIN_REPORT_DATES:
-            continue
-        key = subset[-1].reporting_date.isoformat()
-        branching = simulate_branching(subset, rng)
-        historical = historical_matching(subset, hist_lib)
-        ensemble = ensemble_projection(branching, historical, subset[-1].cumulative)
-        dates[key] = {
-            "report_no": subset[-1].report_no,
-            "reporting_date": key,
-            "current_cumulative_cases": round(subset[-1].cumulative),
-            "models": {
-                "ensemble": ensemble,
-                "branching": branching,
-                "historical_ai": historical,
-            },
-            # Backward-compatible alias for older dashboard code.
-            "scenarios": {
-                "ensemble": ensemble,
-                "branching": branching,
-                "historical_ai": historical,
-            },
-        }
-    latest = reports[-1] if reports else None
-    payload = {
-        "updated_at": datetime.utcnow().replace(microsecond=0).isoformat() + "Z",
-        "method": "ensemble_branching_process_ai_assisted_historical_matching",
-        "source": "data/report_summary.csv; data/historical_matching_library.json",
-        "source_sitrep": latest.report_no if latest else "",
-        "report_date": latest.reporting_date.isoformat() if latest else "",
-        "definition_of_end_date": "First date followed by 42 consecutive days with zero incident confirmed cases in the simulated or analog-projected reporting process.",
-        "caveat": "Scenario-based projection from reported confirmed cases. Not adjusted for onset date, reporting delay, under-ascertainment, spatial heterogeneity or future response changes outside model assumptions. AI-assisted historical matching is an auxiliary analog forecast, not a deterministic prediction.",
-        "model_labels": {
-            "ensemble": {"ja": "Ensemble（推奨）", "en": "Ensemble (recommended)", "fr": "Ensemble (recommandé)"},
-            "branching": {"ja": "Branching process", "en": "Branching process", "fr": "Processus de branchement"},
-            "historical_ai": {"ja": "AI支援による過去流行マッチング", "en": "AI-assisted historical matching", "fr": "Appariement historique assisté par IA"},
-        },
-        # Backward-compatible name consumed by app.js.
-        "scenario_labels": {
-            "ensemble": {"ja": "Ensemble（推奨）", "en": "Ensemble (recommended)", "fr": "Ensemble (recommandé)"},
-            "branching": {"ja": "Branching process", "en": "Branching process", "fr": "Processus de branchement"},
-            "historical_ai": {"ja": "AI支援による過去流行マッチング", "en": "AI-assisted historical matching", "fr": "Appariement historique assisté par IA"},
-        },
-        "model_definitions": {
-            "ensemble": "Weighted combination of branching process and AI-assisted historical matching. Initial display uses this recommended layer.",
-            "branching": "Renewal / branching-process negative-binomial projection using recent reported confirmed cases and a discretized generation-interval distribution.",
-            "historical_ai": "AI-assisted analog forecast using weighted similarity to processed historical DRC Ebola outbreak curves, scaled to the current observed cumulative trajectory.",
-        },
-        "generation_interval": {"distribution": "discretized_gamma", "mean_days": 12, "sd_days": 5, "max_lag_days": 40},
-        "observation_model": {"type": "negative_binomial", "dispersion_k": DISPERSION_K, "simulations_per_scenario": N_SIM},
-        "historical_matching": {
-            "library": "data/historical_matching_library.json",
-            "distance": "weighted RMSE on log1p cumulative confirmed cases after scaling each historical curve",
-            "top_matches_are_returned": True,
-        },
-        "dates": dates,
-    }
-    OUTPUT.write_text(json.dumps(payload, ensure_ascii=False, indent=2), encoding="utf-8")
-    print(f"Wrote {OUTPUT} with {len(dates)} reporting dates")
+        subset=reports[:i+1]
+        if len(subset)<MIN_REPORT_DATES:continue
+        key=subset[-1].reporting_date.isoformat()
+        bp=simulate_branching(subset,rng)
+        models={'branching':bp}
+        if i==len(reports)-1 and short and short.get('report_date')==key:
+            models.update({'ai_linked':simulate_ml_linked(subset,short,np.random.default_rng(SEED+159),'baseline'),
+                           'ai_improved':simulate_ml_linked(subset,short,np.random.default_rng(SEED+159),'improved'),
+                           'ai_delayed':simulate_ml_linked(subset,short,np.random.default_rng(SEED+159),'delayed')})
+        dates[key]={'report_no':subset[-1].report_no, 'reporting_date':key,
+           'current_cumulative_cases':round(subset[-1].cumulative),'models':models,'scenarios':models}
+    latest=reports[-1] if reports else None
+    labels={
+       'ai_linked':{'ja':'AI＋Branching（実験・現状維持）','en':'AI-linked branching (experimental baseline)','fr':'IA + branchement (expérimental)'},
+       'branching':{'ja':'Branching process単独','en':'Branching process only','fr':'Processus de branchement seul'},
+       'ai_improved':{'ja':'AI＋Branching（実験・制御改善）','en':'AI-linked (experimental improved control)','fr':'IA (expérimental, contrôle renforcé)'},
+       'ai_delayed':{'ja':'AI＋Branching（実験・制御遅延）','en':'AI-linked (experimental delayed control)','fr':'IA (expérimental, contrôle retardé)'}}
+    # Expose AI-linked controls only when a matching and validated ML forecast exists.
+    if not (short and latest and short.get('report_date')==latest.reporting_date.isoformat()):
+        labels={'branching':labels['branching']}
+    payload={'updated_at':datetime.now(timezone.utc).replace(microsecond=0).isoformat().replace('+00:00','Z'),
+       'method':'branching_and_lightgbm_short_horizon_linked_projection',
+       'source':'data/report_summary.csv; data/short_term_ml_forecast.json',
+       'source_sitrep':latest.report_no if latest else '',
+       'report_date':latest.reporting_date.isoformat() if latest else '',
+       'definition_of_end_date':'42 consecutive days of zero simulated incident confirmed cases (within 260-day model horizon).',
+       'caveat':'The 260-day total is NOT a guaranteed final outbreak size. Rt scenarios are assumed, not forecasts of intervention effects. AI links first 28 days only; no clinical onset-date adjustments.',
+       'model_labels':labels,'scenario_labels':labels,
+       'model_definitions':{
+         'branching':'Renewal/branching process with overdispersed counts and Rt reversion assumption',
+         'ai_linked':'Validated LightGBM direct weekly incidence forecasts constrain days 1–28; stochastic branching renewal model continues after day 28',
+         'ai_improved':'Same forecast, assumed Rt tends to 0.52',
+         'ai_delayed':'Same forecast, assumed Rt tends to 0.96'},
+       'generation_interval':{'distribution':'discretized_gamma','mean_days':12,'sd_days':5},
+       'observation_model':{'type':'negative_binomial','dispersion_k':DISPERSION_K,'simulations_per_scenario':N_SIM},
+       'short_term_ml_validation':short.get('backtest',{}) if short else {},
+       'dates':dates}
+    OUTPUT.write_text(json.dumps(payload,ensure_ascii=False,indent=2),encoding='utf8')
+    print(f'Wrote {OUTPUT} with {len(dates)} reporting dates, latest scenarios {list(dates[max(dates)]["models"])}')
 
-
-if __name__ == "__main__":
-    main()
+if __name__=='__main__':main()

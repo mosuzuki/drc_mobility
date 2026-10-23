@@ -1,0 +1,386 @@
+{
+  "updated_at": "2026-10-23T05:22:50.185439+00:00",
+  "source_sitrep": "N159",
+  "report_date": "2026-10-20",
+  "method": "pooled_regional_lightgbm_direct_weekly_incidence",
+  "horizons_days": [
+    7,
+    14,
+    21,
+    28
+  ],
+  "models": {
+    "lightgbm": {
+      "weeks": [
+        {
+          "week": 1,
+          "from": "2026-10-21",
+          "to": "2026-10-27",
+          "median": 399.8,
+          "q05": 272.5,
+          "q25": 341.3,
+          "q75": 463.5,
+          "q95": 582.6
+        },
+        {
+          "week": 2,
+          "from": "2026-10-28",
+          "to": "2026-11-03",
+          "median": 396.8,
+          "q05": 267.4,
+          "q25": 337.5,
+          "q75": 463.8,
+          "q95": 583.8
+        },
+        {
+          "week": 3,
+          "from": "2026-11-04",
+          "to": "2026-11-10",
+          "median": 397.1,
+          "q05": 274.8,
+          "q25": 341.9,
+          "q75": 463.0,
+          "q95": 594.7
+        },
+        {
+          "week": 4,
+          "from": "2026-11-11",
+          "to": "2026-11-17",
+          "median": 396.4,
+          "q05": 270.8,
+          "q25": 337.5,
+          "q75": 458.1,
+          "q95": 575.7
+        }
+      ],
+      "uncertainty_method": "log-error residual scale estimated from available rolling national origins",
+      "log_sigma": 0.229
+    },
+    "branching": {
+      "weeks": [
+        {
+          "week": 1,
+          "from": "2026-10-21",
+          "to": "2026-10-27",
+          "q05": 122.9,
+          "q25": 260.8,
+          "median": 422.0,
+          "q75": 684.2,
+          "q95": 1223.4
+        },
+        {
+          "week": 2,
+          "from": "2026-10-28",
+          "to": "2026-11-03",
+          "q05": 102.0,
+          "q25": 261.0,
+          "median": 451.0,
+          "q75": 718.2,
+          "q95": 1309.3
+        },
+        {
+          "week": 3,
+          "from": "2026-11-04",
+          "to": "2026-11-10",
+          "q05": 99.9,
+          "q25": 253.8,
+          "median": 466.0,
+          "q75": 760.0,
+          "q95": 1537.1
+        },
+        {
+          "week": 4,
+          "from": "2026-11-11",
+          "to": "2026-11-17",
+          "q05": 79.0,
+          "q25": 233.8,
+          "median": 438.0,
+          "q75": 788.5,
+          "q95": 1738.1
+        }
+      ],
+      "uncertainty_method": "Monte Carlo weekly forecast distribution (uncalibrated on independent Ebola outbreaks)"
+    },
+    "ensemble": {
+      "weeks": [
+        {
+          "week": 1,
+          "from": "2026-10-21",
+          "to": "2026-10-27",
+          "q05": 174.3,
+          "q25": 291.7,
+          "median": 427.7,
+          "q75": 631.2,
+          "q95": 1043.1
+        },
+        {
+          "week": 2,
+          "from": "2026-10-28",
+          "to": "2026-11-03",
+          "q05": 156.6,
+          "q25": 292.6,
+          "median": 438.7,
+          "q75": 653.6,
+          "q95": 1133.6
+        },
+        {
+          "week": 3,
+          "from": "2026-11-04",
+          "to": "2026-11-10",
+          "q05": 160.4,
+          "q25": 291.5,
+          "median": 450.2,
+          "q75": 683.2,
+          "q95": 1293.0
+        },
+        {
+          "week": 4,
+          "from": "2026-11-11",
+          "to": "2026-11-17",
+          "q05": 141.8,
+          "q25": 267.2,
+          "median": 431.7,
+          "q75": 716.9,
+          "q95": 1470.7
+        }
+      ],
+      "uncertainty_method": "Monte Carlo weekly forecast distribution (uncalibrated on independent Ebola outbreaks)"
+    }
+  },
+  "backtest": {
+    "lightgbm_mae_weekly": 141.1,
+    "persistence_mae_weekly": 213.85,
+    "branching_mae_weekly": 128.09,
+    "n_origins": 8,
+    "evaluation": "Time-forward LightGBM refits and independent branching forecasts; disjoint-week national MAE on matured labels. SitRep revisions and interpolation remain limitations."
+  },
+  "folds": [
+    {
+      "origin": "2026-08-04",
+      "actual": [
+        593.0,
+        642.0,
+        505.0,
+        537.0
+      ],
+      "lightgbm": [
+        282.9,
+        282.9,
+        288.8,
+        288.8
+      ],
+      "persistence": [
+        345.4,
+        224.5,
+        145.9,
+        145.9
+      ],
+      "branching": [
+        472.5,
+        399.5,
+        382.5,
+        300.0
+      ]
+    },
+    {
+      "origin": "2026-08-11",
+      "actual": [
+        642.0,
+        505.0,
+        537.0,
+        593.0
+      ],
+      "lightgbm": [
+        330.3,
+        330.3,
+        332.0,
+        332.0
+      ],
+      "persistence": [
+        661.4,
+        737.8,
+        822.9,
+        822.9
+      ],
+      "branching": [
+        472.0,
+        406.0,
+        365.5,
+        323.5
+      ]
+    },
+    {
+      "origin": "2026-08-18",
+      "actual": [
+        505.0,
+        537.0,
+        593.0,
+        561.0
+      ],
+      "lightgbm": [
+        377.3,
+        377.3,
+        377.3,
+        377.3
+      ],
+      "persistence": [
+        694.8,
+        751.9,
+        813.7,
+        813.7
+      ],
+      "branching": [
+        523.0,
+        586.5,
+        575.5,
+        542.0
+      ]
+    },
+    {
+      "origin": "2026-08-25",
+      "actual": [
+        537.0,
+        593.0,
+        561.0,
+        416.0
+      ],
+      "lightgbm": [
+        379.6,
+        379.6,
+        379.6,
+        379.6
+      ],
+      "persistence": [
+        397.7,
+        313.3,
+        246.7,
+        246.7
+      ],
+      "branching": [
+        478.5,
+        425.0,
+        365.5,
+        316.0
+      ]
+    },
+    {
+      "origin": "2026-09-01",
+      "actual": [
+        593.0,
+        561.0,
+        416.0,
+        404.0
+      ],
+      "lightgbm": [
+        393.8,
+        393.8,
+        393.8,
+        393.8
+      ],
+      "persistence": [
+        570.8,
+        606.8,
+        645.0,
+        645.0
+      ],
+      "branching": [
+        393.0,
+        350.0,
+        301.0,
+        261.0
+      ]
+    },
+    {
+      "origin": "2026-09-08",
+      "actual": [
+        561.0,
+        416.0,
+        404.0,
+        504.0
+      ],
+      "lightgbm": [
+        415.7,
+        415.7,
+        415.7,
+        415.7
+      ],
+      "persistence": [
+        654.5,
+        722.4,
+        797.3,
+        797.3
+      ],
+      "branching": [
+        442.0,
+        464.0,
+        425.0,
+        379.0
+      ]
+    },
+    {
+      "origin": "2026-09-15",
+      "actual": [
+        416.0,
+        404.0,
+        504.0,
+        484.0
+      ],
+      "lightgbm": [
+        406.9,
+        406.9,
+        406.9,
+        406.9
+      ],
+      "persistence": [
+        530.9,
+        502.4,
+        475.4,
+        475.4
+      ],
+      "branching": [
+        494.0,
+        476.5,
+        476.5,
+        467.0
+      ]
+    },
+    {
+      "origin": "2026-09-22",
+      "actual": [
+        404.0,
+        504.0,
+        484.0,
+        492.0
+      ],
+      "lightgbm": [
+        390.2,
+        390.2,
+        390.2,
+        390.2
+      ],
+      "persistence": [
+        309.0,
+        229.6,
+        170.6,
+        170.6
+      ],
+      "branching": [
+        361.0,
+        253.0,
+        227.0,
+        179.5
+      ]
+    }
+  ],
+  "recommended_lightgbm_weight": 0.0,
+  "experimental_lightgbm_weight": 0.2,
+  "ensemble_method": "weighted sample-path combination; model errors assumed independent",
+  "chronos2_status": "not_available",
+  "chronos2_error": "disabled; set ENABLE_CHRONOS2=1 with chronos-forecasting>=2.0 and cached model weights",
+  "caveats": [
+    "This model was trained using one evolving outbreak, NOT many independent epidemics.",
+    "Incidence is approximated from cumulative report dates, with interpolation over missed days.",
+    "Historical SitRep revisions may cause retrospective information leakage in backtests.",
+    "Uncertainty intervals are exploratory and are not independently calibrated."
+  ]
+}

@@ -7,7 +7,7 @@
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="preconnect" href="https://cdn.plot.ly" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="assets/style.css?v=20261023-n159-fullsync" />
+  <link rel="stylesheet" href="assets/style.css?v=20261023-ml-v1" />
 </head>
 <body>
   <header class="topbar">
@@ -189,9 +189,17 @@
             <p id="forecastDesc">Renewal / branching-process projection based on recent reported confirmed cases. The projection starts from the selected SitRep date.</p>
           </div>
           <div class="forecast-control-stack">
+            <select id="forecastModelSelect" aria-label="Forecast model">
+              <option value="ensemble">Ensemble（実験的・Branching + LightGBM）</option>
+              <option value="branching" selected>Branching process</option>
+              <option value="lightgbm">LightGBM (ML)</option>
+              <option value="chronos2" disabled>Chronos-2 (not evaluated)</option>
+            </select>
             <select id="forecastHorizonSelect" aria-label="Forecast horizon">
               <option value="7" selected>7 days</option>
               <option value="14">14 days</option>
+              <option value="21">21 days</option>
+              <option value="28">28 days</option>
             </select>
             <select id="forecastSiSelect" aria-label="Generation interval assumption">
               <option value="9">Short GI mean 9d</option>
@@ -207,14 +215,15 @@
       <article class="panel chart-card dashboard-card final-size-chart-block">
         <div class="chart-block-head">
           <div>
-            <h2 id="finalSizeTitle">アウトブレイク最終サイズ推定</h2>
-            <p id="finalSizeDesc">Branching processとAI支援による過去流行マッチングを組み合わせた推定です。これは確定的な予測ではありません。</p>
+            <h2 id="finalSizeTitle">アウトブレイク規模予測（260日間）</h2>
+            <p id="finalSizeDesc">短期LightGBM予測とBranching processを接続し、将来Rtのシナリオ別に最大260日間の累積確定例を試算します。</p>
           </div>
           <div class="final-size-control-stack">
             <select id="finalSizeScenarioSelect" aria-label="Final size model">
-              <option value="ensemble" selected>Ensemble（推奨）</option>
-              <option value="branching">Branching process</option>
-              <option value="historical_ai">AI支援による過去流行マッチング</option>
+              <option value="ai_linked">AI＋Branching（実験・現状維持）</option>
+              <option value="branching" selected>Branching process単独</option>
+              <option value="ai_improved">AI＋Branching（実験・制御改善）</option>
+              <option value="ai_delayed">AI＋Branching（実験・制御遅延）</option>
             </select>
             <div id="finalSizeBasisToggle" class="final-size-basis-toggle" role="group" aria-label="Final size basis">
               <button type="button" class="active" data-final-size-basis="reported">報告確定例ベース</button>
@@ -369,6 +378,6 @@
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="assets/app.js?v=20261023-n159-fullsync"></script>
+  <script src="assets/app.js?v=20261023-ml-v1"></script>
 </body>
 </html>
