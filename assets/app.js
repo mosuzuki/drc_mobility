@@ -2846,7 +2846,7 @@ function updateUgandaImportationMap() {
   addUgandaObservedLegend('Importation pressure');
 }
 
-function updateKpis(destRows) {
+function updateMapScenario(destRows) {
   const f = currentFilters();
 
   if (mapMode === 'uganda_border') {
@@ -2855,13 +2855,6 @@ function updateKpis(destRows) {
     const total = fmpRows.reduce((a,b)=>a+toNumber(b.observed_movements),0);
     const topFmp = fmpRows[0];
     const topDistrict = districtRows[0];
-    document.getElementById('kpiTotal').textContent = fmt.format(Math.round(total));
-    document.getElementById('kpiKinshasa').textContent = topFmp ? topFmp.fmp : '—';
-    document.getElementById('kpiKinshasaShare').textContent = topFmp ? `${fmt.format(Math.round(topFmp.observed_movements))} observed; top FMP` : '—';
-    document.getElementById('kpiBorder').textContent = topDistrict ? topDistrict.uganda_district : '—';
-    document.getElementById('kpiBorderShare').textContent = topDistrict ? `${fmt.format(Math.round(topDistrict.observed_movements))} observed; top Uganda district` : '—';
-    document.getElementById('kpiUganda').textContent = '15–24 May 2026';
-    document.getElementById('kpiScenario').textContent = 'IOM DTM EVD FMP snapshot';
     document.getElementById('scenarioText').innerHTML = '<strong>Uganda border flow</strong><br>Observed movements at selected Uganda–DRC flow monitoring points during 15–24 May 2026. These data are indicative of key flows and do not represent all cross-border movement.';
     return;
   }
@@ -2870,13 +2863,6 @@ function updateKpis(destRows) {
     const rows = ugandaImportationRowsForMonth(f.month);
     const base = selectedCaseWeightedBorderPressure(f.month);
     const top = rows[0];
-    document.getElementById('kpiTotal').textContent = fmt.format(Math.round(base.pressure));
-    document.getElementById('kpiKinshasa').textContent = top ? top.uganda_district : '—';
-    document.getElementById('kpiKinshasaShare').textContent = top ? `${fmt.format(Math.round(top.importation_pressure))} score; top district` : '—';
-    document.getElementById('kpiBorder').textContent = fmt.format(Math.round(base.movement));
-    document.getElementById('kpiBorderShare').textContent = 'DRC border-proxy movement basis';
-    document.getElementById('kpiUganda').textContent = originFilterText();
-    document.getElementById('kpiScenario').textContent = 'DTM 2026 allocation × DRC case-weighted border pressure';
     document.getElementById('scenarioText').innerHTML = `<strong>Uganda importation pressure</strong><br>For the selected DRC origin set and month, case-weighted movement toward Uganda-border proxy zones is allocated to Uganda districts using the IOM DTM EVD flow monitoring destination profile from 15–24 May 2026. This is a prioritization score, not an observed infected-traveller count.`;
     return;
   }
@@ -2888,13 +2874,6 @@ function updateKpis(destRows) {
     const affected = rows.filter(r => toNumber(r.cases) > 0);
     const median = vals.length ? quantileAll(vals, 0.5) : NaN;
     const top = affected.slice().sort((a,b)=>toNumber(b.cases)-toNumber(a.cases))[0];
-    document.getElementById('kpiTotal').textContent = fmt.format(rows.length);
-    document.getElementById('kpiKinshasa').textContent = Number.isFinite(median) ? median.toFixed(0) : '—';
-    document.getElementById('kpiKinshasaShare').textContent = 'Median RWI percentile among health zones with RWI data';
-    document.getElementById('kpiBorder').textContent = fmt.format(affected.length);
-    document.getElementById('kpiBorderShare').textContent = `Health zones with reported cases on ${displayDateLabel(selectedCaseDate())}`;
-    document.getElementById('kpiUganda').textContent = top ? top.zone_name : '—';
-    document.getElementById('kpiScenario').textContent = top ? `${fmt.format(Math.round(top.cases))} cases; RWI percentile ${top.rwi_percentile.toFixed(0)}` : 'No affected health zone in selected date';
     document.getElementById('scenarioText').innerHTML = '<strong>Relative wealth percentile layer</strong><br>Original standardized RWI values are converted to within-DRC percentiles for display. The scatter plot is ecological and exploratory; it does not imply causality and is not adjusted for population mobility, surveillance intensity, healthcare access, or distance from outbreak origin.';
     return;
   }
@@ -2905,13 +2884,6 @@ function updateKpis(destRows) {
     const totalDeaths = rows.reduce((a,b)=>a+toNumber(b.confirmed_deaths),0);
     const mapped = rows.filter(r => r.zone_id).length;
     const top = rows.slice().sort((a,b)=>toNumber(b.confirmed_cases)-toNumber(a.confirmed_cases))[0];
-    document.getElementById('kpiTotal').textContent = fmt.format(Math.round(totalCases));
-    document.getElementById('kpiKinshasa').textContent = fmt.format(Math.round(totalDeaths));
-    document.getElementById('kpiKinshasaShare').textContent = `${pct(totalDeaths / Math.max(totalCases,1))} CFR among confirmed`;
-    document.getElementById('kpiBorder').textContent = fmt.format(rows.filter(r => toNumber(r.confirmed_cases)>0 && r.zone_id).length);
-    document.getElementById('kpiBorderShare').textContent = `${mapped} rows with mappable zone ID`;
-    document.getElementById('kpiUganda').textContent = top ? top.health_zone : '—';
-    document.getElementById('kpiScenario').textContent = top ? `${fmt.format(Math.round(top.confirmed_cases))} confirmed cases; source ${latestCaseDate()}` : 'No case data';
     document.getElementById('scenarioText').innerHTML = textByLang(`<strong>症例数レイヤー</strong><br>確定例と死亡例は、選択したSitRep報告日の値を用いています。直近増加モードでは、少なくとも7日前に最も近いSitRepとの差分を表示します。Unventilated / unknown-health-zone casesは特定のhealth zoneに割り当てられないため、症例バブル地図には表示していません。`, `<strong>Case-count layer</strong><br>Confirmed cases and deaths are taken from the selected SitRep reporting date. In recent-increase mode, values are differences from the closest available SitRep at least seven days earlier. Unventilated / unknown-health-zone cases are intentionally not shown on the case-bubble map because they cannot be assigned to a specific health zone.`, `<strong>Couche des cas</strong><br>Les cas confirmés et les décès proviennent de la date de rapport SitRep sélectionnée. En mode augmentation récente, les valeurs correspondent à la différence avec le SitRep disponible le plus proche situé au moins sept jours plus tôt. Les cas non ventilés ou sans zone de santé connue ne sont pas affichés sur la carte des bulles car ils ne peuvent pas être attribués à une zone de santé spécifique.`);
     return;
   }
@@ -2928,13 +2900,6 @@ function updateKpis(destRows) {
     const top = rows.slice().sort((a,b)=>toNumber(b[metricKey])-toNumber(a[metricKey]))[0];
     const basis = top?.forecast_basis || (forecast ? forecastMobilityMonths(f.month).label : f.month);
     const suppressed = isAir ? rows.reduce((a,b)=>a+toNumber(b.suppressed_amount),0) : 0;
-    document.getElementById('kpiTotal').textContent = fmt.format(Math.round(totalScore));
-    document.getElementById('kpiKinshasa').textContent = isAir ? fmt.format(Math.round(suppressed)) : fmt.format(Math.round(totalIncoming));
-    document.getElementById('kpiKinshasaShare').textContent = isAir ? 'Suppressed case-weighted score from air-plausible destinations' : (isContact ? 'Underlying monthly movement from selected origins' : (forecast ? `Forecast mobility basis: ${basis}` : `Movement basis: ${f.month}`));
-    document.getElementById('kpiBorder').textContent = top ? top.zone_name : '—';
-    document.getElementById('kpiBorderShare').textContent = top ? `${fmt.format(Math.round(top[metricKey]))} top score` : 'No risk score';
-    document.getElementById('kpiUganda').textContent = latestCaseDate() || '—';
-    document.getElementById('kpiScenario').textContent = isAir ? 'Case source date; air suppression scenario' : (isContact ? 'Case source date; contact follow-up adjustment' : 'Case source date');
     document.getElementById('scenarioText').innerHTML = isAir
       ? `<strong>Air-adjusted case-weighted risk</strong><br>Air-adjusted risk = case-weighted risk × air-travel suppression factor for long-distance, air-plausible destinations. The default scenario down-weights Kinshasa-bound risk to 25% of the pre-outbreak baseline, reflecting Bunia passenger-flight suspension and subsequent reopening under screening measures. This is a scenario-based prioritization indicator, not observed airline passenger OD and not transmission probability.`
       : (isContact
@@ -2961,13 +2926,6 @@ function updateKpis(destRows) {
     const totalProjected = rows.reduce((a,b)=>a+toNumber(b.projected),0);
     const kampala = rows.find(r => r.uganda_id === 'UGA_KAMPALA')?.projected || 0;
     const top = rows[0];
-    document.getElementById('kpiTotal').textContent = fmt.format(Math.round(border));
-    document.getElementById('kpiKinshasa').textContent = top ? top.uganda_name : '—';
-    document.getElementById('kpiKinshasaShare').textContent = top ? `${fmt.format(Math.round(top.projected))} projected; top Uganda destination` : 'No projection';
-    document.getElementById('kpiBorder').textContent = fmt.format(Math.round(totalProjected));
-    document.getElementById('kpiBorderShare').textContent = `${f.scenario.scenario_name}; ${pct(Number(f.scenario.cross_border_fraction || 0))} crossing assumption`;
-    document.getElementById('kpiUganda').textContent = fmt.format(Math.round(kampala));
-    document.getElementById('kpiScenario').textContent = 'Projected Kampala component';
     document.getElementById('scenarioText').innerHTML = `
       <strong>Uganda projection: scenario-based estimate</strong><br>
       This layer estimates possible Uganda-side destinations by combining DRC-side movement toward Uganda-border proxy health zones with a historical IOM DTM Uganda–DRC border FMP destination profile from Jan–Mar 2020. It should be interpreted as <strong>projected movement pressure</strong>, not observed 2026 cross-border movement and not Ebola transmission probability.<br><br>
@@ -2983,13 +2941,6 @@ function updateKpis(destRows) {
     const border = rows.filter(r => r.is_uganda_border === 1 || r.category === 'uganda_border').reduce((a, b) => a + toNumber(b.incoming), 0);
     const top = rows.slice().sort((a,b)=>toNumber(b.risk)-toNumber(a.risk))[0];
     const uganda = Math.round(border * Number(f.scenario.cross_border_fraction || 0));
-    document.getElementById('kpiTotal').textContent = fmt.format(Math.round(totalIncoming));
-    document.getElementById('kpiKinshasa').textContent = fmt.format(Math.round(kin));
-    document.getElementById('kpiKinshasaShare').textContent = `${pct(kin / Math.max(totalIncoming, 1))} of mobility pressure`;
-    document.getElementById('kpiBorder').textContent = fmt.format(Math.round(border));
-    document.getElementById('kpiBorderShare').textContent = `${pct(border / Math.max(totalIncoming, 1))} of mobility pressure`;
-    document.getElementById('kpiUganda').textContent = top ? `${top.zone_name}` : '—';
-    document.getElementById('kpiScenario').textContent = top ? `${fmt.format(Math.round(top.incoming))} arrivals; highest inflow` : 'No incoming movement';
     document.getElementById('scenarioText').innerHTML = `
       <strong>Mobility-based spread-risk layer</strong><br>
       Risk index = estimated monthly arrivals from selected outbreak health zone(s) to each destination health zone. The index is not divided by destination population. This is a relative mobility-pressure indicator for surveillance and preparedness, not an Ebola transmission probability. Uganda crossing remains scenario-based: ${fmt.format(uganda)} onward movements under the selected scenario.
@@ -3005,13 +2956,6 @@ function updateKpis(destRows) {
     const kinPop = popRows.filter(r => r.is_kinshasa === 1 || r.category === 'kinshasa').reduce((a, b) => a + b.population, 0);
     const borderPop = popRows.filter(r => r.is_uganda_border === 1 || r.category === 'uganda_border').reduce((a, b) => a + b.population, 0);
 
-    document.getElementById('kpiTotal').textContent = totalPop ? fmt.format(Math.round(totalPop)) : '—';
-    document.getElementById('kpiKinshasa').textContent = kinPop ? fmt.format(Math.round(kinPop)) : '—';
-    document.getElementById('kpiKinshasaShare').textContent = totalPop ? `${pct(kinPop / Math.max(totalPop, 1))} of displayed population` : 'Population file not loaded';
-    document.getElementById('kpiBorder').textContent = borderPop ? fmt.format(Math.round(borderPop)) : '—';
-    document.getElementById('kpiBorderShare').textContent = totalPop ? `${pct(borderPop / Math.max(totalPop, 1))} of displayed population` : 'Population file not loaded';
-    document.getElementById('kpiUganda').textContent = outbreakPop ? fmt.format(Math.round(outbreakPop)) : '—';
-    document.getElementById('kpiScenario').textContent = totalPop ? (mapMode === 'density' ? 'Outbreak-zone population; density map' : 'Population in outbreak zones') : 'Add data/population_by_hz.csv';
     document.getElementById('scenarioText').innerHTML = totalPop ? `
       <strong>${mapMode === 'density' ? 'Population density layer' : 'Population layer'}</strong><br>
       ${mapMode === 'density'
@@ -3029,13 +2973,6 @@ function updateKpis(destRows) {
   const border = destRows.filter(d => d.is_uganda_border === 1).reduce((a, b) => a + b.movement, 0);
   const uganda = Math.round(border * Number(f.scenario.cross_border_fraction || 0));
 
-  document.getElementById('kpiTotal').textContent = fmt.format(total);
-  document.getElementById('kpiKinshasa').textContent = fmt.format(kinshasa);
-  document.getElementById('kpiKinshasaShare').textContent = `${pct(kinshasa / Math.max(total, 1))} of outbound movement`;
-  document.getElementById('kpiBorder').textContent = fmt.format(border);
-  document.getElementById('kpiBorderShare').textContent = `${pct(border / Math.max(total, 1))} of outbound movement`;
-  document.getElementById('kpiUganda').textContent = fmt.format(uganda);
-  document.getElementById('kpiScenario').textContent = `${f.scenario.scenario_name}; proxy estimate`;
 
   document.getElementById('scenarioText').innerHTML = `
     <strong>${f.scenario.scenario_name}</strong><br>
@@ -4808,7 +4745,7 @@ function updateDashboard() {
   }
   if (caseModeLabel) caseModeLabel.textContent = caseDisplayMode === 'recent' ? `Recent increase since ${displayDateLabel(comparisonCaseDate(selectedCaseDate()))}` : 'Cumulative cases';
   const destRows = groupByDestination(selectedFlows());
-  updateKpis(destRows);
+  updateMapScenario(destRows);
   setEpiKpis();
   refreshFreshnessNotices();
   updateLatestSituationSummary();
