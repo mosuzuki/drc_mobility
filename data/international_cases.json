@@ -1,0 +1,50 @@
+{
+  "schema_version": 1,
+  "source_scope": "2026 Bundibugyo ebolavirus outbreak; CONFIRMED counts only; evacuated patients not treated as locally acquired transmission",
+  "countries": {
+    "kenya": {
+      "confirmed_cases": 9,
+      "confirmed_deaths": 1,
+      "as_of_date": "2026-10-22",
+      "publication_date": "2026-10-22",
+      "source": "ECDC",
+      "source_url": "https://www.ecdc.europa.eu/en/public-health-events/2026-eip-00026/2026-10-22",
+      "status": "linked_secondary_cases",
+      "last_case_reported": "2026-10-20",
+      "note_ja": "DRCからの輸入例に関連する家庭内・医療従事者の二次感染を確認。最新例は10月20日報告。",
+      "note_en": "Nine linked cases including household and healthcare-associated secondary cases; latest case reported 20 October.",
+      "note_fr": "Neuf cas liés au cas importé, dont des transmissions secondaires familiales et parmi le personnel de santé."
+    },
+    "nigeria": {
+      "confirmed_cases": 1,
+      "confirmed_deaths": 0,
+      "as_of_date": "2026-10-20",
+      "publication_date": "2026-10-22",
+      "source": "ECDC / US CDC",
+      "source_url": "https://www.ecdc.europa.eu/en/public-health-events/2026-eip-00026/2026-10-22",
+      "deaths_source_url": "https://www.cdc.gov/ebola/situation-summary/",
+      "status": "imported_case_under_investigation",
+      "note_ja": "ウガンダからの渡航歴のある輸入例。感染場所は調査中。",
+      "note_en": "One imported case with travel history to Uganda; place of exposure is under investigation.",
+      "note_fr": "Un cas importé avec antécédents de voyage en Ouganda ; lieu d’exposition en cours d’enquête."
+    },
+    "france": {
+      "confirmed_cases": 1,
+      "confirmed_deaths": 0,
+      "as_of_date": "2026-07-07",
+      "publication_date": "2026-10-20",
+      "source": "US CDC / NICD",
+      "source_url": "https://www.cdc.gov/ebola/situation-summary/",
+      "status": "recovered",
+      "note_ja": "DRCからの輸入例1例、回復。",
+      "note_en": "One imported case from DRC, recovered.",
+      "note_fr": "Un cas importé de RDC, guéri."
+    }
+  },
+  "other_country_note": {
+    "ja": "フランスでは輸入例1例が報告され、すでに回復しています。また、ドイツ・オランダへの感染者の医療搬送例がありますが、搬送先での二次感染を意味しません。",
+    "en": "France reported one imported case (recovered). Confirmed patients were medically evacuated to Germany and the Netherlands; these transfers do not establish local secondary transmission.",
+    "fr": "La France a rapporté un cas importé (guéri). Des patients ont été évacués médicalement vers l’Allemagne et les Pays-Bas, sans transmission secondaire locale établie."
+  },
+  "other_country_source_url": "https://www.ecdc.europa.eu/en/public-health-events/2026-eip-00026/2026-10-20"
+}

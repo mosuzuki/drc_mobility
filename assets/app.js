@@ -19,6 +19,7 @@ const files = {
   ugandaEvdHistory: 'data/uganda_evd_history.csv',
   aiSummary: 'data/ai_sitrep_summary.csv',
   latestSituation: 'data/latest_situation.json',
+  internationalCases: 'data/international_cases.json',
   finalProjection: 'data/final_size_projection.json',
   shortMlForecast: 'data/short_term_ml_forecast.json',
   trueInfectionEstimate: 'data/true_infection_estimate.json',
@@ -29,6 +30,7 @@ const files = {
 
 let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], ugandaEvdDailyCases = [], ugandaEvdHistory = [], aiSitrepSummary = [], healthZoneActivity = [], rtEstimates = [], cfrEstimates = [];
 let latestSituationData = null;
+let internationalCasesData = null;
 let finalSizeProjectionData = null;
 let shortMlForecastData = null;
 let trueInfectionEstimateData = null;
@@ -68,7 +70,7 @@ if (!['ja', 'en', 'fr'].includes(currentLang)) currentLang = 'ja';
 const UI_TEXT = {
   ja: {
     pageEyebrow: '疫学・移動・対応状況の統合ダッシュボード',
-    pageTitle: 'DRC・ウガンダ Bundibugyo型エボラ流行ダッシュボード',
+    pageTitle: 'Bundibugyo型エボラ流行：多国間ダッシュボード',
     pageSubtitle: '',
     dataStatusLabel: 'データ更新状況',
     assessmentEyebrow: 'AI-assisted situational intelligence',
@@ -79,6 +81,9 @@ const UI_TEXT = {
     latestSituationMetaFallback: 'SitRep更新ごとの差分要約',
     latestSituationDrcLabel: 'DRC：',
     latestSituationUgandaLabel: 'ウガンダ：',
+    latestSituationKenyaLabel: 'ケニア：',
+    latestSituationNigeriaLabel: 'ナイジェリア：',
+    latestSituationOtherLabel: 'その他：',
     publicHealthAssessmentTitle: '公衆衛生アセスメント',
     publicHealthAssessmentMeta: '現在の指標に基づく評価',
     assessmentLocalLabel: '流行地における流行状況',
@@ -124,12 +129,14 @@ const UI_TEXT = {
     hzActivityStatusCol: '判定',
     kpiTotalLabel: 'DRC確定症例数',
     kpiDrcDeathsLabel: 'DRC確定死亡例数',
-    kpiUgandaCasesLabel: 'ウガンダ確定症例数',
-    kpiUgandaDeathsLabel: 'ウガンダ確定死亡例数'
+    kpiUgandaCasesLabel: 'ウガンダ',
+    kpiUgandaDeathsLabel: 'ウガンダ確定死亡例数',
+    kpiKenyaLabel: 'ケニア',
+    kpiNigeriaLabel: 'ナイジェリア',
   },
   en: {
     pageEyebrow: 'Integrated epidemiology, mobility and response dashboard',
-    pageTitle: 'DRC–Uganda Bundibugyo Ebola outbreak dashboard',
+    pageTitle: 'Multi-country Bundibugyo Ebola outbreak dashboard',
     pageSubtitle: '',
     dataStatusLabel: 'Data status',
     assessmentEyebrow: 'AI-assisted situational intelligence',
@@ -140,6 +147,9 @@ const UI_TEXT = {
     latestSituationMetaFallback: 'Delta summary by SitRep update',
     latestSituationDrcLabel: 'DRC: ',
     latestSituationUgandaLabel: 'Uganda: ',
+    latestSituationKenyaLabel: 'Kenya: ',
+    latestSituationNigeriaLabel: 'Nigeria: ',
+    latestSituationOtherLabel: 'Other: ',
     publicHealthAssessmentTitle: 'Public-health assessment',
     publicHealthAssessmentMeta: 'Assessment based on current indicators',
     assessmentLocalLabel: 'Epidemic situation in affected areas',
@@ -185,12 +195,14 @@ const UI_TEXT = {
     hzActivityStatusCol: 'Status',
     kpiTotalLabel: 'DRC confirmed cases',
     kpiDrcDeathsLabel: 'DRC confirmed deaths',
-    kpiUgandaCasesLabel: 'Uganda confirmed cases',
-    kpiUgandaDeathsLabel: 'Uganda confirmed deaths'
+    kpiUgandaCasesLabel: 'Uganda',
+    kpiUgandaDeathsLabel: 'Uganda confirmed deaths',
+    kpiKenyaLabel: 'Kenya',
+    kpiNigeriaLabel: 'Nigeria',
   },
   fr: {
     pageEyebrow: 'Tableau intégré épidémiologie, mobilité et réponse',
-    pageTitle: 'Tableau de bord Ebola Bundibugyo RDC–Ouganda',
+    pageTitle: 'Tableau de bord multinational Ebola Bundibugyo',
     pageSubtitle: '',
     dataStatusLabel: 'État des données',
     assessmentEyebrow: 'Veille situationnelle assistée par IA',
@@ -201,6 +213,9 @@ const UI_TEXT = {
     latestSituationMetaFallback: 'Résumé des changements par SitRep',
     latestSituationDrcLabel: 'RDC : ',
     latestSituationUgandaLabel: 'Ouganda : ',
+    latestSituationKenyaLabel: 'Kenya : ',
+    latestSituationNigeriaLabel: 'Nigéria : ',
+    latestSituationOtherLabel: 'Autres : ',
     publicHealthAssessmentTitle: 'Évaluation de santé publique',
     publicHealthAssessmentMeta: 'Évaluation fondée sur les indicateurs actuels',
     assessmentLocalLabel: 'Situation épidémique dans les zones touchées',
@@ -246,8 +261,10 @@ const UI_TEXT = {
     hzActivityStatusCol: 'Statut',
     kpiTotalLabel: 'Cas confirmés en RDC',
     kpiDrcDeathsLabel: 'Décès confirmés en RDC',
-    kpiUgandaCasesLabel: 'Cas confirmés en Ouganda',
-    kpiUgandaDeathsLabel: 'Décès confirmés en Ouganda'
+    kpiUgandaCasesLabel: 'Ouganda',
+    kpiUgandaDeathsLabel: 'Décès confirmés en Ouganda',
+    kpiKenyaLabel: 'Kenya',
+    kpiNigeriaLabel: 'Nigéria',
   }
 };
 
@@ -316,7 +333,7 @@ function refreshFinalSizeScenarioOptions() {
 
 function applyStaticLanguage() {
   document.documentElement.lang = currentLang === 'ja' ? 'ja' : (currentLang === 'fr' ? 'fr' : 'en');
-  const ids = ['pageEyebrow','pageTitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','finalSizeTitle','finalSizeDesc','responseTimelineTitle','responseTimelineDesc','healthZoneActivityTitle','healthZoneActivityDesc','rtTrendTitle','rtTrendDesc','cfrTrendTitle','cfrTrendDesc','hzActivityProvinceCol','hzActivityZoneCol','hzActivityCasesCol','hzActivityLastDateCol','hzActivityDaysCol','hzActivityStatusCol','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiUgandaDeathsLabel'];
+  const ids = ['pageEyebrow','pageTitle','dataStatusLabel','assessmentEyebrow','assessmentTitle','assessmentIntro','latestSituationTitle','latestSituationDrcLabel','latestSituationUgandaLabel','latestSituationKenyaLabel','latestSituationNigeriaLabel','latestSituationOtherLabel','publicHealthAssessmentTitle','publicHealthAssessmentMeta','assessmentLocalLabel','assessmentCapitalLabel','assessmentCrossBorderLabel','mapLayerLabel','originSelectLabel','monthSelectLabel','scenarioSelectLabel','sitrepTimePointTitle','sitrepTimePointHelp','reportingDateMapTitle','reportedCasesTitle','reportedCasesDesc','forecastTitle','forecastDesc','finalSizeTitle','finalSizeDesc','responseTimelineTitle','responseTimelineDesc','healthZoneActivityTitle','healthZoneActivityDesc','rtTrendTitle','rtTrendDesc','cfrTrendTitle','cfrTrendDesc','hzActivityProvinceCol','hzActivityZoneCol','hzActivityCasesCol','hzActivityLastDateCol','hzActivityDaysCol','hzActivityStatusCol','rwiTitle','rwiDesc','topNLabel','scenarioTitle','sourcesTitle','footerText','kpiTotalLabel','kpiDrcDeathsLabel','kpiUgandaCasesLabel','kpiKenyaLabel','kpiNigeriaLabel'];
   ids.forEach(id => setTextById(id, uiText(id)));
   setTextById('limitationText', uiText('limitationText'), true);
   const ja = document.getElementById('langJa');
@@ -1426,6 +1443,54 @@ function toggleCustomOriginControl() {
   if (container && select) container.style.display = select.value === 'custom' ? 'block' : 'none';
 }
 
+function verifiedCountryData(country) {
+  const row = internationalCasesData?.countries?.[country];
+  if (!row) return null;
+  const cases = Number(row.confirmed_cases);
+  const deaths = Number(row.confirmed_deaths);
+  if (row.confirmed_cases == null || row.confirmed_deaths == null || !Number.isInteger(cases) || cases < 0 || !Number.isInteger(deaths) || deaths < 0 || deaths > cases || !/^\d{4}-\d{2}-\d{2}$/.test(row.as_of_date || '')) return null;
+  return row;
+}
+
+function setInternationalKpi(country, el, meta) {
+  const row = verifiedCountryData(country);
+  if (!el || !meta) return;
+  el.textContent = row ? fmt.format(row.confirmed_cases) : '—';
+  if (!row) {
+    meta.textContent = textByLang('確認済みデータなし', 'No verified data', 'Données non disponibles');
+    return;
+  }
+  const source = row.source || 'ECDC';
+  meta.textContent = textByLang(
+    `死亡 ${fmt.format(row.confirmed_deaths)}例・${source} ${displayDateLabel(row.as_of_date)}時点`,
+    `Deaths ${fmt.format(row.confirmed_deaths)} · ${source} as of ${displayDateLabel(row.as_of_date)}`,
+    `Décès ${fmt.format(row.confirmed_deaths)} · ${source}, au ${displayDateLabel(row.as_of_date)}`
+  );
+}
+
+function formatInternationalSummary(country) {
+  const r = verifiedCountryData(country);
+  if (!r) return textByLang('国別状況を確認できませんでした。', 'No verified country data available.', 'Aucune donnée vérifiée disponible.');
+  const day = displayDateLabel(r.as_of_date);
+  const source = r.source || 'ECDC';
+  if (currentLang === 'ja') return `${day}時点で累積確定例${fmt.format(r.confirmed_cases)}例、死亡${fmt.format(r.confirmed_deaths)}例。（${source}）${r.note_ja || ''}`;
+  if (currentLang === 'fr') return `Au ${day} : ${fmt.format(r.confirmed_cases)} cas confirmés, ${fmt.format(r.confirmed_deaths)} décès. (${source}) ${r.note_fr || ''}`;
+  return `As of ${day}: ${fmt.format(r.confirmed_cases)} confirmed cases, ${fmt.format(r.confirmed_deaths)} deaths. (${source}) ${r.note_en || ''}`;
+}
+
+function updateInternationalSituationLines() {
+  const kenya = document.getElementById('latestSituationKenya');
+  const nigeria = document.getElementById('latestSituationNigeria');
+  const other = document.getElementById('latestSituationOther');
+  if (kenya) kenya.textContent = formatInternationalSummary('kenya');
+  if (nigeria) nigeria.textContent = formatInternationalSummary('nigeria');
+  if (other) other.textContent = internationalCasesData?.other_country_note?.[currentLang] || textByLang(
+    'フランスの輸入例などは検証済み資料を参照してください。',
+    'See the verified sources for other imported cases.',
+    'Voir les sources vérifiées pour les autres cas importés.'
+  );
+}
+
 function setEpiKpis() {
   const kpiTotal = document.getElementById('kpiTotal');
   const kpiKinshasa = document.getElementById('kpiKinshasa');
@@ -1433,8 +1498,10 @@ function setEpiKpis() {
   const kpiKinshasaShare = document.getElementById('kpiKinshasaShare');
   const kpiBorder = document.getElementById('kpiBorder');
   const kpiBorderShare = document.getElementById('kpiBorderShare');
-  const kpiUganda = document.getElementById('kpiUganda');
-  const kpiScenario = document.getElementById('kpiScenario');
+  const kpiKenya = document.getElementById('kpiKenya');
+  const kpiKenyaMeta = document.getElementById('kpiKenyaMeta');
+  const kpiNigeria = document.getElementById('kpiNigeria');
+  const kpiNigeriaMeta = document.getElementById('kpiNigeriaMeta');
   if (!kpiTotal) return;
   // These cards are NATIONAL totals, not the currently selected historical map date.
   const meta = latestNationalSummary();
@@ -1454,16 +1521,15 @@ function setEpiKpis() {
     ? textByLang(`粗CFR ${pct(nationalDeaths / nationalCases)}／全国最新 ${nationalDate}`, `Crude CFR ${pct(nationalDeaths / nationalCases)} / national ${nationalDate}`, `CFR brut ${pct(nationalDeaths / nationalCases)} / national ${nationalDate}`)
     : textByLang('全国確定死亡例データなし', 'National deaths unavailable', 'Décès nationaux indisponibles');
   const ug = latestUgandaEvdSummary();
-  const ugCases = toNumber(ug?.cumulative_confirmed_cases);
-  const ugDeaths = toNumber(ug?.cumulative_deaths);
-  kpiBorder.textContent = fmt.format(ugCases || toNumber(meta?.uganda_confirmed_cases) || 7);
-  kpiBorderShare.textContent = ug
-    ? textByLang(`Uganda MoH EVD daily page；輸入例 ${fmt.format(toNumber(ug.imported_cases) || 0)}、国内例 ${fmt.format(toNumber(ug.local_cases) || 0)}；${displayDateLabel(ug.as_of_date)}時点`, `Uganda MoH EVD daily page; imported ${fmt.format(toNumber(ug.imported_cases) || 0)}, local ${fmt.format(toNumber(ug.local_cases) || 0)}; as of ${displayDateLabel(ug.as_of_date)}`, `Page quotidienne EVD du MoH Ouganda ; importés ${fmt.format(toNumber(ug.imported_cases) || 0)}, locaux ${fmt.format(toNumber(ug.local_cases) || 0)} ; au ${displayDateLabel(ug.as_of_date)}`)
-    : textByLang('ウガンダ確定症例；最新の利用可能なIOM DTM EVD snapshot', 'Uganda confirmed cases; latest available IOM DTM EVD snapshot', 'Cas confirmés en Ouganda ; dernier snapshot IOM DTM EVD disponible');
-  kpiUganda.textContent = fmt.format(ugDeaths || toNumber(meta?.uganda_confirmed_deaths) || 1);
-  kpiScenario.textContent = ug
-    ? textByLang(`ウガンダ確定死亡例；出典 ${ugandaEvdSourceLabel(ug)}`, `Uganda confirmed deaths; source ${ugandaEvdSourceLabel(ug)}`, `Décès confirmés en Ouganda ; source ${ugandaEvdSourceLabel(ug)}`)
-    : textByLang(`ウガンダ確定死亡例；DRCデータ ${caseDisplayLabel()}`, `Uganda confirmed death; DRC data ${caseDisplayLabel()}`, `Décès confirmés en Ouganda ; données RDC ${caseDisplayLabel()}`);
+  const ugCases = Number(ug?.cumulative_confirmed_cases);
+  const ugDeaths = Number(ug?.cumulative_deaths);
+  const validUg = Number.isFinite(ugCases) && ugCases >= 0 && Number.isFinite(ugDeaths) && ugDeaths >= 0 && ugDeaths <= ugCases;
+  kpiBorder.textContent = validUg ? fmt.format(ugCases) : '—';
+  if (kpiBorderShare) kpiBorderShare.textContent = validUg
+    ? textByLang(`死亡 ${fmt.format(ugDeaths)}例・終息（${displayDateLabel(ug.as_of_date)}）`, `Deaths ${fmt.format(ugDeaths)} · outbreak ended (${displayDateLabel(ug.as_of_date)})`, `Décès ${fmt.format(ugDeaths)} · flambée terminée (${displayDateLabel(ug.as_of_date)})`)
+    : textByLang('ウガンダの確定値なし', 'Uganda counts unavailable', 'Données Ouganda indisponibles');
+  setInternationalKpi('kenya', kpiKenya, kpiKenyaMeta);
+  setInternationalKpi('nigeria', kpiNigeria, kpiNigeriaMeta);
 }
 
 
@@ -1987,6 +2053,7 @@ function updateLatestSituationSummary() {
   const ugandaEl = document.getElementById('latestSituationUganda');
   const metaEl = document.getElementById('latestSituationMeta');
   if (!wrapperEl) return;
+  updateInternationalSituationLines();
   const row = latestAiSitrepSummary();
 
   if (currentLang === 'en') {
@@ -4775,8 +4842,8 @@ function updateDashboard() {
 
 async function main() {
   initLanguageControls();
-  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, latestSituationData, finalSizeProjectionData, trueInfectionEstimateData, healthZoneActivity, rtEstimates, cfrEstimates, shortMlForecastData] = await Promise.all([
-    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.latestSituation), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate), loadCsvOptional(files.healthZoneActivity), loadCsvOptional(files.rtEstimates), loadCsvOptional(files.cfrEstimates), loadJsonOptional(files.shortMlForecast)
+  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, latestSituationData, finalSizeProjectionData, trueInfectionEstimateData, healthZoneActivity, rtEstimates, cfrEstimates, shortMlForecastData, internationalCasesData] = await Promise.all([
+    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.latestSituation), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate), loadCsvOptional(files.healthZoneActivity), loadCsvOptional(files.rtEstimates), loadCsvOptional(files.cfrEstimates), loadJsonOptional(files.shortMlForecast), loadJsonOptional(files.internationalCases)
   ]);
   buildIndexes();
   initMap();

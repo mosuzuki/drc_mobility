@@ -20,6 +20,7 @@ STEPS = [
     ("ECDC nationally validated fallback", [sys.executable, "scripts/update_from_ecdc.py"], False),
     ("Repair latest SitRep values", [sys.executable, "scripts/repair_latest_sitrep_values.py"], True),
     ("Uganda EVD update", [sys.executable, "scripts/update_uganda_evd.py"], False),
+    ("ECDC/NICD international country updates", [sys.executable, "scripts/update_international_cases.py"], False),
     ("Health-zone activity status", [sys.executable, "scripts/generate_health_zone_activity_status.py"], True),
     ("Latest situation summary", [sys.executable, "scripts/generate_latest_situation.py"], True),
     ("Reporting-adjusted infection estimate", [sys.executable, "scripts/estimate_true_infections.py"], True),
@@ -30,6 +31,7 @@ STEPS = [
     ("Forecast consistency and leakage-guard tests", [sys.executable, "scripts/test_ml_forecast_outputs.py"], True),
     ("Forecast plot rendering regression tests", ["node", "scripts/test_forecast_render.cjs"], True),
     ("Dashboard output validation", [sys.executable, "scripts/validate_dashboard_outputs.py"], True),
+    ("International country count regression test", [sys.executable, "scripts/test_international_cases.py"], True),
     ("Frontend national/regional data integrity", ["node", "scripts/test_frontend_data_consistency.cjs"], True),
 ]
 

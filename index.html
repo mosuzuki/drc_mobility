@@ -3,17 +3,17 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>DRC・ウガンダ Bundibugyo型エボラ流行ダッシュボード</title>
+  <title>Bundibugyo型エボラ流行：多国間ダッシュボード</title>
   <link rel="preconnect" href="https://unpkg.com" />
   <link rel="preconnect" href="https://cdn.plot.ly" />
   <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
-  <link rel="stylesheet" href="assets/style.css?v=20261023-ml-v1" />
+  <link rel="stylesheet" href="assets/style.css?v=20261023-multicountry-v1" />
 </head>
 <body>
   <header class="topbar">
     <div>
       <div id="pageEyebrow" class="eyebrow">疫学・移動・対応状況の統合ダッシュボード</div>
-      <h1 id="pageTitle">DRC・ウガンダ Bundibugyo型エボラ流行ダッシュボード</h1>
+      <h1 id="pageTitle">Bundibugyo型エボラ流行：多国間ダッシュボード</h1>
     </div>
     <div class="header-actions">
       <div class="language-toggle" aria-label="Language selector">
@@ -24,7 +24,7 @@
       <div class="status-card">
         <span class="label" id="dataStatusLabel">データ更新状況</span>
       <strong id="dataStatus">データを読み込み中...</strong>
-      <span id="lastUpdated">最新のDRC SitRep、ウガンダEVDデータ、最終サイズ推定を読み込み中です。</span>
+      <span id="lastUpdated">DRC SitRepと国別流行情報を読み込み中です。</span>
       </div>
     </div>
   </header>
@@ -54,6 +54,18 @@
           <div class="latest-situation-item">
             <span class="latest-situation-bullet">•</span>
             <div><strong id="latestSituationUgandaLabel">ウガンダ：</strong><span id="latestSituationUganda">ウガンダ側の更新情報を読み込み中です。</span></div>
+          </div>
+          <div class="latest-situation-item">
+            <span class="latest-situation-bullet">•</span>
+            <div><strong id="latestSituationKenyaLabel">ケニア：</strong><span id="latestSituationKenya">国別情報を読み込み中です。</span></div>
+          </div>
+          <div class="latest-situation-item">
+            <span class="latest-situation-bullet">•</span>
+            <div><strong id="latestSituationNigeriaLabel">ナイジェリア：</strong><span id="latestSituationNigeria">国別情報を読み込み中です。</span></div>
+          </div>
+          <div class="latest-situation-item latest-situation-item--secondary">
+            <span class="latest-situation-bullet">•</span>
+            <div><strong id="latestSituationOtherLabel">その他：</strong><span id="latestSituationOther">その他の関連情報を読み込み中です。</span></div>
           </div>
         </div>
       </div>
@@ -87,8 +99,9 @@
     <section class="kpi-grid epi-kpi-grid">
       <article class="kpi-card"><span id="kpiTotalLabel">DRC confirmed cases</span><strong id="kpiTotal">…</strong><small id="kpiTotalMeta">読み込み中</small></article>
       <article class="kpi-card"><span id="kpiDrcDeathsLabel">DRC confirmed deaths</span><strong id="kpiKinshasa">…</strong><small id="kpiKinshasaShare">読み込み中</small></article>
-      <article class="kpi-card"><span id="kpiUgandaCasesLabel">Uganda confirmed cases</span><strong id="kpiBorder">…</strong><small id="kpiBorderShare">読み込み中</small></article>
-      <article class="kpi-card"><span id="kpiUgandaDeathsLabel">Uganda confirmed deaths</span><strong id="kpiUganda">…</strong><small id="kpiScenario">読み込み中</small></article>
+      <article class="kpi-card"><span id="kpiUgandaCasesLabel">ウガンダ</span><strong id="kpiBorder">…</strong><small id="kpiBorderShare">読み込み中</small></article>
+      <article class="kpi-card"><span id="kpiKenyaLabel">ケニア</span><strong id="kpiKenya">…</strong><small id="kpiKenyaMeta">読み込み中</small></article>
+      <article class="kpi-card"><span id="kpiNigeriaLabel">ナイジェリア</span><strong id="kpiNigeria">…</strong><small id="kpiNigeriaMeta">読み込み中</small></article>
     </section>
 
     <section class="dashboard-six-grid" aria-label="Main dashboard panels">
@@ -378,6 +391,6 @@
   <script src="https://cdn.plot.ly/plotly-2.35.2.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/papaparse@5.4.1/papaparse.min.js"></script>
   <script src="https://cdn.jsdelivr.net/npm/@turf/turf@6/turf.min.js"></script>
-  <script src="assets/app.js?v=20261023-ml-render-fix-v2"></script>
+  <script src="assets/app.js?v=20261023-multicountry-v1"></script>
 </body>
 </html>

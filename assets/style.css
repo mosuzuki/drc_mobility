@@ -2207,3 +2207,17 @@ main > .grid-two:first-of-type .right-analysis-panel {
 .map-data-notice { font-size: .82rem; margin: 10px 0 12px; padding: 9px 12px; }
 .hz-status-badge.stale { background: #f2f4f7 !important; color: #475467 !important; border-color: #d0d5dd !important; }
 .hz-activity-card.stale { background: #f8f9fa; border-color: #d0d5dd; color: #475467; }
+
+/* Five comparable country KPI cards; Uganda/Kenya/Nigeria share the same card format. */
+.epi-kpi-grid {
+  grid-template-columns: repeat(5, minmax(0, 1fr));
+}
+.epi-kpi-grid .kpi-card { min-width: 0; }
+.epi-kpi-grid .kpi-card small { display: block; line-height: 1.45; overflow-wrap: anywhere; }
+.latest-situation-list .latest-situation-item--secondary { font-size: .97rem !important; color: var(--muted); }
+@media (max-width: 1180px) and (min-width: 621px) {
+  .epi-kpi-grid { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (max-width: 620px) {
+  .epi-kpi-grid { grid-template-columns: 1fr; }
+}
