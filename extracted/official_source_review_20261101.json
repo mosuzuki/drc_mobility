@@ -1,0 +1,40 @@
+{
+  "checked_on": "2026-11-01",
+  "drc": {
+    "report_no": "N169",
+    "reporting_date": "2026-10-30",
+    "publication_date": "2026-10-31",
+    "confirmed_cases": 10414,
+    "confirmed_deaths": 5372,
+    "new_confirmed_cases_24h": 63,
+    "new_confirmed_deaths_24h": 32,
+    "death_reconciliation_residual": 314,
+    "source_url": "https://insp.cd/sitrep-n169-mve-bdbv-30-10-2026/",
+    "pdf_url": "https://insp.cd/wp-content/uploads/2026/10/final_draft_SitRep_MVE_RDC_N_169_30-10-2026.pdf"
+  },
+  "uganda": {
+    "status": "ended",
+    "declaration_date": "2026-08-27",
+    "confirmed_cases": 20,
+    "confirmed_deaths": 2,
+    "source_url": "https://www.afro.who.int/countries/uganda/news/uganda-ends-ebola-outbreak-following-completion-42-day-countdown"
+  },
+  "kenya": {
+    "as_of": "2026-10-29",
+    "confirmed_cases": 9,
+    "confirmed_deaths": 2,
+    "source_url": "https://www.who.int/emergencies/alert-and-response"
+  },
+  "nigeria": {
+    "as_of": "2026-10-29",
+    "confirmed_cases": 1,
+    "confirmed_deaths": 0,
+    "contacts": 62,
+    "contacts_positive": 0,
+    "source_url": "https://www.ncdc.gov.ng/themes/common/files/sitreps/4d9e3be5b93485ca1d0ac7bb44ddb461.pdf"
+  },
+  "medical_evacuations": {
+    "source_url": "https://www.ecdc.europa.eu/en/public-health-events/2026-eip-00026/2026-10-30",
+    "note": "Nigeria confirmed patient and a close contact evacuated to Switzerland on 26 October; no double counting of the confirmed patient, and the contact is not a confirmed case."
+  }
+}

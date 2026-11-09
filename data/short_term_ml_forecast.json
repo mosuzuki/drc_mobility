@@ -1,7 +1,7 @@
 {
-  "updated_at": "2026-10-23T05:22:50.185439+00:00",
-  "source_sitrep": "N159",
-  "report_date": "2026-10-20",
+  "updated_at": "2026-11-09T05:36:04.768662+00:00",
+  "source_sitrep": "N177",
+  "report_date": "2026-11-07",
   "method": "pooled_regional_lightgbm_direct_weekly_incidence",
   "horizons_days": [
     7,
@@ -14,89 +14,89 @@
       "weeks": [
         {
           "week": 1,
-          "from": "2026-10-21",
-          "to": "2026-10-27",
-          "median": 399.8,
-          "q05": 272.5,
-          "q25": 341.3,
-          "q75": 463.5,
-          "q95": 582.6
+          "from": "2026-11-08",
+          "to": "2026-11-14",
+          "median": 382.9,
+          "q05": 267.2,
+          "q25": 324.7,
+          "q75": 439.6,
+          "q95": 541.8
         },
         {
           "week": 2,
-          "from": "2026-10-28",
-          "to": "2026-11-03",
-          "median": 396.8,
-          "q05": 267.4,
-          "q25": 337.5,
-          "q75": 463.8,
-          "q95": 583.8
+          "from": "2026-11-15",
+          "to": "2026-11-21",
+          "median": 376.7,
+          "q05": 262.6,
+          "q25": 326.8,
+          "q75": 442.5,
+          "q95": 543.4
         },
         {
           "week": 3,
-          "from": "2026-11-04",
-          "to": "2026-11-10",
-          "median": 397.1,
-          "q05": 274.8,
-          "q25": 341.9,
-          "q75": 463.0,
-          "q95": 594.7
+          "from": "2026-11-22",
+          "to": "2026-11-28",
+          "median": 377.4,
+          "q05": 261.7,
+          "q25": 325.7,
+          "q75": 441.7,
+          "q95": 539.5
         },
         {
           "week": 4,
-          "from": "2026-11-11",
-          "to": "2026-11-17",
-          "median": 396.4,
-          "q05": 270.8,
-          "q25": 337.5,
-          "q75": 458.1,
-          "q95": 575.7
+          "from": "2026-11-29",
+          "to": "2026-12-05",
+          "median": 379.8,
+          "q05": 261.9,
+          "q25": 324.3,
+          "q75": 434.0,
+          "q95": 542.2
         }
       ],
       "uncertainty_method": "log-error residual scale estimated from available rolling national origins",
-      "log_sigma": 0.229
+      "log_sigma": 0.22
     },
     "branching": {
       "weeks": [
         {
           "week": 1,
-          "from": "2026-10-21",
-          "to": "2026-10-27",
-          "q05": 122.9,
-          "q25": 260.8,
-          "median": 422.0,
-          "q75": 684.2,
-          "q95": 1223.4
+          "from": "2026-11-08",
+          "to": "2026-11-14",
+          "q05": 81.9,
+          "q25": 219.0,
+          "median": 353.0,
+          "q75": 548.2,
+          "q95": 985.0
         },
         {
           "week": 2,
-          "from": "2026-10-28",
-          "to": "2026-11-03",
-          "q05": 102.0,
-          "q25": 261.0,
-          "median": 451.0,
-          "q75": 718.2,
-          "q95": 1309.3
+          "from": "2026-11-15",
+          "to": "2026-11-21",
+          "q05": 86.0,
+          "q25": 184.8,
+          "median": 322.0,
+          "q75": 519.2,
+          "q95": 892.1
         },
         {
           "week": 3,
-          "from": "2026-11-04",
-          "to": "2026-11-10",
-          "q05": 99.9,
-          "q25": 253.8,
-          "median": 466.0,
-          "q75": 760.0,
-          "q95": 1537.1
+          "from": "2026-11-22",
+          "to": "2026-11-28",
+          "q05": 58.8,
+          "q25": 169.8,
+          "median": 293.0,
+          "q75": 506.2,
+          "q95": 1031.6
         },
         {
           "week": 4,
-          "from": "2026-11-11",
-          "to": "2026-11-17",
-          "q05": 79.0,
-          "q25": 233.8,
-          "median": 438.0,
-          "q75": 788.5,
-          "q95": 1738.1
+          "from": "2026-11-29",
+          "to": "2026-12-05",
+          "q05": 44.9,
+          "q25": 127.5,
+          "median": 252.5,
+          "q75": 466.0,
+          "q95": 1086.4
         }
       ],
       "uncertainty_method": "Monte Carlo weekly forecast distribution (uncalibrated on independent Ebola outbreaks)"
@@ -105,281 +105,281 @@
       "weeks": [
         {
           "week": 1,
-          "from": "2026-10-21",
-          "to": "2026-10-27",
-          "q05": 174.3,
-          "q25": 291.7,
-          "median": 427.7,
-          "q75": 631.2,
-          "q95": 1043.1
+          "from": "2026-11-08",
+          "to": "2026-11-14",
+          "q05": 192.5,
+          "q25": 280.0,
+          "median": 367.9,
+          "q75": 480.7,
+          "q95": 747.3
         },
         {
           "week": 2,
-          "from": "2026-10-28",
-          "to": "2026-11-03",
-          "q05": 156.6,
-          "q25": 292.6,
-          "median": 438.7,
-          "q75": 653.6,
-          "q95": 1133.6
+          "from": "2026-11-15",
+          "to": "2026-11-21",
+          "q05": 189.2,
+          "q25": 268.5,
+          "median": 354.3,
+          "q75": 470.7,
+          "q95": 716.8
         },
         {
           "week": 3,
-          "from": "2026-11-04",
-          "to": "2026-11-10",
-          "q05": 160.4,
-          "q25": 291.5,
-          "median": 450.2,
-          "q75": 683.2,
-          "q95": 1293.0
+          "from": "2026-11-22",
+          "to": "2026-11-28",
+          "q05": 176.3,
+          "q25": 254.1,
+          "median": 335.5,
+          "q75": 457.3,
+          "q95": 777.0
         },
         {
           "week": 4,
-          "from": "2026-11-11",
-          "to": "2026-11-17",
-          "q05": 141.8,
-          "q25": 267.2,
-          "median": 431.7,
-          "q75": 716.9,
-          "q95": 1470.7
+          "from": "2026-11-29",
+          "to": "2026-12-05",
+          "q05": 169.3,
+          "q25": 233.2,
+          "median": 305.6,
+          "q75": 434.2,
+          "q95": 803.1
         }
       ],
       "uncertainty_method": "Monte Carlo weekly forecast distribution (uncalibrated on independent Ebola outbreaks)"
     }
   },
   "backtest": {
-    "lightgbm_mae_weekly": 141.1,
-    "persistence_mae_weekly": 213.85,
-    "branching_mae_weekly": 128.09,
+    "lightgbm_mae_weekly": 92.79,
+    "persistence_mae_weekly": 168.45,
+    "branching_mae_weekly": 126.81,
     "n_origins": 8,
     "evaluation": "Time-forward LightGBM refits and independent branching forecasts; disjoint-week national MAE on matured labels. SitRep revisions and interpolation remain limitations."
   },
   "folds": [
     {
-      "origin": "2026-08-04",
+      "origin": "2026-08-22",
       "actual": [
-        593.0,
-        642.0,
-        505.0,
-        537.0
+        527.0,
+        563.0,
+        596.0,
+        472.0
       ],
       "lightgbm": [
-        282.9,
-        282.9,
-        288.8,
-        288.8
+        374.4,
+        374.4,
+        374.4,
+        374.4
       ],
       "persistence": [
-        345.4,
-        224.5,
-        145.9,
-        145.9
+        497.7,
+        435.3,
+        380.7,
+        380.7
       ],
       "branching": [
-        472.5,
-        399.5,
-        382.5,
-        300.0
+        504.5,
+        474.5,
+        453.0,
+        425.0
       ]
     },
     {
-      "origin": "2026-08-11",
+      "origin": "2026-08-29",
       "actual": [
-        642.0,
-        505.0,
-        537.0,
-        593.0
-      ],
-      "lightgbm": [
-        330.3,
-        330.3,
-        332.0,
-        332.0
-      ],
-      "persistence": [
-        661.4,
-        737.8,
-        822.9,
-        822.9
-      ],
-      "branching": [
+        563.0,
+        596.0,
         472.0,
-        406.0,
-        365.5,
-        323.5
+        395.0
+      ],
+      "lightgbm": [
+        399.6,
+        399.6,
+        399.6,
+        399.6
+      ],
+      "persistence": [
+        488.3,
+        452.4,
+        419.2,
+        419.2
+      ],
+      "branching": [
+        369.5,
+        369.0,
+        307.5,
+        242.5
       ]
     },
     {
-      "origin": "2026-08-18",
+      "origin": "2026-09-05",
       "actual": [
-        505.0,
-        537.0,
-        593.0,
-        561.0
+        596.0,
+        472.0,
+        395.0,
+        477.0
       ],
       "lightgbm": [
-        377.3,
-        377.3,
-        377.3,
-        377.3
+        403.6,
+        403.6,
+        403.6,
+        403.6
       ],
       "persistence": [
-        694.8,
-        751.9,
-        813.7,
-        813.7
+        601.2,
+        642.1,
+        685.7,
+        685.7
       ],
       "branching": [
-        523.0,
+        512.5,
+        469.5,
+        463.0,
+        376.0
+      ]
+    },
+    {
+      "origin": "2026-09-12",
+      "actual": [
+        472.0,
+        395.0,
+        477.0,
+        434.0
+      ],
+      "lightgbm": [
+        404.9,
+        404.9,
+        404.9,
+        404.9
+      ],
+      "persistence": [
+        630.7,
+        667.5,
+        706.4,
+        706.4
+      ],
+      "branching": [
         586.5,
-        575.5,
-        542.0
+        563.0,
+        534.5,
+        524.5
       ]
     },
     {
-      "origin": "2026-08-25",
+      "origin": "2026-09-19",
       "actual": [
-        537.0,
-        593.0,
-        561.0,
-        416.0
+        395.0,
+        477.0,
+        434.0,
+        477.0
       ],
       "lightgbm": [
-        379.6,
-        379.6,
-        379.6,
-        379.6
+        390.9,
+        390.9,
+        390.9,
+        390.9
       ],
       "persistence": [
-        397.7,
-        313.3,
-        246.7,
-        246.7
+        374.3,
+        296.8,
+        235.4,
+        235.4
       ],
       "branching": [
-        478.5,
-        425.0,
-        365.5,
-        316.0
+        451.0,
+        380.5,
+        330.0,
+        301.0
       ]
     },
     {
-      "origin": "2026-09-01",
+      "origin": "2026-09-26",
       "actual": [
-        593.0,
-        561.0,
-        416.0,
-        404.0
+        477.0,
+        434.0,
+        477.0,
+        519.0
       ],
       "lightgbm": [
-        393.8,
-        393.8,
-        393.8,
-        393.8
+        406.1,
+        406.1,
+        406.1,
+        406.1
       ],
       "persistence": [
-        570.8,
-        606.8,
-        645.0,
-        645.0
+        331.0,
+        277.3,
+        232.4,
+        232.4
       ],
       "branching": [
-        393.0,
-        350.0,
-        301.0,
-        261.0
+        269.5,
+        247.5,
+        176.5,
+        141.0
       ]
     },
     {
-      "origin": "2026-09-08",
+      "origin": "2026-10-03",
       "actual": [
-        561.0,
-        416.0,
-        404.0,
-        504.0
+        434.0,
+        477.0,
+        519.0,
+        500.0
       ],
       "lightgbm": [
-        415.7,
-        415.7,
-        415.7,
-        415.7
+        399.0,
+        399.0,
+        399.0,
+        394.4
       ],
       "persistence": [
-        654.5,
-        722.4,
-        797.3,
-        797.3
+        575.3,
+        693.8,
+        836.7,
+        836.7
+      ],
+      "branching": [
+        340.5,
+        336.0,
+        339.5,
+        320.0
+      ]
+    },
+    {
+      "origin": "2026-10-10",
+      "actual": [
+        477.0,
+        519.0,
+        500.0,
+        450.0
+      ],
+      "lightgbm": [
+        358.9,
+        358.9,
+        358.9,
+        358.9
+      ],
+      "persistence": [
+        395.1,
+        359.7,
+        327.5,
+        327.5
       ],
       "branching": [
         442.0,
-        464.0,
-        425.0,
-        379.0
-      ]
-    },
-    {
-      "origin": "2026-09-15",
-      "actual": [
-        416.0,
-        404.0,
-        504.0,
-        484.0
-      ],
-      "lightgbm": [
-        406.9,
-        406.9,
-        406.9,
-        406.9
-      ],
-      "persistence": [
-        530.9,
-        502.4,
-        475.4,
-        475.4
-      ],
-      "branching": [
-        494.0,
-        476.5,
-        476.5,
-        467.0
-      ]
-    },
-    {
-      "origin": "2026-09-22",
-      "actual": [
-        404.0,
-        504.0,
-        484.0,
-        492.0
-      ],
-      "lightgbm": [
-        390.2,
-        390.2,
-        390.2,
-        390.2
-      ],
-      "persistence": [
-        309.0,
-        229.6,
-        170.6,
-        170.6
-      ],
-      "branching": [
-        361.0,
-        253.0,
-        227.0,
-        179.5
+        403.5,
+        434.0,
+        468.5
       ]
     }
   ],
-  "recommended_lightgbm_weight": 0.0,
-  "experimental_lightgbm_weight": 0.2,
+  "recommended_lightgbm_weight": 0.4,
+  "experimental_lightgbm_weight": 0.4,
   "ensemble_method": "weighted sample-path combination; model errors assumed independent",
   "chronos2_status": "not_available",
   "chronos2_error": "disabled; set ENABLE_CHRONOS2=1 with chronos-forecasting>=2.0 and cached model weights",
   "caveats": [
     "This model was trained using one evolving outbreak, NOT many independent epidemics.",
-    "Incidence is approximated from cumulative report dates, with interpolation over missed days.",
+    "Explicit 24h SitRep notifications are used where available; older incidence uses cumulative differences and interpolation over missed days. Revisions are not new daily cases.",
     "Historical SitRep revisions may cause retrospective information leakage in backtests.",
     "Uncertainty intervals are exploratory and are not independently calibrated."
   ]

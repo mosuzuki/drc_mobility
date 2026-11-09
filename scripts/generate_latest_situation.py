@@ -15,6 +15,7 @@ import sys
 import urllib.request
 from datetime import datetime, timezone
 from pathlib import Path
+from sitrep_notifications import load_notifications
 from typing import Any
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -353,7 +354,8 @@ def main() -> None:
     deltas, prov_delta = zone_deltas(latest_date, prev_date)
     external = str(latest_no).startswith('ECDC-')
     text = '' if external else sitrep_text(latest_no)
-    province_sentence = '' if external else (province_sentence_from_text_ja(text) or province_sentence_ja(prov_delta))
+    explicit_provs = {r['province']: int(r['new_confirmed_cases']) for r in load_notifications().values() if r['date']==latest_date and r['admin_level']=='province'}
+    province_sentence = '' if external else (province_sentence_ja(explicit_provs) if explicit_provs else province_sentence_from_text_ja(text))
     zone_sentence = top_zones_sentence_ja(deltas)
     if prev:
         numeric = (
@@ -362,6 +364,18 @@ def main() -> None:
         )
     else:
         numeric = f"{latest_no}時点で累積確定例は{fmt_int(lc)}例、累積確定死亡例は{fmt_int(ld)}例です。"
+    daily = load_notifications().get((latest_date, 'national', '', ''))
+    unallocated_daily=sum(int(r['new_confirmed_deaths']) for r in load_notifications().values() if r['date']==latest_date and r['admin_level']=='unallocated')
+    if unallocated_daily:
+        numeric += f"原表で保健区域別合計と一致しない当日死亡{unallocated_daily}例は、区域未配分として保持しています。"
+    if daily:
+        nc, nd = int(daily['new_confirmed_cases']), int(daily['new_confirmed_deaths'])
+        numeric += f"当日の新規報告は確定例{fmt_int(nc)}例、死亡{fmt_int(nd)}例です。"
+        if prev_date and (datetime.fromisoformat(latest_date)-datetime.fromisoformat(prev_date)).days == 1:
+            if dd is not None and dd != nd:
+                numeric += f"死亡の累積差分には遡及修正{fmt_int(dd-nd)}例が含まれ、当日の死亡増加を意味しません。"
+            if dc is not None and dc != nc:
+                numeric += f"症例の累積差分には{fmt_int(dc-nc)}例の集計修正が含まれます。"
     if province_sentence:
         numeric += province_sentence
     # Do not append health-zone delta details here: the PDF extraction of

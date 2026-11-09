@@ -1,0 +1,29 @@
+{
+  "reviewed_on": "2026-11-09",
+  "drc_latest": {
+    "report": "N177",
+    "reporting_date": "2026-11-07",
+    "publication_date": "2026-11-08",
+    "cases": 10920,
+    "deaths": 5323,
+    "daily_cases": 41,
+    "daily_deaths": 21,
+    "source": "https://insp.cd/wp-content/uploads/2026/11/SitRep_MVE_RDC_N177_07-11-2026_final_corrige.pdf"
+  },
+  "backfill_N172": "https://administration.sante.gouv.cd/wp-content/uploads/2026/11/SitRep_MVE_RDC_N_172_02-11-2026.pdf",
+  "daily_allocation_warning": "N177 Table 2 page 3: Nord-Kivu province 9 deaths; listed zones 8. One death retained as unallocated, not assigned to Butembo from cumulative difference.",
+  "cumulative_revisions": {
+    "N169_deaths": 314,
+    "N170_deaths": -314,
+    "N173_cases": 3
+  },
+  "sources": {
+    "uganda_end": "https://www.afro.who.int/countries/uganda/news/uganda-ends-ebola-outbreak-following-completion-42-day-countdown",
+    "who_country_table": "https://www.who.int/emergencies/alert-and-response",
+    "who_situation": "https://www.who.int/emergencies/disease-outbreak-news/item/2026-DON625",
+    "ecdc": "https://www.ecdc.europa.eu/en/public-health-events/2026-eip-00026/2026-11-06",
+    "ncdc": "https://ncdc.gov.ng/themes/common/files/sitreps/0e3d9443f4e7b6a58631f941ab72eb48.pdf"
+  },
+  "nigeria_deaths": "0 carried from explicit 2026-10-29 NCDC report; 2026-11-05 report does not provide a new death total.",
+  "backfill_N142": "https://administration.sante.gouv.cd/wp-content/uploads/2026/10/SitRep_MVEBDB_142_03_10_2026.pdf"
+}

@@ -30,7 +30,7 @@ ROW_TIGHT = re.compile(r'^\s*(?P<name>[A-Za-zÀ-ÿ][A-Za-zÀ-ÿ\s\-\u2011’]+?)
 
 
 def as_int(x):
-    if not x or str(x).strip().upper() in {'NA','ND','—'}:
+    if not x or str(x).strip().upper() in {'NA','AN','ND','—'}:
         return None
     return int(re.sub(r'\D','',str(x)))
 
@@ -79,15 +79,19 @@ def extract_text(path):
 
 
 def repair_split_labels(section):
+    # Keep the numeric columns AND form feeds intact for the daily table parser.
+    lines=section.splitlines(keepends=True)
     for a,b,name in [('Boma','Mangbetu','Boma Mangbetu'),('Makiso-','Kisangani','Makiso-Kisangani'),('Wanie-','Rukula','Wanie-Rukula')]:
-        a,b=re.escape(a),re.escape(b)
-        pat=rf'(?m)^\s*{a}\s*\n\s*([0-9][0-9 ]+\s+[0-9][0-9 ]+\s+[0-9.,]+\s*%[^\n]*)\n\s*{b}\s*$'
-        section=re.sub(pat,lambda m:'  '+name+'     '+m.group(1),section)
-        pat=rf'(?m)^\s*{a}\s*\n\s*{b}\s*\n\s*([0-9][0-9 ]+\s+[0-9][0-9 ]+\s+[0-9.,]+\s*%[^\n]*)$'
-        section=re.sub(pat,lambda m:'  '+name+'     '+m.group(1),section)
-        pat=rf'(?m)^\s*{a}\s*\n\s*{b}\s+(\d+\s+\d+\s+[0-9.,]+\s*%[^\n]*)$'
-        section=re.sub(pat,lambda m:'  '+name+'     '+m.group(1),section)
-    return section
+        for i,line in enumerate(lines):
+            if line.strip()!=a:continue
+            nearby=list(range(i+1,min(len(lines),i+6)))
+            suffix=next((j for j in nearby if lines[j].strip()==b),None)
+            numeric=next((j for j in nearby if re.match(r'^\s*\d[\d ]*\s+\d[\d ]*\s+\d+[,.]\d+\s*%',lines[j])),None)
+            if suffix is not None and numeric is not None:
+                start=re.search(r'\d',lines[numeric]).start()
+                lines[numeric]=name.ljust(max(start,len(name)+2))+lines[numeric][start:]
+                lines[i]='\n';lines[suffix]='\n'
+    return ''.join(lines)
 
 
 def table_section(text,number):
@@ -104,19 +108,19 @@ def extract_report(path):
     if not m:m=re.search(r'[_\-](\d{3})[_\-]',path.name)
     if not m:raise ValueError('Missing report number')
     num=int(m.group(1))
-    dm=re.search(r'Date de rapportage\s*:\s*(\d{1,2})\s+([A-Za-zéûôÀ-ÿ]+)\s+(2026)',text,re.I)
+    dm=re.search(r'Date (?:de rapportage|du rapport)\s*:\s*(\d{1,2})(?:er)?\s+([A-Za-zéûôÀ-ÿ]+)\s+(2026)',text,re.I)
     if not dm:
         d2=re.search(r'_(\d{2})_(\d{2})_(2026)',path.name)
         if not d2:raise ValueError('Missing reporting date')
         ds=f'{d2.group(3)}-{d2.group(2)}-{d2.group(1)}'
     else:
-        months={'septembre':'09','octobre':'10','novembre':'11','aout':'08','août':'08'}
+        months={'janvier':'01','février':'02','mars':'03','avril':'04','mai':'05','juin':'06','juillet':'07','septembre':'09','octobre':'10','novembre':'11','décembre':'12','aout':'08','août':'08'}
         if dm.group(2).lower() not in months:raise ValueError(f'Unrecognized reporting month {dm.group(2)}')
         ds=f'{dm.group(3)}-{months[dm.group(2).lower()]}-{int(dm.group(1)):02d}'
-    try:
-        from datetime import date,timedelta
-        pub=(date.fromisoformat(ds)+timedelta(days=1)).isoformat()
-    except Exception:pub=''
+    pm=re.search(r'Date de publication\s*:\s*(\d{1,2})(?:er)?\s*([A-Za-zéûôÀ-ÿ]+)\s+(2026)',text,re.I)
+    if not pm:raise ValueError('Missing publication date in PDF')
+    months={'janvier':'01','février':'02','mars':'03','avril':'04','mai':'05','juin':'06','juillet':'07','août':'08','septembre':'09','octobre':'10','novembre':'11','décembre':'12'}
+    pub=f'{pm.group(3)}-{months[pm.group(2).lower()]}-{int(pm.group(1)):02d}'
     t1=table_section(text,1)
     # Read the final numeric line preceding "Total". Column order is
     # new cases (sometimes on a separate footer line), cumulative cases,
@@ -133,11 +137,13 @@ def extract_report(path):
     if len(numeric)>=3:
         cases,deaths=as_int(numeric[1]),as_int(numeric[2])
     else:
-        prev=[line for line in tlines[:totals[-1]] if re.search(r'\d+[,.]\d+\s*%\s*$',line)]
+        prev=[line for line in tlines[:totals[-1]] if re.match(r'^\s*\d[\d ]*\s{2,}[\d ]+\s{2,}[\d ]+\s{2,}\d+[,.]\d+\s*%',line)]
         if not prev:raise ValueError('Cannot find total line before Table 1 footer')
         numbers=re.split(r'\s{2,}',prev[-1].strip())
         if len(numbers)<3:raise ValueError(f'Malformed Table 1 TOTAL line: {prev[-1]!r}')
-        cases,deaths=as_int(numbers[-3]),as_int(numbers[-2])
+        # Coverage (e.g. 67/178) may follow CFR. The first three
+        # columns remain daily cases, cumulative cases, cumulative deaths.
+        cases,deaths=as_int(numbers[1]),as_int(numbers[2])
     if not (1000<cases<50000 and 100<deaths<cases):raise ValueError(f'Implausible national total {cases}/{deaths}')
     t2=repair_split_labels(table_section(text,2))
     zone_rows=[];prov_totals={};current=None;unvent=[]
@@ -179,7 +185,7 @@ def extract_report(path):
             residual.append((p,0,d-provsum[p][1]))
     # Cumulative totals are primary. New daily data are taken only if explicitly
     # described; never infer from cumulative differences after reconciliation.
-    newcases=None
+    newcases=as_int(numeric[0]) if len(numeric)>=3 else as_int(numbers[0])
     newmatch=re.search(r'(?:Au total,\s*|Au terme[^.]{0,120}?\s*)?(\d{1,4})\s+nouveaux\s+cas\s+confirm[ée]s',text[:3000],re.I)
     if newmatch:newcases=int(newmatch.group(1))
     if newcases is None:
@@ -189,8 +195,10 @@ def extract_report(path):
     first_page=text[:text.find('\f')] if '\f' in text else text[:7000]
     # Rightmost percentage in KPI card is the contact follow-up percentage.
     km=re.search(r'CUMUL\s+DES.*?Provinces\s+touch[ée]es',first_page,re.I|re.S)
-    ratios=re.findall(r'(\d{1,3}[,.]\d+)\s*%',km.group(0)) if km else []
-    followup=float(ratios[-1].replace(',','.'))/100 if len(ratios)>=2 else None
+    ratios=list(re.finditer(r'(\d{1,3}[,.]\d+)\s*%',km.group(0))) if km else []
+    # Contact KPI is the rightmost card, sometimes one text line ABOVE CFR.
+    rightmost=max(ratios,key=lambda m:m.start()-km.group(0).rfind('\n',0,m.start())) if ratios else None
+    followup=float(rightmost.group(1).replace(',','.'))/100 if len(ratios)>=2 else None
     if followup is None:raise ValueError(f'N{num} national contact follow-up not found')
     # Short national contact follow-up paragraph.
     contacts_total=contacts_seen=None
@@ -217,18 +225,106 @@ def extract_report(path):
         p,pct,n,d=mm.groups();p=norm_prov(p);seen,total=as_int(n),as_int(d)
         if seen is not None and total and seen<=total and abs(seen/total-float(pct.replace(',','.'))/100)<0.012:
             province_contacts[p]=(total,seen,seen/total)
+    # From N168, a dedicated contact table is inserted before the PoE table.
+    ct=re.search(r'Tableau\s+\d+\.\s+Situation du suivi des contacts.*?(?=Tableau\s+\d+\.|\Z)',text,re.S|re.I)
+    if ct:
+        for line in ct.group().splitlines():
+            cells=re.split(r'\s{2,}',line.strip())
+            if len(cells)!=4 or not re.fullmatch(r'\d+[,.]\d+%',cells[3]):continue
+            try:total,seen=as_int(cells[1]),as_int(cells[2])
+            except ValueError:continue
+            if total and seen is not None and 0<=seen<=total:
+                rate=float(cells[3].rstrip('%').replace(',','.'))/100
+                if abs(seen/total-rate)>0.002:raise ValueError('Contact-table ratio mismatch')
+                if cells[0]=='Total':contacts_total,contacts_seen=total,seen
+                else:province_contacts[norm_prov(cells[0].replace('Sud-Ubangi','Sud Ubangi').replace('Nord-Ubangi','Nord Ubangi'))]=(total,seen,rate)
+    samples=None
+    sm=re.search(r'(?:total de|sur)\s+([\d ]+)\s+(?:nouveaux\s+)?échantillons',first_page,re.I)
+    if sm:samples=as_int(sm.group(1))
     # PoE global rate in table 4 (last percentage from the screening row)
     screening=None
     poe=re.search(r'(?im)^\s*%\s*des\s+voyageurs\s+screen[ée]s\s+(.+)',text)
     if poe:
         percent=re.findall(r'(\d{1,3}[,.]?\d*)\s*%',poe.group(1))
         if percent:screening=float(percent[-1].replace(',','.'))/100
-    return {'report_no':f'N{num}','date':ds,'publication_date':pub,'cases':cases,'deaths':deaths,'new_cases':newcases,'followup':followup,
+    if screening is None:
+        pm=re.search(r'(?m)^\s*Proportion\s+des\s+([^\n]+)\n\s*voyageurs screenés',text)
+        if pm:
+            rates=re.findall(r'(\d{1,3}[,.]?\d*)\s*%',pm.group(1))
+            if rates:screening=float(rates[-1].replace(',','.'))/100
+    notifications=extract_notifications(t2, ds, f'N{num}', newcases)
+    return {'samples':samples, 'notifications':notifications, 'report_no':f'N{num}','date':ds,'publication_date':pub,'cases':cases,'deaths':deaths,'new_cases':newcases,'followup':followup,
             'contacts_total':contacts_total,'contacts_seen':contacts_seen,'screening':screening,'zones':zone_rows,'residual':residual,'prov_totals':prov_totals,'province_contacts':province_contacts,'text':text,'pdf':path.name}
+
+
+def extract_notifications(section, reporting_date, report_no, expected_cases):
+    """Read explicit 24h table columns; never equate cumulative corrections with incidence.
+
+    Poppler keeps columns aligned on each page but changes spacing across pages.
+    A complete province row supplies the first two daily-column coordinates.
+    Blank daily case cells are accepted as zero only after all province/national
+    sums reconcile against the explicitly printed daily totals.
+    """
+    result=[]; current=None; seen_provinces=set()
+    for page in section.split('\f'):
+        lines=page.splitlines(); boundary=None
+        for line in lines:
+            m=ROW.match(line) or ROW_TIGHT.match(line)
+            if not m:continue
+            tail=list(re.finditer(r'\d+',line[m.end():]))
+            if len(tail)==4 and (norm_prov(m.group('name')) in PROVS or m.group('name').strip()=='Total'):
+                boundary=(tail[0].end()+tail[1].start())//2
+                break
+        if boundary is None:
+            # Historical cumulative-only layouts have no 24h columns.
+            continue
+        for line in lines:
+            m=ROW.match(line) or ROW_TIGHT.match(line)
+            if not m:continue
+            name=norm_prov(m.group('name'))
+            tail_numbers=re.findall(r'\d+',line[m.end():])
+            # Four explicit daily cells are unambiguous even if a PDF row
+            # is horizontally indented (e.g. Kyondo in N176).
+            cell=tail_numbers[0] if len(tail_numbers)==4 else line[m.end():m.end()+boundary].strip()
+            if cell and not cell.isdigit():raise ValueError(f'Ambiguous daily cell {name}: {cell!r}')
+            daily=int(cell or 0)
+            daily_deaths=int(tail_numbers[-1]) if tail_numbers else 0
+            if name=='Total':
+                if daily!=expected_cases:raise ValueError('Daily Table 1/Table 2 totals disagree')
+                tail=re.findall(r'\d+',line[m.end():])
+                result.append(dict(date=reporting_date,report_no=report_no,admin_level='national',province='',health_zone='',new_confirmed_cases=daily,new_confirmed_deaths=int(tail[-1]),source='INSP Table 2: explicit 24h notifications'))
+                continue
+            if name in PROVS and name not in seen_provinces:
+                current=name;seen_provinces.add(name);level='province';zone=''
+            else:
+                if current is None:raise ValueError('Daily zone has no province')
+                level='health_zone';zone=norm_zone(name)
+            result.append(dict(date=reporting_date,report_no=report_no,admin_level=level,province=current,health_zone=zone,new_confirmed_cases=daily,new_confirmed_deaths=daily_deaths,source='INSP Table 2: explicit 24h notifications'))
+    if result:
+        national=[r for r in result if r['admin_level']=='national']
+        if len(national)!=1:raise ValueError('Missing unique national daily total')
+        provs=[r for r in result if r['admin_level']=='province']
+        if sum(r['new_confirmed_deaths'] for r in provs)!=national[0]['new_confirmed_deaths']:
+            raise ValueError('Daily province death sum mismatch')
+        if sum(r['new_confirmed_cases'] for r in provs)!=expected_cases:raise ValueError('Daily province sum mismatch')
+        for p in provs:
+            zones=[r for r in result if r['admin_level']=='health_zone' and r['province']==p['province']]
+            death_residual=p['new_confirmed_deaths']-sum(r['new_confirmed_deaths'] for r in zones)
+            if death_residual:
+                # Verified against N177 PDF page 3: province 9, listed zones 8.
+                # Retain both levels; do not assign the missing death to a zone.
+                if (report_no, p['province'], death_residual)==('N177','Nord-Kivu',1):
+                    result.append(dict(date=reporting_date,report_no=report_no,admin_level='unallocated',province=p['province'],health_zone='',new_confirmed_cases=0,new_confirmed_deaths=death_residual,source='INSP N177 Table 2 p3: province 9 vs listed zones 8; daily allocation unresolved'))
+                else:
+                    raise ValueError(f"Daily zone death sum mismatch: {p['province']}")
+            if sum(r['new_confirmed_cases'] for r in zones)!=p['new_confirmed_cases']:
+                raise ValueError(f"Daily zone sum mismatch: {p['province']}")
+    return result
 
 
 def upsert_rows(path,rows,key,remove_dates=None):
     old=read_csv(path)
+    if not old and not rows:return
     fields=list(old[0]) if old else list(rows[0])
     if remove_dates:
         datekey='reporting_date' if 'reporting_date' in fields else 'date'
@@ -247,6 +343,13 @@ def upsert_rows(path,rows,key,remove_dates=None):
 
 def apply_reports(reports):
     if not reports:raise ValueError('No reports')
+    unique={}
+    for r in reports:
+        key=(r['report_no'],r['date'])
+        if key in unique and r['text']!=unique[key]['text']:
+            raise ValueError(f'Conflicting duplicate PDF: {key}')
+        unique[key]=r
+    reports=list(unique.values())
     dates={r['date'] for r in reports}
     base_zone=read_csv(DATA/'cases_by_hz.csv')
     loc={}
@@ -254,8 +357,9 @@ def apply_reports(reports):
         p=norm_prov(r['province']);n=norm_zone(r['health_zone'])
         if n and (r.get('zone_id') or r.get('lat')):loc[(p,n)]=(r.get('zone_id',''),r.get('lat',''),r.get('lon',''))
     # Explicitly keep geography unavailable where no approved shape/centroid exists.
-    summary=[];zones=[];unvent=[];response=[];prov_contacts=[];audit=[]
+    summary=[];zones=[];unvent=[];response=[];prov_contacts=[];audit=[];notifications=[]
     for r in sorted(reports,key=lambda r:r['date']):
+        notifications.extend(r.get('notifications',[]))
         d=r['date'];no=r['report_no'];source=f'INSP SitRep {no} / MVE-BDBV (uploaded original PDF)'
         summary.append({'report_no':no,'reporting_date':d,'publication_date':r['publication_date'], 'drc_confirmed_cases':r['cases'],
             'drc_confirmed_deaths':r['deaths'],'uganda_confirmed_cases':20,'uganda_confirmed_deaths':2,'source':source,
@@ -273,7 +377,7 @@ def apply_reports(reports):
                 'contacts_under_followup':r['contacts_total'] if r['contacts_total'] is not None else '',
                 'contacts_seen':r['contacts_seen'] if r['contacts_seen'] is not None else '',
                 'contact_followup_rate':r['followup'], 'alerts_reported':'','alerts_investigated':'','alert_investigation_rate':'',
-                'samples_received':'','samples_analysed':'','positive_samples':'','travellers_total':'','travellers_screened':'',
+                'samples_received':'','samples_analysed':r.get('samples') or '', 'positive_samples':r['new_cases'] if r.get('samples') else '', 'travellers_total':'','travellers_screened':'',
                 'poe_screening_coverage':r['screening'] if r['screening'] is not None else '', 'source':source,
                 'notes':'KPI national contact rate and PoE Table 4 (if available). Missing counts left blank, not guessed.'})
         for p,(total,seen,rate) in r.get('province_contacts',{}).items():
@@ -281,29 +385,60 @@ def apply_reports(reports):
                'followup_rate':f'{rate:.6f}','target_rate':0.95,'source':source,
                'notes':'Province follow-up extracted from SitRep narrative; fraction independently matches quoted rate.'})
         audit.append({'report_no':no,'date':d,'cases':r['cases'],'deaths':r['deaths'],'health_zones':len(r['zones']),
+                      'daily_spatial_warnings':[n['source'] for n in r.get('notifications',[]) if n['admin_level']=='unallocated'],
                       'provinces':len(r['prov_totals']),'contact_followup':r['followup'],
                       'unallocated_deaths':sum(x[2] for x in r['residual']), 'pdf':r['pdf'],'spatial_warning': 'Table 1/Table 2 discrepancy (Haut-Uélé +1); spatial snapshot omitted' if no=='N150' else ''})
+    # Record cumulative revision residuals separately from explicit 24h reports.
+    all_summary={r['reporting_date']:r for r in read_csv(DATA/'report_summary.csv')}
+    all_summary.update({r['reporting_date']:r for r in summary})
+    for row in summary:
+        unresolved=[n for n in notifications if n['date']==row['reporting_date'] and n['admin_level']=='unallocated']
+        for n in unresolved:
+            row['notes']+=f" Daily table discrepancy: {n['province']} has {n['new_confirmed_deaths']} death(s) without health-zone allocation; national/province total retained."
+        daily=next((n for n in notifications if n['date']==row['reporting_date'] and n['admin_level']=='national'),None)
+        earlier=[d for d in all_summary if d<row['reporting_date']]
+        if daily and earlier:
+            previous=all_summary[max(earlier)]
+            from datetime import date
+            if (date.fromisoformat(row['reporting_date'])-date.fromisoformat(previous['reporting_date'])).days==1:
+                rc=int(row['drc_confirmed_cases'])-int(float(previous['drc_confirmed_cases']))-daily['new_confirmed_cases']
+                rd=int(row['drc_confirmed_deaths'])-int(float(previous['drc_confirmed_deaths']))-daily['new_confirmed_deaths']
+                row['notes']+=f' Explicit 24h: {daily["new_confirmed_cases"]} cases / {daily["new_confirmed_deaths"]} deaths. Cumulative reconciliation residual: cases {rc:+d}, deaths {rd:+d}; not daily incidence.'
     for fn,rows,keys in [
       ('report_summary.csv',summary,['report_no','reporting_date']),('cases_by_hz.csv',zones,['date','province','health_zone']),
       ('cases_unventilated.csv',unvent,['date','province','category']),
       ('response_indicators.csv',response,['reporting_date','report_no','admin_level','province','health_zone']),
-      ('contact_followup_by_province.csv',prov_contacts,['date','province'])]:
+      ('contact_followup_by_province.csv',prov_contacts,['date','province']),
+      ('sitrep_daily_notifications.csv',notifications,['date','admin_level','province','health_zone'])]:
         upsert_rows(DATA/fn,rows,keys,remove_dates=dates)
-    # Full qualitative source from newest PDF; do not retain the stale ECDC-only warning.
+    # Retain each report text for audit/backfill; a late older PDF must not
+    # overwrite the pointer to the newest report.
+    EXTRACTED.mkdir(parents=True,exist_ok=True)
+    for r in reports:
+        (EXTRACTED/f'sitrep_{r["report_no"]}.txt').write_text(r['text'],encoding='utf-8')
+    # Full qualitative source from newest PDF; do not retain stale warnings.
     latest=max(reports,key=lambda x:x['date'])
     EXTRACTED.mkdir(parents=True,exist_ok=True)
     (EXTRACTED/f'sitrep_{latest["report_no"]}.txt').write_text(latest['text'],encoding='utf-8')
     (EXTRACTED/f'sitrep_{latest["report_no"][1:]:0>3}.txt').write_text(latest['text'],encoding='utf-8')
-    (EXTRACTED/'latest_sitrep_update.json').write_text(json.dumps({
+    pointer=EXTRACTED/'latest_sitrep_update.json'
+    old_pointer=json.loads(pointer.read_text()) if pointer.exists() else {}
+    if latest['date'] >= old_pointer.get('reporting_date',''):
+        pointer.write_text(json.dumps({
         'report_no':latest['report_no'],'reporting_date':latest['date'],'pdf':latest['pdf'],'source':'Uploaded INSP original PDF'},indent=2,ensure_ascii=False),encoding='utf-8')
-    (EXTRACTED/'sitrep_archive_import_audit.json').write_text(json.dumps(audit,ensure_ascii=False,indent=2),encoding='utf-8')
+    audit_path=EXTRACTED/'sitrep_archive_import_audit.json'
+    old_audit=json.loads(audit_path.read_text()) if audit_path.exists() else []
+    merged={r['report_no']:r for r in old_audit}
+    merged.update({r['report_no']:r for r in audit})
+    audit_path.write_text(json.dumps(sorted(merged.values(),key=lambda r:r['date']),ensure_ascii=False,indent=2),encoding='utf-8')
     report_numbers={int(x['report_no'][1:]) for x in audit}
     missing=[f'N{k}' for k in range(min(report_numbers),max(report_numbers)+1) if k not in report_numbers]
     status=(f'# INSP SitRep archive import\n\n- Imported: {len(reports)} full PDFs, N{min(report_numbers)}–N{max(report_numbers)}\n'
            f'- Missing PDF numbers: {", ".join(missing) if missing else "none"}\n'
            f'- Latest: {latest["report_no"]}, {latest["date"]}, {latest["cases"]} confirmed / {latest["deaths"]} deaths\n'
            '- Official national totals verified and province/zone sums reconciled for all PDFs except N150: its Table 1 reports 9,065 while Table 2 reports 9,066 (+1 Haut-Uélé); spatial snapshot omitted on N150.\n'
-           '- Unallocated confirmed deaths tracked separately; no unreported case dates interpolated.\n')
+           '- Unallocated confirmed deaths tracked separately; no unreported case dates interpolated.\n'
+           '- N177 daily Nord-Kivu deaths: province 9 vs listed zones 8; one unresolved daily death retained without a zone. All other daily mismatches fail validation.\n')
     (ROOT/'.sitrep_archive_import_status.md').write_text(status,encoding='utf-8')
     print(status)
 

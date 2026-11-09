@@ -21,6 +21,7 @@ ROOT = Path(__file__).resolve().parents[1]
 OUT = ROOT / 'data' / 'international_cases.json'
 STATUS = ROOT / '.international_cases_status.md'
 ECDC_INDEX = 'https://www.ecdc.europa.eu/en/public-health-events/2026-EIP-00026'
+WHO_URL = 'https://www.who.int/emergencies/alert-and-response'
 NICD_URL = 'https://www.nicd.ac.za/bundibugyo-virus-disease-updates/'
 HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; public-health-dashboard/1.0; data reconciliation)'}
 COUNTRIES = ('kenya', 'nigeria', 'france')
@@ -90,7 +91,11 @@ def parse_ecdc(html: str, published: str) -> dict:
                 break
     # Nigeria first confirmed case was reported on 20 October (words are common).
     n = sections['nigeria']
-    if n and re.search(r'\b(?:one|1)\s+(?:laboratory[- ]confirmed\s+|confirmed\s+)?case\b', n, re.I):
+    n=re.sub(r'\b(one|two|three|four|five|six|seven|eight|nine|ten)\b',lambda m:str(['one','two','three','four','five','six','seven','eight','nine','ten'].index(m.group().lower())+1),n,flags=re.I)
+    total=re.search(r'(?:total of|cumulative(?: confirmed)? cases?(?: stands? at|:)?|reported a total of)\s+(\d+)\s*(?:(?:laboratory[- ]confirmed|confirmed)\s+)?cases?',n,re.I)
+    if total:
+        found['nigeria']=(int(total.group(1)),None)
+    elif n and re.search(r'\b1\s+(?:laboratory[- ]confirmed\s+|confirmed\s+)?case\b', n, re.I) and not re.search(r'\b(?:additional|new|total|cumulative)\b',n,re.I):
         # An unknown death status must not be converted to zero without corroboration.
         found['nigeria'] = (1, None)
     for key, (cases, deaths) in list(found.items()):
@@ -126,6 +131,42 @@ def parse_nicd_table(html: str) -> dict:
     return found
 
 
+def parse_who_table(html: str) -> dict:
+    """WHO puts each reporting date in a full-width row above the country."""
+    soup = BeautifulSoup(html, 'html.parser')
+    found = {}
+    for table in soup.find_all('table'):
+        if 'Confirmed deaths' not in clean(table.get_text(' ')):
+            continue
+        asof = None
+        for tr in table.find_all('tr'):
+            cells = [clean(td.get_text(' ', strip=True)) for td in tr.find_all(['td','th'])]
+            if len(cells) == 1:
+                m = re.fullmatch(r'Data as of (\d{1,2} [A-Za-z]+ \d{4})', cells[0])
+                if m:
+                    asof = datetime.strptime(m.group(1), '%d %B %Y').date().isoformat()
+                continue
+            if len(cells) != 8 or not asof: continue
+            key = next((k for k in COUNTRIES if cells[0].lower().startswith(k)), None)
+            if not key: continue
+            def number(value):
+                return int(value.replace(' ', '').replace(',', '')) if re.fullmatch(r'\d[\d, ]*', value) else None
+            c, d = number(cells[2]), number(cells[3])
+            if c is not None:
+                found[key] = (c, d, asof)
+    return found
+
+
+def ecdc_reporting_date(html, country, published):
+    text = country_section(html, country.title())
+    dates = []
+    for m in re.finditer(r'As of (\d{1,2} [A-Za-z]+)(?: (\d{4}))?', text, re.I):
+        ds=datetime.strptime(m.group(1)+' '+(m.group(2) or published[:4]), '%d %B %Y').date().isoformat()
+        if ds <= published: dates.append(ds)
+    # Retain a distinction between the page publication and explicit as-of dates.
+    return max(dates) if dates else published
+
+
 def valid_country(entry: dict) -> bool:
     try:
         c = int(entry['confirmed_cases']); d = entry.get('confirmed_deaths')
@@ -144,6 +185,19 @@ def merge(current: dict, incoming: dict) -> bool:
     if incoming.get('confirmed_deaths') is None and current.get('confirmed_deaths') is not None:
         incoming['confirmed_deaths'] = current['confirmed_deaths']
         incoming['death_source_note'] = 'Deaths carried forward from prior independently verified source'
+        incoming['deaths_as_of_date'] = current.get('deaths_as_of_date',old_date)
+        incoming['deaths_source_url'] = current.get('deaths_source_url',current.get('source_url',''))
+    elif incoming.get('confirmed_deaths') is not None:
+        incoming['deaths_as_of_date'] = incoming['as_of_date']
+        incoming['deaths_source_url'] = incoming.get('source_url','')
+        current.pop('death_source_note',None)
+    if incoming['as_of_date'] != old_date or incoming['confirmed_cases'] != current.get('confirmed_cases'):
+        for lang,note in {'ja':'最新の伝播状況・接触者調査は出典を参照してください。','en':'See the source for current transmission and contact tracing details.','fr':'Voir la source pour la transmission et le suivi des contacts actuels.'}.items():
+            current['note_'+lang]=note
+    if incoming.get('source_url') != current.get('source_url') or incoming['as_of_date'] != old_date:
+        # A live WHO table has no publication date; never inherit another page's.
+        current['publication_date'] = incoming.get('publication_date')
+    incoming['last_verified_date'] = date.today().isoformat()
     current.update(incoming)
     return True
 
@@ -153,11 +207,13 @@ def update_from_sources(data: dict) -> list[str]:
     countries = data.setdefault('countries', {})
     try:
         date_str, url = latest_ecdc_url(get_page(ECDC_INDEX))
-        parsed = parse_ecdc(get_page(url), date_str)
+        html = get_page(url)
+        parsed = parse_ecdc(html, date_str)
+        if not parsed: raise ValueError('No country counts found in ECDC update')
         log.append(f'ECDC latest update: {date_str}; parsed countries: {list(parsed)}')
         for country, (cases, deaths) in parsed.items():
             # ECDC Kenya as-of date is the page date; Nigeria case confirmation is 20 Oct 2026.
-            asof = '2026-10-20' if country == 'nigeria' and date_str >= '2026-10-20' else date_str
+            asof = ecdc_reporting_date(html, country, date_str)
             entry = {'confirmed_cases': cases, 'confirmed_deaths': deaths,
                      'as_of_date': asof, 'publication_date': date_str,
                      'source': 'ECDC', 'source_url': url}
@@ -183,6 +239,18 @@ def update_from_sources(data: dict) -> list[str]:
             log.append(f'{country}: {"updated" if ok else "retained"} from NICD')
     except Exception as ex:
         log.append(f'NICD unavailable / extraction rejected: {ex}')
+    try:
+        parsed = parse_who_table(get_page(WHO_URL))
+        if not parsed: raise ValueError('No dated country counts in WHO table')
+        for country, (cases, deaths, asof) in parsed.items():
+            entry = {'confirmed_cases':cases, 'confirmed_deaths':deaths, 'as_of_date':asof,
+                     'source':'WHO', 'source_url':WHO_URL}
+            ok = merge(countries.setdefault(country, {}), entry)
+            log.append(f'{country}: {"updated" if ok else "retained"} from WHO ({asof})')
+    except Exception as ex:
+        log.append(f'WHO unavailable / extraction rejected: {ex}')
+    if not any('updated' in line or 'retained' in line for line in log):
+        raise RuntimeError('All international sources unavailable or unparseable: ' + '; '.join(log))
     # Ensure every retained country entry passes validation.
     for country in COUNTRIES:
         if country in countries and not valid_country(countries[country]):

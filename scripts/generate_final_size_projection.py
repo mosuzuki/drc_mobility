@@ -17,6 +17,7 @@ import math
 from dataclasses import dataclass
 from datetime import date, datetime, timedelta, timezone
 from pathlib import Path
+from sitrep_notifications import overlay_national
 
 import numpy as np
 
@@ -93,7 +94,7 @@ def interpolate_daily(points: list[ReportPoint]) -> list[dict]:
                 })
         prev_d = p.reporting_date
         prev_c = p.cumulative
-    return rows
+    return overlay_national(rows, field='incidence')
 
 
 def gamma_pdf(x: float, shape: float, scale: float) -> float:

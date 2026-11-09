@@ -45,15 +45,15 @@ WHO_UGANDA_FINAL_ROW = {
     "current_admissions": 0,
     "recoveries": 18,
     "cumulative_deaths": 2,
-    "total_persons_tested": 2482,
-    "all_time_contacts_listed": 831,
+    "total_persons_tested": "",
+    "all_time_contacts_listed": "",
     "active_contacts_under_followup": 0,
-    "completed_21day_followup": 821,
-    "total_alerts": 604,
-    "alerts_verified": 594,
-    "poe_screened_last_24h": 5465,
-    "poe_inbound_last_24h": 2105,
-    "poe_outbound_last_24h": 1714,
+    "completed_21day_followup": "",
+    "total_alerts": "",
+    "alerts_verified": "",
+    "poe_screened_last_24h": "",
+    "poe_inbound_last_24h": "",
+    "poe_outbound_last_24h": "",
     "source_url": "https://www.afro.who.int/countries/uganda/news/uganda-ends-ebola-outbreak-following-completion-42-day-countdown",
     "notes": "WHO and Africa CDC welcomed the end of Uganda's Bundibugyo Ebola outbreak on 2026-08-27 after 42 consecutive days without a new confirmed case since the last imported case was discharged on 2026-07-16. Cumulative confirmed cases remain 20 and deaths 2.",
 }
@@ -330,14 +330,11 @@ def apply_who_uganda_end_override(row: dict[str, object], daily_cases: list[dict
         parsed_date = str(row.get("as_of_date") or "")
         if not parsed_date or parsed_date < WHO_UGANDA_END_DATE:
             row = dict(WHO_UGANDA_FINAL_ROW)
-        elif parsed_date >= WHO_UGANDA_END_DATE:
-            # Preserve newer dashboard date if it exists, but ensure final status notes.
-            row = dict(row)
-            for k, v in WHO_UGANDA_FINAL_ROW.items():
-                if row.get(k) in (None, ""):
-                    row[k] = v
-            row["source_url"] = WHO_UGANDA_FINAL_ROW["source_url"]
-            row["notes"] = WHO_UGANDA_FINAL_ROW["notes"]
+        elif parsed_date > WHO_UGANDA_END_DATE:
+            # A genuinely newer ministry report retains its own counts and status.
+            # Never attach the historic WHO end declaration to a new outbreak.
+            return row, daily_cases
+
     except Exception:
         row = dict(WHO_UGANDA_FINAL_ROW)
 
@@ -345,12 +342,12 @@ def apply_who_uganda_end_override(row: dict[str, object], daily_cases: list[dict
     # latest-situation text remain synchronized with the official end status.
     existing_dates = {str(r.get("date")) for r in daily_cases}
     start = "2026-07-28"
-    for d in iso_date_range(start, str(row.get("as_of_date") or WHO_UGANDA_END_DATE)):
+    for d in iso_date_range(start, WHO_UGANDA_END_DATE):
         if d not in existing_dates:
             daily_cases.append({
                 "date": d,
                 "date_label": datetime.fromisoformat(d).strftime("%d-%b-%y"),
-                "confirmed_cases": 20,
+                "confirmed_cases": 0,
                 "source_url": WHO_UGANDA_FINAL_ROW["source_url"],
                 "notes": "No new confirmed cases; zero row added through WHO/Africa CDC end-of-outbreak status.",
                 "label": d,
@@ -364,7 +361,9 @@ def main() -> None:
     try:
         row, daily_cases = scrape()
     except Exception as exc:
-        row, daily_cases = dict(WHO_UGANDA_FINAL_ROW), []
+        existing = read_csv_rows(DATA / 'uganda_evd_summary.csv')
+        row = dict(max(existing, key=lambda r: r.get('as_of_date', ''))) if existing else dict(WHO_UGANDA_FINAL_ROW)
+        daily_cases = []
         STATUS.write_text(
             "# ⚠️ Uganda MoH scrape unavailable; WHO final status applied\n\n"
             "The Uganda MoH page could not be parsed automatically, so the WHO/Africa CDC end-of-outbreak status was applied.\n\n"

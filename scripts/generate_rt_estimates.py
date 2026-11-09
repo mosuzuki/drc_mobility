@@ -12,6 +12,7 @@ import csv
 import math
 from datetime import date, timedelta, datetime, timezone
 from pathlib import Path
+from sitrep_notifications import overlay_national
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -86,7 +87,7 @@ def expand_daily(rows):
             cum = prev['cum_cases'] + per_day * i
             daily.append({'date': dd, 'report_no': r.get('report_no','') if is_obs else '', 'cumulative_cases': cum, 'new_cases': per_day, 'observed_sitrep': '1' if is_obs else '0'})
         prev = r
-    return daily
+    return overlay_national(daily, field='new_cases')
 
 
 def moving_average(values, idx, window=3):

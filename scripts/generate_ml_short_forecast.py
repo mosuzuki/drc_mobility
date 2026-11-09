@@ -14,6 +14,7 @@ from __future__ import annotations
 import json, math, os, warnings
 from datetime import timedelta, datetime, timezone
 from pathlib import Path
+from sitrep_notifications import load_notifications
 import numpy as np
 import pandas as pd
 from lightgbm import LGBMRegressor
@@ -41,20 +42,30 @@ def load_inputs():
     zones['series'] = zones['province'].fillna('unknown') + '||' + zones['health_zone'].fillna('unknown')
     zones = zones.groupby(['series','date'], as_index=False).agg(cumulative=('confirmed_cases','max'), province=('province','first'))
     by_series = {}
+    notifications = load_notifications()
+    def use_notifications(values, level, province="", zone=""):
+        for i, day in enumerate(index):
+            row = notifications.get((day.date().isoformat(), level, province, zone))
+            if row:
+                values[i] = float(row["new_confirmed_cases"])
+        return values
     for name, df in zones.groupby('series'):
         d = df.set_index('date')['cumulative'].sort_index().reindex(index).interpolate(method='time', limit_area='inside').ffill().fillna(0)
         # Historical revisions may lower cumulative counts. Retain corrections in totals,
         # but don't manufacture negative incident cases for count forecasts.
         inc = d.diff().fillna(0).clip(lower=0).to_numpy(dtype=float)
+        province, zone = name.split('||', 1)
+        inc = use_notifications(inc, 'health_zone', province, zone)
         by_series['z:'+name] = {'inc': inc, 'province':str(df['province'].iloc[0]), 'level':0}
     df_nat = reports.set_index('date')['drc_confirmed_cases'].reindex(index).interpolate(method='time',limit_area='inside').ffill().fillna(0)
     nat_inc = df_nat.diff().fillna(0).clip(lower=0).to_numpy(dtype=float)
+    nat_inc = use_notifications(nat_inc, 'national')
     by_series['national'] = {'inc': nat_inc, 'province':'National', 'level':2}
     provinces = sorted({r['province'] for r in by_series.values() if r['level']==0})
     for prov in provinces:
         case = [v['inc'] for v in by_series.values() if v['level']==0 and v['province']==prov]
         if case:
-            by_series['p:'+prov] = {'inc':np.sum(case,axis=0), 'province':prov, 'level':1}
+            by_series['p:'+prov] = {'inc':use_notifications(np.sum(case,axis=0), 'province', prov), 'province':prov, 'level':1}
     return index, by_series, last
 
 
@@ -263,7 +274,7 @@ def main():
        'recommended_lightgbm_weight':ml_weight,'experimental_lightgbm_weight':experiment_weight,'ensemble_method':'weighted sample-path combination; model errors assumed independent','chronos2_status': 'available' if chrono is not None else 'not_available',
        'chronos2_error':issue,
        'caveats':['This model was trained using one evolving outbreak, NOT many independent epidemics.',
-         'Incidence is approximated from cumulative report dates, with interpolation over missed days.',
+         'Explicit 24h SitRep notifications are used where available; older incidence uses cumulative differences and interpolation over missed days. Revisions are not new daily cases.',
          'Historical SitRep revisions may cause retrospective information leakage in backtests.',
          'Uncertainty intervals are exploratory and are not independently calibrated.']}
     OUT.write_text(json.dumps(payload,ensure_ascii=False,indent=2)+'\n',encoding='utf8')

@@ -311,10 +311,13 @@ def find_sitrep_articles(category_url: str = CATEGORY_URL) -> list[SitRepArticle
         log(f"Category-page discovery failed: {exc}")
 
     candidates.extend(_wp_rest_sitrep_candidates(category_url))
+    # The Ministry sometimes publishes a report missing from the INSP index
+    # (e.g. N172). Its official media archive supplies the original PDF.
+    candidates.extend(_wp_rest_sitrep_candidates('https://administration.sante.gouv.cd'))
     # Independent archive retains original INSP PDFs when WordPress category or
     # REST API stops indexing fresh SitReps. The PDF is still read and validated
     # by update_dashboard(), never the archive's narrative as a replacement.
-    for mirror in ("https://ebola-tracker.org/reports/", "https://ebola-tracker.org/en/reports/"):
+    for mirror in ("https://ebola-tracker.org/rapports/", "https://ebola-tracker.org/en/reports/"):
         try:
             rr=SESSION.get(mirror,timeout=TIMEOUT);rr.raise_for_status()
             ss=BeautifulSoup(rr.text,"html.parser")
@@ -2098,7 +2101,8 @@ def update_dashboard(pdf_path: Path, article: SitRepArticle, *, force: bool = Fa
         from import_sitrep_archive import extract_report, apply_reports
         modern = extract_report(pdf_path)
         if modern['report_no'] != f'N{report_no}':
-            raise ValueError(f'SitRep number mismatch: article N{report_no} vs PDF {modern["report_no"]}')
+            log(f'Filename/article N{report_no} differs from PDF {modern["report_no"]}; using validated PDF header.')
+            report_no = int(modern['report_no'][1:])
         if not force and report_no in existing_report_numbers():
             write_status('SitRep already imported', f'N{report_no} already recorded from full INSP PDF.', ok=True)
             return False
@@ -2299,7 +2303,7 @@ def main() -> None:
         newest_no = max((a.report_no or 0) for a in articles)
         # Do not forget backlog after 15 days offline. Work from oldest missing
         # reports, in bounded batches to stay within GitHub Actions run limits.
-        lookback_floor = max(1, max_no - 2)
+        lookback_floor = 117  # retain all discoverable modern-report gaps after a long outage
         missing = [a for a in articles if a.report_no is not None and a.report_no >= lookback_floor and a.report_no not in existing]
         if len(missing) > 8:
             log(f"Backlog: {len(missing)} missing SitReps; processing earliest 4 and most recent 4 now.")

@@ -1,0 +1,74 @@
+{
+  "report_no": "N169",
+  "reporting_date": "2026-10-30",
+  "previous_report_no": "N168",
+  "previous_reporting_date": "2026-10-29",
+  "confirmed_cases": {
+    "previous": 10351,
+    "latest": 10414,
+    "change": 63
+  },
+  "confirmed_deaths": {
+    "previous": 5026,
+    "latest": 5372,
+    "change": 346
+  },
+  "province_new_cases_from_health_zone_delta": {
+    "Haut-Uélé": 4,
+    "Ituri": 225,
+    "Nord-Kivu": 25
+  },
+  "top_health_zone_increases": [
+    {
+      "province": "Ituri",
+      "health_zone": "Rwampara",
+      "increase": 70
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mangala",
+      "increase": 47
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nia-Nia",
+      "increase": 28
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Bambu",
+      "increase": 23
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Nyankunde",
+      "increase": 15
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Beni",
+      "increase": 13
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Fataki",
+      "increase": 10
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mandima",
+      "increase": 9
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Lolwa",
+      "increase": 7
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Drodro",
+      "increase": 4
+    }
+  ],
+  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+}

@@ -10,6 +10,7 @@ import csv
 import math
 from datetime import date, timedelta, datetime, timezone
 from pathlib import Path
+from sitrep_notifications import overlay_national
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -64,7 +65,7 @@ def expand_daily(rows):
             is_obs = day == r['date_obj']
             daily.append({'date': day, 'report_no': r.get('report_no','') if is_obs else '', 'cum_cases': prev['cum_cases'] + dc * i / gap, 'cum_deaths': prev['cum_deaths'] + ddth * i / gap, 'new_cases': dc / gap, 'new_deaths': ddth / gap, 'observed_sitrep': '1' if is_obs else '0'})
         prev = r
-    return daily
+    return overlay_national(daily, field='new_cases')
 
 
 def wilson_interval(successes, trials, z=1.96):

@@ -7,6 +7,7 @@ JSON files cannot remain stale when report_summary.csv has already advanced.
 from __future__ import annotations
 
 import argparse
+import os
 import subprocess
 import sys
 from pathlib import Path
@@ -30,6 +31,7 @@ STEPS = [
     ("Branching and ML-linked final-size scenarios", [sys.executable, "scripts/generate_final_size_projection.py"], True),
     ("Forecast consistency and leakage-guard tests", [sys.executable, "scripts/test_ml_forecast_outputs.py"], True),
     ("Forecast plot rendering regression tests", ["node", "scripts/test_forecast_render.cjs"], True),
+    ("SitRep parser and notification regression tests", [sys.executable, "scripts/test_sitrep_updates.py"], True),
     ("Dashboard output validation", [sys.executable, "scripts/validate_dashboard_outputs.py"], True),
     ("International country count regression test", [sys.executable, "scripts/test_international_cases.py"], True),
     ("Frontend national/regional data integrity", ["node", "scripts/test_frontend_data_consistency.cjs"], True),
@@ -38,12 +40,17 @@ STEPS = [
 
 def main() -> None:
     ap = argparse.ArgumentParser()
+    ap.add_argument("--offline", action="store_true", help="Rebuild from validated local data without refreshing external sources")
     ap.add_argument("--skip-sitrep", action="store_true", help="Regenerate downstream outputs without fetching INSP SitRep again")
     args = ap.parse_args()
     lines = ["# Dashboard integrated update", "", f"Started at: {datetime.now(timezone.utc).isoformat(timespec='seconds')}", ""]
     hard_failed = False
+    source_warnings = []
     steps = STEPS[1:] if args.skip_sitrep else STEPS
+    if args.offline:
+        steps = [s for s in steps if s[2]]
     for name, cmd, required in steps:
+        print(f"Running: {name}", flush=True)
         lines.append(f"## {name}")
         try:
             proc = subprocess.run(cmd, cwd=ROOT, text=True, capture_output=True, timeout=900)
@@ -52,6 +59,7 @@ def main() -> None:
             if required:
                 hard_failed = True
                 break
+            source_warnings.append(name + ": " + str(exc))
             continue
         lines.append(f"- Exit code: {proc.returncode}")
         if proc.stdout.strip():
@@ -64,12 +72,19 @@ def main() -> None:
             lines.append("```")
             lines.append(proc.stderr.strip()[-3000:])
             lines.append("```")
+        if proc.returncode != 0 and not required:
+            source_warnings.append(name + ": failed; last verified data retained")
         if proc.returncode != 0 and required:
             hard_failed = True
             break
         lines.append("")
     lines.append(f"Finished at: {datetime.now(timezone.utc).isoformat(timespec='seconds')}")
     STATUS.write_text("\n".join(lines) + "\n", encoding="utf-8")
+    if os.environ.get("GITHUB_OUTPUT"):
+        with open(os.environ["GITHUB_OUTPUT"], "a") as f:
+            f.write(f"source_warning={str(bool(source_warnings)).lower()}\n")
+    if source_warnings:
+        print("::warning::" + "; ".join(source_warnings))
     if hard_failed:
         print(STATUS.read_text(encoding="utf-8"))
         raise SystemExit(1)

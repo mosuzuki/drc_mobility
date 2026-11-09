@@ -12,6 +12,7 @@ const files = {
   ugandaFmpFlows: 'data/uganda_fmp_flows_2026.csv',
   ugandaDistrictFlows: 'data/uganda_district_flows_2026.csv',
   reportSummary: 'data/report_summary.csv',
+  notifications: 'data/sitrep_daily_notifications.csv',
   rwi: 'data/health_zone_rwi.csv',
   response: 'data/response_indicators.csv',
   ugandaEvd: 'data/uganda_evd_summary.csv',
@@ -31,6 +32,7 @@ const files = {
 let origins = [], destinations = [], flows = [], scenarios = [], population = [], ugandaProfile = [], cases = [], airAdjustment = [], contactFollowup = [], ugandaFmpFlows = [], ugandaDistrictFlows = [], reportSummary = [], healthZoneRwi = [], responseIndicators = [], ugandaEvdSummary = [], ugandaEvdDailyCases = [], ugandaEvdHistory = [], aiSitrepSummary = [], healthZoneActivity = [], rtEstimates = [], cfrEstimates = [];
 let latestSituationData = null;
 let internationalCasesData = null;
+let sitrepNotifications = [];
 let finalSizeProjectionData = null;
 let shortMlForecastData = null;
 let trueInfectionEstimateData = null;
@@ -436,16 +438,16 @@ function updateDataStatusText() {
     return;
   }
   if (currentLang === 'ja') {
-    statusEl.textContent = `SitRep ${firstReport.replace(/^N/i, 'N')}–${latestReport}まで更新済み（最新 ${latestReport}）`;
-    const ugMsg = ugLatest ? `ウガンダ症例はUganda Ministry of Health EVD daily page（${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}）から自動取得し、最新は${displayDateLabel(ugLatest.as_of_date)}時点です。` : 'ウガンダ症例はUganda Ministry of Health EVD daily page（https://evd-daily.health.go.ug/）から自動取得する設定です。';
+    statusEl.textContent = `最新SitRep ${latestReport}まで反映済み`;
+    const ugMsg = ugLatest ? `ウガンダ情報の出典は${ugandaEvdSourceLabel()}（${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}）、基準日は${displayDateLabel(ugLatest.as_of_date)}です。` : 'ウガンダ症例はUganda Ministry of Health EVD daily page（https://evd-daily.health.go.ug/）から自動取得する設定です。';
     updatedEl.textContent = `DRCはINSP SitRepページを6時間ごとに自動確認し、最新PDFを取得・抽出して更新する設定です。最新は${latestReport}（報告 ${latestReporting}、公開 ${latestPublished}）。${ugMsg}`;
   } else if (currentLang === 'fr') {
     statusEl.textContent = `Mis à jour jusqu’aux SitRep ${firstReport.replace(/^N/i, 'N')}–${latestReport} (dernier ${latestReport})`;
-    const ugMsg = ugLatest ? `Les cas en Ouganda sont récupérés automatiquement depuis la page quotidienne EVD du ministère de la Santé de l’Ouganda (${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}); dernière mise à jour au ${displayDateLabel(ugLatest.as_of_date)}.` : 'Les cas en Ouganda sont configurés pour être récupérés depuis la page quotidienne EVD du ministère de la Santé de l’Ouganda (https://evd-daily.health.go.ug/).';
+    const ugMsg = ugLatest ? `Les cas en Ouganda sont récupérés automatiquement depuis ${ugandaEvdSourceLabel()} (${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}); dernière mise à jour au ${displayDateLabel(ugLatest.as_of_date)}.` : 'Les cas en Ouganda sont configurés pour être récupérés depuis la page quotidienne EVD du ministère de la Santé de l’Ouganda (https://evd-daily.health.go.ug/).';
     updatedEl.textContent = `Pour la RDC, la page SitRep de l’INSP est vérifiée toutes les 6 heures; le dernier PDF est récupéré, extrait et intégré. Dernier : ${latestReport} (rapport ${latestReporting}, publication ${latestPublished}). ${ugMsg}`;
   } else {
     statusEl.textContent = `Updated through SitRep ${firstReport.replace(/^N/i, 'N')}–${latestReport} (latest ${latestReport})`;
-    const ugMsg = ugLatest ? `Uganda case counts are automatically retrieved from the Uganda Ministry of Health EVD daily page (${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}); latest as of ${displayDateLabel(ugLatest.as_of_date)}.` : 'Uganda case counts are configured to be retrieved from the Uganda Ministry of Health EVD daily page (https://evd-daily.health.go.ug/).';
+    const ugMsg = ugLatest ? `Uganda case counts are automatically retrieved from ${ugandaEvdSourceLabel()} (${ugLatest.source_url || 'https://evd-daily.health.go.ug/'}); latest as of ${displayDateLabel(ugLatest.as_of_date)}.` : 'Uganda case counts are configured to be retrieved from the Uganda Ministry of Health EVD daily page (https://evd-daily.health.go.ug/).';
     updatedEl.textContent = `For DRC, the INSP SitRep page is checked every 6 hours and the latest PDF is retrieved, extracted and incorporated. Latest: ${latestReport} (reporting ${latestReporting}, published ${latestPublished}). ${ugMsg}`;
   }
 }
@@ -1952,19 +1954,29 @@ function latestUgandaEvdSummary() {
   return (ugandaEvdSummary || []).slice().sort((a, b) => String(a.as_of_date || '').localeCompare(String(b.as_of_date || ''))).slice(-1)[0] || null;
 }
 
+function ugandaDailyIncidence(row) {
+  // Old chart rows use confirmed_cases as daily values; WHO final rows
+  // carried cumulative totals there and have an explicit new-case column.
+  return row.new_confirmed_cases !== '' && row.new_confirmed_cases != null
+    ? toNumber(row.new_confirmed_cases) : toNumber(row.confirmed_cases);
+}
+
 function ugandaRecentDailyRows(days = 14) {
   const rows = (ugandaEvdDailyCases || [])
     .filter(r => r.date)
-    .map(r => ({ date: String(r.date), confirmed_cases: toNumber(r.confirmed_cases) }))
+    .map(r => ({ date: String(r.date), confirmed_cases: ugandaDailyIncidence(r) }))
     .sort((a, b) => a.date.localeCompare(b.date));
-  return rows.slice(Math.max(0, rows.length - days));
+  const reference = latestNationalSummary()?.reporting_date || selectedCaseDate();
+  return rows.filter(r => daysBetweenIso(r.date, reference) >= 0 && daysBetweenIso(r.date, reference) < days);
 }
 
 function ugandaZeroNewCaseStreak() {
   const rows = (ugandaEvdDailyCases || [])
     .filter(r => r.date)
-    .map(r => ({ date: String(r.date), confirmed_cases: toNumber(r.confirmed_cases) }))
+    .map(r => ({ date: String(r.date), confirmed_cases: ugandaDailyIncidence(r) }))
     .sort((a, b) => a.date.localeCompare(b.date));
+  const reference = latestNationalSummary()?.reporting_date || selectedCaseDate();
+  if (!rows.length || daysBetweenIso(rows[rows.length-1].date, reference) > 1) return 0;
   let streak = 0;
   for (let i = rows.length - 1; i >= 0; i -= 1) {
     if (toNumber(rows[i].confirmed_cases) === 0) streak += 1;
@@ -1974,13 +1986,15 @@ function ugandaZeroNewCaseStreak() {
 }
 
 function ugandaRecentNewCases(days = 7) {
-  return ugandaRecentDailyRows(days).reduce((a, r) => a + toNumber(r.confirmed_cases), 0);
+  const rows = ugandaRecentDailyRows(days);
+  if (new Set(rows.map(r => r.date)).size < days) return NaN;
+  return rows.reduce((a, r) => a + toNumber(r.confirmed_cases), 0);
 }
 
 function ugandaLastPositiveCaseDate() {
   const rows = (ugandaEvdDailyCases || [])
     .filter(r => r.date)
-    .map(r => ({ date: String(r.date), confirmed_cases: toNumber(r.confirmed_cases) }))
+    .map(r => ({ date: String(r.date), confirmed_cases: ugandaDailyIncidence(r) }))
     .sort((a, b) => a.date.localeCompare(b.date));
   for (let i = rows.length - 1; i >= 0; i -= 1) {
     if (toNumber(rows[i].confirmed_cases) > 0) return rows[i].date;
@@ -2033,7 +2047,8 @@ function formatUgandaLatestSituation(row = latestUgandaEvdSummary()) {
 function ugandaEvdSourceLabel(row = latestUgandaEvdSummary()) {
   if (!row) return 'Uganda Ministry of Health EVD daily page';
   const date = row.as_of_date ? displayDateLabel(row.as_of_date) : (row.as_of_label || 'latest available date');
-  return `Uganda MoH EVD daily page, ${date}`;
+  const source = /(^|\.)who\.int/.test(new URL(row.source_url || 'https://evd-daily.health.go.ug/').hostname) ? 'WHO / Africa CDC' : 'Uganda MoH EVD daily page';
+  return `${source}, ${date}`;
 }
 
 function latestAiSitrepSummary() {
@@ -2226,6 +2241,32 @@ function caseRowsLatest() {
   const current = rawCaseRowsForDate(selected);
   if (caseDisplayMode !== 'recent') {
     latestCasesCache = current;
+    return latestCasesCache;
+  }
+  const windowStart = addDaysIso(selected, -7);
+  const daily = sitrepNotifications.filter(r => r.date > windowStart && r.date <= selected);
+  const nationalDates = new Set(daily.filter(r => r.admin_level === 'national').map(r => r.date));
+  if (nationalDates.size === 7) {
+    const totals = new Map();
+    for (const row of daily.filter(r => r.admin_level === 'health_zone')) {
+      const key = `${normalizedString(row.province)}|${normalizedString(row.health_zone)}`;
+      const total = totals.get(key) || {cases:0, deaths:0};
+      total.cases += Number(row.new_confirmed_cases);
+      total.deaths += Number(row.new_confirmed_deaths);
+      totals.set(key, total);
+    }
+    latestCasesCache = current.map(r => {
+      const total = totals.get(`${normalizedString(r.province)}|${normalizedString(r.health_zone)}`) || {cases:0,deaths:0};
+      return {...r, cumulative_confirmed_cases:r.confirmed_cases, cumulative_confirmed_deaths:r.confirmed_deaths,
+        confirmed_cases:total.cases, confirmed_deaths:total.deaths, baseline_date:windowStart,
+        notes:'Explicit 24h notifications summed over seven days; cumulative revisions excluded.'};
+    });
+    // Preserve official totals without inventing locations for daily table gaps.
+    for (const row of daily.filter(r => r.admin_level === 'unallocated')) {
+      latestCasesCache.push({date:selected, province:row.province, health_zone:'Unallocated daily notifications',
+        zone_id:'', lat:NaN, lon:NaN, confirmed_cases:Number(row.new_confirmed_cases),
+        confirmed_deaths:Number(row.new_confirmed_deaths), notes:row.source, baseline_date:windowStart});
+    }
     return latestCasesCache;
   }
   const baseDate = comparisonCaseDate(selected);
@@ -4022,6 +4063,10 @@ function dailyObservedSeriesUntil(selectedDate = selectedCaseDate()) {
     prevDate = d;
     prevCum = cum;
   }
+  const explicit = new Map(sitrepNotifications.filter(r => r.admin_level === 'national').map(r => [String(r.date), Number(r.new_confirmed_cases)]));
+  for (const row of out) {
+    if (explicit.has(row.date) && Number.isFinite(explicit.get(row.date))) row.incidence = explicit.get(row.date);
+  }
   return out.filter(r => String(r.date) <= String(selectedDate));
 }
 
@@ -4461,27 +4506,27 @@ function crossBorderRiskAssessment() {
   if (ugRecent7 === 0 && ugZeroStreak >= 14 && Number.isFinite(poe) && poe >= 0.80) { level = 'low'; category = textByLang('低〜中程度', 'Low-to-moderate', 'Faible à modéré'); }
   if (share < 0.08 && Number.isFinite(poe) && poe >= 0.95 && ugRecent7 === 0) { level = 'low'; category = textByLang('低い', 'Low', 'Faible'); }
 
-  const zeroJa = ugZeroStreak > 0 ? `ウガンダでは新規報告例ゼロが${fmt.format(ugZeroStreak)}日続いており、この傾向が続く場合は拡大リスクを低下方向に評価します。` : 'ウガンダの直近日別報告例データは限定的です。';
-  const zeroEn = ugZeroStreak > 0 ? `Uganda has reported zero new cases for ${fmt.format(ugZeroStreak)} consecutive days; if this continues, the cross-border risk assessment is shifted downward.` : 'Recent Uganda daily case data are limited.';
-  const zeroFr = ugZeroStreak > 0 ? `L’Ouganda rapporte zéro nouveau cas depuis ${fmt.format(ugZeroStreak)} jours consécutifs; si cette tendance se poursuit, l’évaluation du risque transfrontalier est abaissée.` : 'Les données quotidiennes récentes pour l’Ouganda sont limitées.';
+  const zeroJa = ugZeroStreak > 0 ? `ウガンダでは新規報告例ゼロが${fmt.format(ugZeroStreak)}日続いており、この傾向が続く場合は拡大リスクを低下方向に評価します。` : 'ウガンダの今回の流行はWHOが終息を確認しています。直近7日間の日別データは未収載のため、現在の新規例数には換算していません。';
+  const zeroEn = ugZeroStreak > 0 ? `Uganda has reported zero new cases for ${fmt.format(ugZeroStreak)} consecutive days; if this continues, the cross-border risk assessment is shifted downward.` : 'WHO confirmed the end of this outbreak in Uganda. Recent daily observations are unavailable; historic totals are not counted as current incident cases.';
+  const zeroFr = ugZeroStreak > 0 ? `L’Ouganda rapporte zéro nouveau cas depuis ${fmt.format(ugZeroStreak)} jours consécutifs; si cette tendance se poursuit, l’évaluation du risque transfrontalier est abaissée.` : 'L’OMS a confirmé la fin de cette épidémie en Ouganda. Les données quotidiennes récentes ne sont pas disponibles ; les cumuls historiques ne sont pas des cas incidents actuels.';
   if (currentLang === 'fr') {
     return {
       level, category,
       text: `Le risque de diffusion vers l’Ouganda et les pays voisins est actuellement évalué comme « ${category.toLowerCase()} ». ${zeroFr} L’évaluation combine la pression d’importation vers les routes frontalières, les cas dans l’est de la RDC et les indicateurs de dépistage PoE/PoC.`,
-      drivers: `Cas en Ituri ${formatCaseCount(ituriCases)}, part de pression frontalière ${pct(share)}, destinations en Ouganda ${fmt.format(ugRows.length)}, nouveaux cas Ouganda 7 j ${fmt.format(ugRecent7)}, dépistage PoE ${Number.isFinite(poe) ? pct(poe) : 'pas de données'}.`
+      drivers: `Cas en Ituri ${formatCaseCount(ituriCases)}, part de pression frontalière ${pct(share)}, destinations en Ouganda ${fmt.format(ugRows.length)}, nouveaux cas Ouganda 7 j ${Number.isFinite(ugRecent7) ? fmt.format(ugRecent7) : '—'}, dépistage PoE ${Number.isFinite(poe) ? pct(poe) : 'pas de données'}.`
     };
   }
   if (currentLang === 'en') {
     return {
       level, category,
       text: `Risk of spread to Uganda and neighbouring countries is currently assessed as ${category.toLowerCase()}. ${zeroEn} The assessment combines importation pressure toward Uganda-border routes, case counts in eastern DRC and PoE/PoC screening indicators.`,
-      drivers: `Ituri cases ${formatCaseCount(ituriCases)}, border-pressure share ${pct(share)}, Uganda destinations ${fmt.format(ugRows.length)}, Uganda new cases last 7d ${fmt.format(ugRecent7)}, PoE screening ${Number.isFinite(poe) ? pct(poe) : 'no data'}.`
+      drivers: `Ituri cases ${formatCaseCount(ituriCases)}, border-pressure share ${pct(share)}, Uganda destinations ${fmt.format(ugRows.length)}, Uganda new cases last 7d ${Number.isFinite(ugRecent7) ? fmt.format(ugRecent7) : '—'}, PoE screening ${Number.isFinite(poe) ? pct(poe) : 'no data'}.`
     };
   }
   return {
     level, category,
     text: `ウガンダ・周辺国への拡大リスクは現状で「${category}」と評価します。${zeroJa} 評価には、ウガンダ国境方向のimportation pressure、DRC東部の症例数、PoE/PoCスクリーニング指標を用いています。`,
-    drivers: `Ituri症例 ${formatCaseCount(ituriCases)}、border-pressure share ${pct(share)}、Uganda destination ${ugRows.length}件、ウガンダ直近7日新規例 ${fmt.format(ugRecent7)}、PoE screening ${Number.isFinite(poe) ? pct(poe) : 'データなし'}。`
+    drivers: `Ituri症例 ${formatCaseCount(ituriCases)}、border-pressure share ${pct(share)}、Uganda destination ${ugRows.length}件、ウガンダ直近7日新規例 ${Number.isFinite(ugRecent7) ? fmt.format(ugRecent7) : '—'}、PoE screening ${Number.isFinite(poe) ? pct(poe) : 'データなし'}。`
   };
 }
 
@@ -4779,8 +4824,8 @@ function updateDashboard() {
 
 async function main() {
   initLanguageControls();
-  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, latestSituationData, finalSizeProjectionData, trueInfectionEstimateData, healthZoneActivity, rtEstimates, cfrEstimates, shortMlForecastData, internationalCasesData] = await Promise.all([
-    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.latestSituation), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate), loadCsvOptional(files.healthZoneActivity), loadCsvOptional(files.rtEstimates), loadCsvOptional(files.cfrEstimates), loadJsonOptional(files.shortMlForecast), loadJsonOptional(files.internationalCases)
+  [origins, destinations, flows, scenarios, population, healthZoneBoundaries, ugandaProfile, cases, airAdjustment, contactFollowup, ugandaFmpFlows, ugandaDistrictFlows, reportSummary, healthZoneRwi, responseIndicators, ugandaEvdSummary, ugandaEvdDailyCases, ugandaEvdHistory, aiSitrepSummary, latestSituationData, finalSizeProjectionData, trueInfectionEstimateData, healthZoneActivity, rtEstimates, cfrEstimates, shortMlForecastData, internationalCasesData, sitrepNotifications] = await Promise.all([
+    loadCsv(files.origins), loadCsv(files.destinations), loadCsv(files.flows), loadCsv(files.scenarios), loadCsvOptional(files.population), loadGeoJsonOptional(files.boundaries), loadCsvOptional(files.ugandaProfile), loadCsvOptional(files.cases), loadCsvOptional(files.airAdjustment), loadCsvOptional(files.contactFollowup), loadCsvOptional(files.ugandaFmpFlows), loadCsvOptional(files.ugandaDistrictFlows), loadCsvOptional(files.reportSummary), loadCsvOptional(files.rwi), loadCsvOptional(files.response), loadCsvOptional(files.ugandaEvd), loadCsvOptional(files.ugandaEvdDaily), loadCsvOptional(files.ugandaEvdHistory), loadCsvOptional(files.aiSummary), loadJsonOptional(files.latestSituation), loadJsonOptional(files.finalProjection), loadJsonOptional(files.trueInfectionEstimate), loadCsvOptional(files.healthZoneActivity), loadCsvOptional(files.rtEstimates), loadCsvOptional(files.cfrEstimates), loadJsonOptional(files.shortMlForecast), loadJsonOptional(files.internationalCases), loadCsvOptional(files.notifications)
   ]);
   buildIndexes();
   initMap();

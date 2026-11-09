@@ -13,6 +13,7 @@ import csv
 from collections import defaultdict
 from datetime import date, datetime, timezone
 from pathlib import Path
+from sitrep_notifications import load_notifications
 
 ROOT = Path(__file__).resolve().parents[1]
 DATA = ROOT / "data"
@@ -125,6 +126,7 @@ def main() -> None:
         if (prov, hz) in latest_keys:
             grouped[(prov, hz)].append(r)
 
+    notifications = load_notifications()
     out = []
     for (province, hz), rows in grouped.items():
         rows = sorted(rows, key=lambda r: str(r.get("date") or r.get("source_date") or ""))
@@ -140,7 +142,9 @@ def main() -> None:
             # Use the reported cumulative value in the latest SitRep as the current
             # value. Do not carry forward a previous maximum, because DHIS2
             # reconciliation can move or de-duplicate cases between zones.
-            if prev_cc is None or cc > prev_cc:
+            explicit = notifications.get((d.isoformat(), 'health_zone', province, hz))
+            increased = int(explicit['new_confirmed_cases']) > 0 if explicit else (prev_cc is None or cc > prev_cc)
+            if increased or prev_cc is None:
                 last_increase = d
             prev_cc = cc
             current_cc = cc
@@ -165,7 +169,7 @@ def main() -> None:
             "status_label_fr": fr,
             "status_sort": sort,
             "source": latest_row.get("source") or latest.get("source") or "SitRep",
-            "notes": "Reporting-date proxy based on the last SitRep date where cumulative confirmed cases increased for this health zone; not onset or exposure date.",
+            "notes": "Reporting-date proxy: explicit 24h notifications where available; otherwise positive cumulative differences. Reconciliation-only changes are excluded when daily counts exist. Not onset or exposure date.",
         })
 
     out.sort(key=lambda r: (int(r["days_since_last_increase"]), -int(r["cumulative_confirmed"]), r["province"], r["health_zone"]))
