@@ -1,0 +1,75 @@
+{
+  "report_no": "N180",
+  "reporting_date": "2026-11-10",
+  "previous_report_no": "N179",
+  "previous_reporting_date": "2026-11-09",
+  "confirmed_cases": {
+    "previous": 11042,
+    "latest": 11114,
+    "change": 72
+  },
+  "confirmed_deaths": {
+    "previous": 5387,
+    "latest": 5433,
+    "change": 46
+  },
+  "province_new_cases_from_health_zone_delta": {
+    "Haut-Uélé": 3,
+    "Ituri": 44,
+    "Nord Ubangi": 1,
+    "Nord-Kivu": 24
+  },
+  "top_health_zone_increases": [
+    {
+      "province": "Ituri",
+      "health_zone": "Bunia",
+      "increase": 19
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mandima",
+      "increase": 10
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Beni",
+      "increase": 8
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Rwampara",
+      "increase": 4
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mambasa",
+      "increase": 3
+    },
+    {
+      "province": "Ituri",
+      "health_zone": "Mangala",
+      "increase": 3
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Mutwanga",
+      "increase": 3
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Oicha",
+      "increase": 3
+    },
+    {
+      "province": "Haut-Uélé",
+      "health_zone": "Pawa",
+      "increase": 2
+    },
+    {
+      "province": "Nord-Kivu",
+      "health_zone": "Katwa",
+      "increase": 2
+    }
+  ],
+  "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
+}

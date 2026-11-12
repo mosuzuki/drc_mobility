@@ -1,0 +1,18 @@
+{
+  "confirmed_cases": 1,
+  "confirmed_deaths": 0,
+  "as_of_date": "2026-11-11",
+  "publication_date": "2026-11-11",
+  "source": "NCDC",
+  "source_url": "https://evdmicrosite.ncdc.gov.ng/en/outbreaks/ebola-2026",
+  "contacts_identified": 62,
+  "contacts_under_followup": 10,
+  "contacts_exited_followup": 52,
+  "note_as_of_date": "2026-11-11",
+  "note_ja": "接触者62人のうち52人が観察終了、10人を観察中。医療搬送先で同じ患者を重複計上しません。",
+  "note_en": "62 contacts: 52 completed follow-up and 10 remain under monitoring. Evacuated patients are not double-counted.",
+  "note_fr": "62 contacts : 52 suivis terminés et 10 encore suivis. Aucun double comptage des patients évacués.",
+  "deaths_as_of_date": "2026-11-11",
+  "deaths_source_url": "https://evdmicrosite.ncdc.gov.ng/en/outbreaks/ebola-2026",
+  "last_verified_date": "2026-11-12"
+}

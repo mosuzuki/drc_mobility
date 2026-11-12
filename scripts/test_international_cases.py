@@ -5,9 +5,20 @@ import sys
 import unittest
 from pathlib import Path
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from update_international_cases import OUT, latest_ecdc_url, parse_ecdc, parse_nicd_table, merge, valid_country, parse_who_table, ecdc_reporting_date
+from update_international_cases import OUT, latest_ecdc_url, parse_ecdc, parse_nicd_table, merge, valid_country, parse_who_table, ecdc_reporting_date, parse_ncdc_dashboard
 
 class InternationalTests(unittest.TestCase):
+    def test_ncdc_uses_national_headline_not_africa_map_or_daily_series(self):
+        import html
+        props={'outbreak':{'slug':'ebola-2026'},'situation':{'as_of':'2026-11-11','published_at':'2026-11-11T09:53:28+00:00',
+            'headline':[{'key':'confirmed','value':1},{'key':'deaths','value':0}],
+            'cards':[{'key':'contacts','value':62},{'key':'follow_up','value':10},{'key':'exited','value':52}]},
+            'africa':{'confirmed':11042},'trend':[{'confirmed':0}]}
+        def page():return '<div data-page="'+html.escape(json.dumps({'props':props}),quote=True)+'"></div>'
+        r=parse_ncdc_dashboard(page())
+        self.assertEqual((r['confirmed_cases'],r['confirmed_deaths'],r['contacts_under_followup']),(1,0,10))
+        props['situation']['cards'][2]['value']=51
+        with self.assertRaises(ValueError):parse_ncdc_dashboard(page())
     def test_seeded_verified_snapshot(self):
         data=json.loads(OUT.read_text(encoding='utf-8'))
         for k in ('kenya','nigeria','france'):

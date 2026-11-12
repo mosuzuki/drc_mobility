@@ -420,7 +420,6 @@ def apply_reports(reports):
     latest=max(reports,key=lambda x:x['date'])
     EXTRACTED.mkdir(parents=True,exist_ok=True)
     (EXTRACTED/f'sitrep_{latest["report_no"]}.txt').write_text(latest['text'],encoding='utf-8')
-    (EXTRACTED/f'sitrep_{latest["report_no"][1:]:0>3}.txt').write_text(latest['text'],encoding='utf-8')
     pointer=EXTRACTED/'latest_sitrep_update.json'
     old_pointer=json.loads(pointer.read_text()) if pointer.exists() else {}
     if latest['date'] >= old_pointer.get('reporting_date',''):

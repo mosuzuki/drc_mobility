@@ -1,16 +1,16 @@
 {
-  "report_no": "N177",
-  "report_date": "2026-11-07",
-  "previous_report_no": "N176",
-  "previous_report_date": "2026-11-06",
-  "drc_numeric_summary_ja": "累積確定例は10,879例から10,920例に41例増加し、累積確定死亡例は5,302例から5,323例に21例増加しました。原表で保健区域別合計と一致しない当日死亡1例は、区域未配分として保持しています。当日の新規報告は確定例41例、死亡21例です。新規確定例はIturiで24例、Nord-Kivuで12例、Haut-Uéléで5例でした。",
+  "report_no": "N180",
+  "report_date": "2026-11-10",
+  "previous_report_no": "N179",
+  "previous_report_date": "2026-11-09",
+  "drc_numeric_summary_ja": "累積確定例は11,042例から11,114例に72例増加し、累積確定死亡例は5,387例から5,433例に46例増加しました。当日の新規報告は確定例72例、死亡46例です。新規確定例はIturiで44例、Nord-Kivuで24例、Haut-Uéléで3例、Nord Ubangiで1例でした。",
   "drc_ai_qualitative_sentence_ja": "SitRepでは、新たに影響を受けた保健区は報告されず、既存の影響地域で対応活動が継続されています。",
-  "drc_summary_ja": "累積確定例は10,879例から10,920例に41例増加し、累積確定死亡例は5,302例から5,323例に21例増加しました。原表で保健区域別合計と一致しない当日死亡1例は、区域未配分として保持しています。当日の新規報告は確定例41例、死亡21例です。新規確定例はIturiで24例、Nord-Kivuで12例、Haut-Uéléで5例でした。SitRepでは、新たに影響を受けた保健区は報告されず、既存の影響地域で対応活動が継続されています。",
+  "drc_summary_ja": "累積確定例は11,042例から11,114例に72例増加し、累積確定死亡例は5,387例から5,433例に46例増加しました。当日の新規報告は確定例72例、死亡46例です。新規確定例はIturiで44例、Nord-Kivuで24例、Haut-Uéléで3例、Nord Ubangiで1例でした。SitRepでは、新たに影響を受けた保健区は報告されず、既存の影響地域で対応活動が継続されています。",
   "uganda_summary_ja": "WHOとAfrica CDCは2026年8月27日、最後の輸入例の退院後42日間に新規確定例がなかったことを踏まえ、ウガンダのBundibugyo Ebola outbreakの終息を確認しました。累積確定例は20例、死亡例は2例、輸入例は15例、国内感染例は5例です。",
   "generated_by": "validated_data_plus_qualitative_highlight",
   "qualitative_generated_by": "deterministic",
   "openai_model": "",
-  "updated_at_utc": "2026-11-09T05:36:02+00:00",
+  "updated_at_utc": "2026-11-12T07:34:11+00:00",
   "source": "Validated CSV/JSON numbers + SitRep text qualitative highlight",
   "notes": "Numeric statements are generated from validated data only. The qualitative sentence is AI-assisted when OPENAI_API_KEY is available and is blocked from containing numbers; otherwise a deterministic SitRep-text highlight is used."
 }

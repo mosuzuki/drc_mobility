@@ -23,6 +23,7 @@ STATUS = ROOT / '.international_cases_status.md'
 ECDC_INDEX = 'https://www.ecdc.europa.eu/en/public-health-events/2026-EIP-00026'
 WHO_URL = 'https://www.who.int/emergencies/alert-and-response'
 NICD_URL = 'https://www.nicd.ac.za/bundibugyo-virus-disease-updates/'
+NCDC_URL = 'https://evdmicrosite.ncdc.gov.ng/en/outbreaks/ebola-2026'
 HEADERS = {'User-Agent': 'Mozilla/5.0 (compatible; public-health-dashboard/1.0; data reconciliation)'}
 COUNTRIES = ('kenya', 'nigeria', 'france')
 
@@ -175,6 +176,32 @@ def valid_country(entry: dict) -> bool:
         return False
 
 
+def parse_ncdc_dashboard(html: str) -> dict:
+    """Read public national data, never the microsite's older Africa map."""
+    node=BeautifulSoup(html,'html.parser').select_one('[data-page]')
+    if node is None: raise ValueError('NCDC public page data missing')
+    props=json.loads(node['data-page'])['props']
+    if props['outbreak']['slug'] != 'ebola-2026': raise ValueError('Wrong NCDC outbreak')
+    situation=props['situation']
+    headline={r['key']:r['value'] for r in situation['headline']}
+    cards={r['key']:r['value'] for r in situation['cards']}
+    keys=['contacts','follow_up','exited']
+    values=[headline['confirmed'],headline['deaths']]+[cards[k] for k in keys]
+    if any(type(x) is not int or x<0 for x in values): raise ValueError('Invalid NCDC counts')
+    if cards['follow_up']+cards['exited'] != cards['contacts']: raise ValueError('NCDC contact totals disagree')
+    entry={'confirmed_cases':headline['confirmed'],'confirmed_deaths':headline['deaths'],
+        'as_of_date':situation['as_of'],'publication_date':situation['published_at'][:10],
+        'source':'NCDC','source_url':NCDC_URL,
+        'contacts_identified':cards['contacts'],'contacts_under_followup':cards['follow_up'],
+        'contacts_exited_followup':cards['exited'],'note_as_of_date':situation['as_of']}
+    if not valid_country(entry): raise ValueError('Invalid NCDC date or national totals')
+    total,active,done=[cards[k] for k in keys]
+    entry.update(note_ja=f'接触者{total}人のうち{done}人が観察終了、{active}人を観察中。医療搬送先で同じ患者を重複計上しません。',
+        note_en=f'{total} contacts: {done} completed follow-up and {active} remain under monitoring. Evacuated patients are not double-counted.',
+        note_fr=f'{total} contacts : {done} suivis terminés et {active} encore suivis. Aucun double comptage des patients évacués.')
+    return entry
+
+
 def merge(current: dict, incoming: dict) -> bool:
     """Incoming must be at least as recent; do not erase known deaths with unknowns."""
     if not valid_country(incoming): return False
@@ -249,6 +276,12 @@ def update_from_sources(data: dict) -> list[str]:
             log.append(f'{country}: {"updated" if ok else "retained"} from WHO ({asof})')
     except Exception as ex:
         log.append(f'WHO unavailable / extraction rejected: {ex}')
+    try:
+        entry=parse_ncdc_dashboard(get_page(NCDC_URL))
+        ok=merge(countries.setdefault('nigeria',{}),entry)
+        log.append(f'nigeria: {"updated" if ok else "retained"} from NCDC ({entry["as_of_date"]})')
+    except Exception as ex:
+        log.append(f'NCDC unavailable / extraction rejected: {ex}')
     if not any('updated' in line or 'retained' in line for line in log):
         raise RuntimeError('All international sources unavailable or unparseable: ' + '; '.join(log))
     # Ensure every retained country entry passes validation.

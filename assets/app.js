@@ -777,11 +777,6 @@ function metricNumber(row, key) {
   return v;
 }
 
-function rowsUpToSelected(rows, date = selectedCaseDate()) {
-  return rows.filter(r => String(r.reporting_date || '') && String(r.reporting_date) <= String(date))
-    .sort((a, b) => String(a.reporting_date).localeCompare(String(b.reporting_date)));
-}
-
 function latestResponseRow(metric, opts = {}) {
   const date = opts.date || selectedCaseDate();
   const province = opts.province || '';
@@ -998,13 +993,6 @@ function rwiPercentileForRow(row, idx = null) {
   if (name && lookup.byName.has(normalizedString(name))) return lookup.byName.get(normalizedString(name));
   if (idx !== null && lookup.byIndex.has(idx)) return lookup.byIndex.get(idx);
   return NaN;
-}
-
-function rwiPercentileForFeature(feature) {
-  const lookup = rwiPercentileLookup();
-  const id = String(featureZoneId(feature) || '');
-  const name = featureZoneName(feature) || '';
-  return (id && lookup.byId.has(id)) ? lookup.byId.get(id) : lookup.byName.get(normalizedString(name));
 }
 
 function rwiQuintile(pct) {
@@ -2545,10 +2533,6 @@ function airAdjustmentFactorForDestination(dest) {
   return factor;
 }
 
-function isAirAdjustedDestination(dest) {
-  return airAdjustmentFactorForDestination(dest) < 0.999;
-}
-
 function airAdjustedRiskRowsForMonth(month, forecast = false) {
   return weightedRiskRowsForMonth(month, forecast).map(r => {
     const factor = airAdjustmentFactorForDestination(r);
@@ -3668,33 +3652,6 @@ function addDaysIso(dateStr, days) {
   return d.toISOString().slice(0, 10);
 }
 
-const FINAL_SIZE_SCENARIOS = {
-  baseline: {
-    rtFactorStart: 1.0,
-    rtFactorEnd: 0.82,
-    transitionDays: 35,
-    labelKey: 'baseline'
-  },
-  improved: {
-    rtFactorStart: 0.9,
-    rtFactorEnd: 0.55,
-    transitionDays: 21,
-    labelKey: 'improved'
-  },
-  delayed: {
-    rtFactorStart: 1.12,
-    rtFactorEnd: 0.9,
-    transitionDays: 55,
-    labelKey: 'delayed'
-  }
-};
-
-function scenarioRtMultiplier(scenario, day) {
-  const cfg = FINAL_SIZE_SCENARIOS[scenario] || FINAL_SIZE_SCENARIOS.baseline;
-  const t = Math.min(1, Math.max(0, day / Math.max(1, cfg.transitionDays || 1)));
-  return cfg.rtFactorStart + (cfg.rtFactorEnd - cfg.rtFactorStart) * t;
-}
-
 function latestObservedCumulative(selectedDate = selectedCaseDate()) {
   const row = reportSummaryForDate(selectedDate);
   return row ? Math.max(0, toNumber(row.drc_confirmed_cases)) : 0;
@@ -3764,11 +3721,6 @@ function scaledFinalProjection(proj, factor) {
     q95: Math.round(toNumber(r.q95) * factor * 10) / 10
   }));
   return copy;
-}
-
-function finalSizeBasisLabel(basis) {
-  if (basis === 'adjusted') return textByLang('報告補正後ベース（参考）', 'Reporting-adjusted basis (reference)', 'Base corrigée du sous-signalement (référence)');
-  return textByLang('報告確定例ベース', 'Reported confirmed-case basis', 'Base des cas confirmés rapportés');
 }
 
 function updateFinalSizeBasisToggleAvailability(record) {

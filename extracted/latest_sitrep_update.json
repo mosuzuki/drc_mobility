@@ -1,7 +1,7 @@
 {
-  "report_no": "N177",
-  "reporting_date": "2026-11-07",
-  "total_confirmed": 10920,
-  "total_deaths": 5323,
+  "report_no": "N180",
+  "reporting_date": "2026-11-10",
+  "total_confirmed": 11114,
+  "total_deaths": 5433,
   "source": "Rebuilt from corrected report_summary.csv and cases_by_hz.csv by generate_latest_situation.py"
 }

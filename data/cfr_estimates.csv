@@ -177,3 +177,6 @@ date,report_no,observed_sitrep,cumulative_confirmed,cumulative_deaths,crude_cfr,
 2026-11-05,N175,1,10803.0,5267.0,0.4875,0.5116,0.5019,0.5212,10295.752,10295.752,7.0,2.5,wilson_95_ci_conditional_on_fixed_delay_distribution,report_to_death_delay_adjusted_cfr_logistic_cdf
 2026-11-06,N176,1,10879.0,5302.0,0.4874,0.5115,0.5019,0.5211,10365.151,10365.151,7.0,2.5,wilson_95_ci_conditional_on_fixed_delay_distribution,report_to_death_delay_adjusted_cfr_logistic_cdf
 2026-11-07,N177,1,10920.0,5323.0,0.4875,0.5103,0.5007,0.5198,10431.956,10431.956,7.0,2.5,wilson_95_ci_conditional_on_fixed_delay_distribution,report_to_death_delay_adjusted_cfr_logistic_cdf
+2026-11-08,N178,1,10990.0,5354.0,0.4872,0.5099,0.5004,0.5195,10499.205,10499.205,7.0,2.5,wilson_95_ci_conditional_on_fixed_delay_distribution,report_to_death_delay_adjusted_cfr_logistic_cdf
+2026-11-09,N179,1,11042.0,5387.0,0.4879,0.5099,0.5004,0.5194,10564.923,10564.923,7.0,2.5,wilson_95_ci_conditional_on_fixed_delay_distribution,report_to_death_delay_adjusted_cfr_logistic_cdf
+2026-11-10,N180,1,11114.0,5433.0,0.4888,0.5111,0.5015,0.5205,10630.99,10630.99,7.0,2.5,wilson_95_ci_conditional_on_fixed_delay_distribution,report_to_death_delay_adjusted_cfr_logistic_cdf

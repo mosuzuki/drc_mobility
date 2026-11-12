@@ -731,5 +731,44 @@
     "pdf": "raw/sitrep_N177.pdf",
     "spatial_warning": "",
     "daily_spatial_warning": "N177 Table 2 page 3: Nord-Kivu province 9 deaths; listed zones 8. One death retained as unallocated, not assigned to Butembo from cumulative difference."
+  },
+  {
+    "report_no": "N178",
+    "date": "2026-11-08",
+    "cases": 10990,
+    "deaths": 5354,
+    "health_zones": 67,
+    "daily_spatial_warnings": [],
+    "provinces": 8,
+    "contact_followup": 0.792,
+    "unallocated_deaths": 493,
+    "pdf": "raw/sitrep_N178.pdf",
+    "spatial_warning": ""
+  },
+  {
+    "report_no": "N179",
+    "date": "2026-11-09",
+    "cases": 11042,
+    "deaths": 5387,
+    "health_zones": 67,
+    "daily_spatial_warnings": [],
+    "provinces": 8,
+    "contact_followup": 0.797,
+    "unallocated_deaths": 493,
+    "pdf": "raw/sitrep_N179.pdf",
+    "spatial_warning": ""
+  },
+  {
+    "report_no": "N180",
+    "date": "2026-11-10",
+    "cases": 11114,
+    "deaths": 5433,
+    "health_zones": 67,
+    "daily_spatial_warnings": [],
+    "provinces": 8,
+    "contact_followup": 0.855,
+    "unallocated_deaths": 493,
+    "pdf": "raw/sitrep_N180.pdf",
+    "spatial_warning": ""
   }
 ]

@@ -19,7 +19,6 @@ STATUS = ROOT / ".dashboard_update_all_status.md"
 STEPS = [
     ("INSP SitRep update", [sys.executable, "scripts/update_from_insp_sitrep.py"], False),
     ("ECDC nationally validated fallback", [sys.executable, "scripts/update_from_ecdc.py"], False),
-    ("Repair latest SitRep values", [sys.executable, "scripts/repair_latest_sitrep_values.py"], True),
     ("Uganda EVD update", [sys.executable, "scripts/update_uganda_evd.py"], False),
     ("ECDC/NICD international country updates", [sys.executable, "scripts/update_international_cases.py"], False),
     ("Health-zone activity status", [sys.executable, "scripts/generate_health_zone_activity_status.py"], True),
@@ -35,6 +34,7 @@ STEPS = [
     ("Dashboard output validation", [sys.executable, "scripts/validate_dashboard_outputs.py"], True),
     ("International country count regression test", [sys.executable, "scripts/test_international_cases.py"], True),
     ("Frontend national/regional data integrity", ["node", "scripts/test_frontend_data_consistency.cjs"], True),
+    ("Public site dependency validation", [sys.executable, "scripts/test_site_build.py"], True),
 ]
 
 

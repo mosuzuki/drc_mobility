@@ -1,0 +1,41 @@
+{
+  "reviewed_on": "2026-11-12",
+  "latest_drc": {
+    "report_no": "N180",
+    "reporting_date": "2026-11-10",
+    "publication_date": "2026-11-11",
+    "confirmed_cases": 11114,
+    "confirmed_deaths": 5433,
+    "new_cases": 72,
+    "new_deaths": 46,
+    "source_pdf": "raw/sitrep_N180.pdf"
+  },
+  "discovered_latest_report": "N180",
+  "kenya": {
+    "source": "https://afro.who.int/countries/kenya/news/kenyas-last-ebola-patient-goes-home-42-day-countdown-begins",
+    "as_of_date": "2026-11-11",
+    "confirmed_cases": 9,
+    "deaths": 2,
+    "recovered": 7,
+    "last_discharge": "2026-11-11",
+    "countdown_start": "2026-11-12",
+    "conditional_end": "2026-12-23",
+    "status": "countdown_ongoing; not declared over"
+  },
+  "nigeria": {
+    "source": "https://evdmicrosite.ncdc.gov.ng/en/outbreaks/ebola-2026",
+    "as_of_date": "2026-11-11",
+    "confirmed_cases": 1,
+    "deaths": 0,
+    "contacts": 62,
+    "contacts_exited": 52,
+    "contacts_followed": 10,
+    "extraction": "public data-page props.situation national headline and cards"
+  },
+  "uganda": {
+    "status": "ended 2026-08-27",
+    "verification": "ECDC 2026-11-11 and WHO announcement",
+    "source": "https://www.ecdc.europa.eu/en/public-health-events/2026-eip-00026/2026-11-11"
+  },
+  "mobility_data": "Retained original observation periods; not represented as updated epidemiological data."
+}

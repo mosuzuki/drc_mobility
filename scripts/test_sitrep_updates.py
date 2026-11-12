@@ -10,6 +10,15 @@ from update_uganda_evd import apply_who_uganda_end_override
 ROOT = Path(__file__).resolve().parents[1]
 
 class SitrepRegression(unittest.TestCase):
+    def test_n178_to_n180(self):
+        for no,c,d,n,nd in [(178,10990,5354,70,31),(179,11042,5387,52,33),(180,11114,5433,72,46)]:
+            with self.subTest(report=no):
+                r=extract_report(ROOT/'raw'/f'sitrep_N{no}.pdf')
+                self.assertEqual((r['cases'],r['deaths'],r['new_cases']),(c,d,n))
+                self.assertEqual(r['date'],f'2026-11-{no-170:02d}')
+                self.assertEqual(sum(z[2] for z in r['zones']),c)
+                daily=r['notifications']
+                self.assertEqual(sum(x['new_confirmed_deaths'] for x in daily if x['admin_level']=='health_zone'),nd)
     def test_ministry_backfill_date_and_staggered_kpi(self):
         r=extract_report(ROOT/'raw/sitreps/sitrep_N142.pdf')
         self.assertEqual((r['date'],r['publication_date']),('2026-10-03','2026-10-04'))

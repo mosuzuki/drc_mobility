@@ -1,0 +1,312 @@
+{
+  "baseline": "drc_mobility-main (18).zip",
+  "baseline_sha256": "a68c3fed2189d7e82fbc0a92d511578a5cebfc337bf678590c9ea32e6450c746",
+  "latest_report": "N180",
+  "changed": [
+    {
+      "path": ".github/workflows/pages.yml",
+      "old_sha256": "4c0e12d41ca09b90faa05e7bfd12de01bdab66d7ae56c3e299fa2b266c26573a",
+      "new_sha256": "7c6836d110c29f7d70126e67820f2c1eff27692834c4f05db88e823de288afcd"
+    },
+    {
+      "path": ".github/workflows/update-sitrep.yml",
+      "old_sha256": "2c2829cd06f99b5a15b56cfc2afaf2b4c7ed5d4ae6f79af27330feabb986cf43",
+      "new_sha256": "06cb480440058e1c65d9a02159252cac27a7639d23135f6894c1b3744777a6b0"
+    },
+    {
+      "path": ".gitignore",
+      "old_sha256": null,
+      "new_sha256": "7ecde21a22701818a428991c037b939ec026c6359cfd4b9fc0be1478e97c3e7f"
+    },
+    {
+      "path": "CHANGELOG.md",
+      "old_sha256": null,
+      "new_sha256": "9aa367808bc9589a1b0136223793a8f739e60160a9460be8f62592d0a0baa062"
+    },
+    {
+      "path": "DATA_NOTES.md",
+      "old_sha256": "eeb1a3684eecd075a1eda8b3ec174abd4923448a5f23f0368431517553d3d497",
+      "new_sha256": "c5eaf77cc5338bf8ed5b311b4a475dcbfe210465dc01dc3c049cb0b5a5f1a281"
+    },
+    {
+      "path": "README.md",
+      "old_sha256": "617488f9ea165fa6b34cb36073a3afb81bf7a184a48fd681e417339533b5542e",
+      "new_sha256": "4d442b7586388ed6e9b787f293ca97369b4405cad5cea75ad78f01c454c55a6f"
+    },
+    {
+      "path": "assets/app.js",
+      "old_sha256": "0aaa95b57b0fbb0e4eb152d958bded0e3a79439d81ddc66634b875d917f088bf",
+      "new_sha256": "d5090cc0856623324120a2c8899f758c7bc4c61b48c0dafc9209dfb90f9679a3"
+    },
+    {
+      "path": "data/ai_sitrep_summary.csv",
+      "old_sha256": "e6b5cb101c4bc4d25bfa47e212c1ab92fd58bf4a1dd78416b26fc0c6c0eb3f2f",
+      "new_sha256": "6a25d126f6a34a95102f74f6f473c46d2aec5e3fe0bd11d6ff3c9b2a5b64d51a"
+    },
+    {
+      "path": "data/cases_by_hz.csv",
+      "old_sha256": "2f66b42830ca1c8675d0a5d483163abb7f7f03e94a82a9c0f2e074ae1677ee17",
+      "new_sha256": "fc6f0db0701f3f3722c5040cdc494d3a8ed3d61c4f6304746168cf27a7afc533"
+    },
+    {
+      "path": "data/cases_unventilated.csv",
+      "old_sha256": "0e95daff50f2f02e8a06e5fcbf86a7f7ca0afbe507d7f2f45a564c10239e15ef",
+      "new_sha256": "ab05304e36a34ebbac44d5a7d4781a4cf9da20c27440d002fc53fab02ec08d6d"
+    },
+    {
+      "path": "data/cfr_estimates.csv",
+      "old_sha256": "7279d540bfdabdde140772860c3300aa77c45eb1defb0fffdf4d8547ed665413",
+      "new_sha256": "d6233803c5d91e741a93c87d173332a49e07f79576a03410acbbbaad9ade2755"
+    },
+    {
+      "path": "data/contact_followup_by_province.csv",
+      "old_sha256": "20d018b3cdca63c8a28c9c8ba62004c339012b5f521455e622b6dfc84e387705",
+      "new_sha256": "341ee94c556822d57f470e0a14e75585eee1e12c61187c939cf9d98ff98f91e6"
+    },
+    {
+      "path": "data/final_size_projection.json",
+      "old_sha256": "0f68bd067a7500dddeb8664270a02425ac886d40e73ff2e39dd160b2554947d9",
+      "new_sha256": "65f71d9ec8cc1db87cdd8bf51012ac8f198e6c1192b63b4a7f24987cfb2fc7d1"
+    },
+    {
+      "path": "data/health_zone_activity_status.csv",
+      "old_sha256": "fd06667f6f693bc6206c48f16f332703f46bc924bc97b72cec4924ea59f1db86",
+      "new_sha256": "63d0ba642620ea908690ea71059dfb04b0c0a24e1030e587275d14e241a0606e"
+    },
+    {
+      "path": "data/international_cases.json",
+      "old_sha256": "d09ab60953b98103cf79a5ca6940c68c2bbdbe80efea785dc8187f8ba65efb86",
+      "new_sha256": "353887dda64badd9c267f813b7314106e9fbb9bfff8ee7596e333999b7ae3a71"
+    },
+    {
+      "path": "data/latest_situation.json",
+      "old_sha256": "b6470ac19e75378db41cab22c5dfaec655b77fd5c9df09e85a1df7149d36764b",
+      "new_sha256": "dc70c5dcf5e6b2a69982b728be16bae6309a5099581751810c2e01061e516566"
+    },
+    {
+      "path": "data/report_summary.csv",
+      "old_sha256": "c2154c9f796db765fe4573a7a1fbaf082b5f7ddaac8f7fd79bcdc542dc575bb0",
+      "new_sha256": "0782cfd8703a3021b227c8c4f42a5ee83c4db319c930bb9689c11fa843c7df99"
+    },
+    {
+      "path": "data/response_indicators.csv",
+      "old_sha256": "ccc5b8713c156a6b26b9a06b680bf85f1c294cbe61c70179f4cc4f2def71bd4d",
+      "new_sha256": "a47b803daa4f0f1a5573b838a220391eb5437b139b1dbab3a93e89c0ea633bec"
+    },
+    {
+      "path": "data/rt_estimates.csv",
+      "old_sha256": "76e81a664ba41a005f7ef3076a32e5baa3cf50abe9d6786bedcfe370c7d86817",
+      "new_sha256": "b662b6b0812c886cb518413e882ecbccf1d2285b0dc9a519fdb12a0612079c20"
+    },
+    {
+      "path": "data/short_term_ml_forecast.json",
+      "old_sha256": "382426b41e19094dff4b4ba0e794a3d5290d991dc65cdb632ffe7cd4c3ca8d24",
+      "new_sha256": "e3808d794ea58a79f31e421cde5c5725e3665d385e9cd29daec15e498f7ab7fa"
+    },
+    {
+      "path": "data/sitrep_daily_notifications.csv",
+      "old_sha256": "abb696e0d563c615bbf58d793ae297d321fc9da213594ba95b30d98000ae7e3f",
+      "new_sha256": "2603d030bdf750168c79ec3bdfbc55fb5dcfba712d15dee9257ca1424af93fc4"
+    },
+    {
+      "path": "data/true_infection_estimate.json",
+      "old_sha256": "cf63b066479cf931093ba072b8fdc9f4a8722ced870cc8f76a21e0510f6b38dc",
+      "new_sha256": "e75104e6d6c4081999ddcce4b506377b7bf5d3543d85da07218f4c58278c6891"
+    },
+    {
+      "path": "data/uganda_evd_history.csv",
+      "old_sha256": "e9c0d9417320eeeb1204f954db71a10a005418574d56944d181141ec874e78b4",
+      "new_sha256": "48f27a33beb92c3f5dcca175153fc1a72e764fcf18682f6b2bb2a066aa697dc1"
+    },
+    {
+      "path": "extracted/latest_sitrep_update.json",
+      "old_sha256": "734d1e5bd5a45289a780e0fe23121aaffc9df9b8dd63c5edb86c40ea3072d3c5",
+      "new_sha256": "ee2804d4f71b12293775303bc03c3f12b54a7ef32ec504eb0f3da6b9635acb6e"
+    },
+    {
+      "path": "extracted/ncdc_public_snapshot_20261111.json",
+      "old_sha256": null,
+      "new_sha256": "5d4821b6bd34ad0b29002d8f5bff9350cb7200bf364bb597bc2bb6292a63d7a7"
+    },
+    {
+      "path": "extracted/official_source_review_20261112.json",
+      "old_sha256": null,
+      "new_sha256": "c6e2dbaccac59515072d31896b81dcaae1f45a46831b792b7249bf3c87d4ee18"
+    },
+    {
+      "path": "extracted/sitrep_N178.txt",
+      "old_sha256": null,
+      "new_sha256": "ab474c47e308b2ee5f35d49292adff6aac974701edb1d3dbe5a74acc1fd1a76b"
+    },
+    {
+      "path": "extracted/sitrep_N179.txt",
+      "old_sha256": null,
+      "new_sha256": "d84aeea87a54c37974807e8ad246b7ceb5a5ed3facedd8c1f1bec1ad2d21fb1e"
+    },
+    {
+      "path": "extracted/sitrep_N180.txt",
+      "old_sha256": null,
+      "new_sha256": "b8ebdf3061aeb0d5849c14c90fa0317c4c90d13bf1e8d981b9974bab1a0fcccc"
+    },
+    {
+      "path": "extracted/sitrep_N180_delta_payload.json",
+      "old_sha256": null,
+      "new_sha256": "2ea4359f78e88ec030d74ab3321ebc13b78271a92afd9fc1e326c2553cf38b5a"
+    },
+    {
+      "path": "extracted/sitrep_archive_import_audit.json",
+      "old_sha256": "cc755446e429628235640296e11b0b413c14d1f94cd4ac7c2c869129f274794f",
+      "new_sha256": "b57e375813c345507b1529a62018bf380586ea76e78714a37afd1d7255c2352e"
+    },
+    {
+      "path": "index.html",
+      "old_sha256": "bde9fe9241c26dc79ff66d5c5174a4d976e0868832882e99b62566b00e56c88e",
+      "new_sha256": "e8e40177c8f6b8bc6172f7246d7cbdbfa62237c281b3b767c89da3fa63ed06ea"
+    },
+    {
+      "path": "raw/sitrep_N178.pdf",
+      "old_sha256": null,
+      "new_sha256": "d58582670841f28df2e9b8a00453c8f9fb3706c3efbef6a4526e74481faad580"
+    },
+    {
+      "path": "raw/sitrep_N179.pdf",
+      "old_sha256": null,
+      "new_sha256": "2d97dc6fe282c5ec5dfc7c309f1c302d7fd23aaff7b224e4723c0074546bb044"
+    },
+    {
+      "path": "raw/sitrep_N180.pdf",
+      "old_sha256": null,
+      "new_sha256": "93943776b57b3190f04d012c59c01b67d898852a252fbdc03625c9f100fb5c04"
+    },
+    {
+      "path": "scripts/build_site.py",
+      "old_sha256": null,
+      "new_sha256": "28539fc09bde90b9c0eab9f769e6957335e12fca945b0eec8e4db2b651e73b22"
+    },
+    {
+      "path": "scripts/generate_final_size_projection.py",
+      "old_sha256": "a1636504392baa3ecc19023e559cce9309f8b34cdca5551062508a40a941bee1",
+      "new_sha256": "7e8982cf60b0a0988f4319007ad9f22e902f1de49e62d10c6ebf5c9a4ed3943f"
+    },
+    {
+      "path": "scripts/import_sitrep_archive.py",
+      "old_sha256": "564c340913ef8b644e63ed647dcff5495731c97d3998c5840b97311a87cc17ef",
+      "new_sha256": "5fb5519268dc7a92faec706c3c3dd36b384c0b6e6ef5a7129f3fcabc2cb613c8"
+    },
+    {
+      "path": "scripts/test_international_cases.py",
+      "old_sha256": "39d5afc350a3bf5605dd6d98a48ed0a52cf3db708faab9eef6770e2521c0ab4f",
+      "new_sha256": "770725b06f2474bc7db313f70e330c0f9e0077cf60514cd233cd5b8280eb562b"
+    },
+    {
+      "path": "scripts/test_site_build.py",
+      "old_sha256": null,
+      "new_sha256": "731b8bf6fb450ce927c40a319c70121dd160901b6edf4699828f40a45ba3d716"
+    },
+    {
+      "path": "scripts/test_sitrep_updates.py",
+      "old_sha256": "7525248282cc856deae8c76a5173916ea1639a0a76a20f60b6880c8cb4e2cd28",
+      "new_sha256": "4bb098748e49e5e35ea5528b167f620897f19f5fd2679c48d5aa13000b335806"
+    },
+    {
+      "path": "scripts/update_dashboard_all.py",
+      "old_sha256": "74e345b530702da1b5a6fea13f414b156cc2ad728ea124491afe1ef2c1ec0db7",
+      "new_sha256": "ccd49123722562d155c3910646b8c5eee0c294efb35995a35b03dab248c96425"
+    },
+    {
+      "path": "scripts/update_international_cases.py",
+      "old_sha256": "aa49e105c545b7f39eaf522b5f4d51326d49de68cff43d1a6e5ef76a196303bd",
+      "new_sha256": "008bbe813d5ef57078d00b5a8c3a80397041d6ae3b273d9772e3c12336af878e"
+    }
+  ],
+  "deleted": [
+    {
+      "path": ".sitrep_update_status.md",
+      "old_sha256": "b3e7f90627e66a5f89c706462ae437ae3c80b626ff81b788d59e52ae7641991a"
+    },
+    {
+      "path": "APPLY_UPDATE.txt",
+      "old_sha256": "f05ed2229b98dd70fd99e90aff0e553524362476330d2c701d64655eebc7719a"
+    },
+    {
+      "path": "DATA_RECOVERY_NOTES.md",
+      "old_sha256": "597046258737cb71af7e7f25ad7f32e4de3d6d76baf0e965e68485ce9a568c23"
+    },
+    {
+      "path": "DISPLAY_CONSISTENCY_README_JA.txt",
+      "old_sha256": "dd4eab3575d005e5025d7ecee0431b6431f7925344182a067f0b4f08dfeb2776"
+    },
+    {
+      "path": "PATCH_README_JA.txt",
+      "old_sha256": "35da2a04a0846f7842f3eae2ee46b434b622add186214605bb6805188fecabfd"
+    },
+    {
+      "path": "README_FORECAST_RENDER_FIX_JA.md",
+      "old_sha256": "80d30f1fc59df9b089e7711ef0801a36ee66e8ff157ac1aa5fbb85a1ee14e03d"
+    },
+    {
+      "path": "README_INTERNATIONAL_KPI_JA.md",
+      "old_sha256": "975fd8e5d5e086acc7e30f16642a16d476b38a63babf3eb8df2ddf35edec74dc"
+    },
+    {
+      "path": "README_ML_FORECAST_JA.md",
+      "old_sha256": "e364e280ef0050fc93b736c7f02d73b6ebbb3cf94a94bc5f5d3859a2e88083e1"
+    },
+    {
+      "path": "README_N159_UPDATE_JA.txt",
+      "old_sha256": "2614470cd0d55f78ca70a66e7309044c75c9b1e16a22327c8d05252567dfbf9f"
+    },
+    {
+      "path": "README_UPDATE_20261101_JA.md",
+      "old_sha256": "6dba3aef7932e06b9a90fa8aff6ded00accd6ab8214a4dca85bf05107d13ec33"
+    },
+    {
+      "path": "README_UPDATE_20261109_JA.md",
+      "old_sha256": "b8e3642cfcc7579798e17aee3271d3f9a398b35a889e8b87f8fdf16a573c0a55"
+    },
+    {
+      "path": "assets/i18n.js",
+      "old_sha256": "3f878135bec603236c385e0f39442ef37efb044a8567b5f1c31a934dcc1b58fb"
+    },
+    {
+      "path": "data/historical_matching_curves_daily.csv",
+      "old_sha256": "5eb7a5126e18d969477db999dcc13fd9f000eb18fb6d1f5724006d1c91b800af"
+    },
+    {
+      "path": "data/historical_matching_features.csv",
+      "old_sha256": "805f6d767f60ccf434006bafcf48671257cf9e29f3466e3a4b0f7a99030a6dcd"
+    },
+    {
+      "path": "data/historical_matching_library.json",
+      "old_sha256": "05cac80e0fb61f2ab3dcb0b0e3c37246874fe05022ea0154da86637e4e0533bf"
+    },
+    {
+      "path": "extracted/sitrep_142.txt",
+      "old_sha256": "2b44f73894e336b3c74d006729e999aee037396131a57ea61f5a6438831dc256"
+    },
+    {
+      "path": "extracted/sitrep_169.txt",
+      "old_sha256": "a9d603fe976700a3615a68523eb552687d9c16cc7699a36790bd5814c5d0c141"
+    },
+    {
+      "path": "extracted/sitrep_177.txt",
+      "old_sha256": "5be7769df6cc539ee97bf10cc316c073feac5e74f7154cfd3375561f2f94a8b3"
+    },
+    {
+      "path": "scripts/__pycache__/estimate_true_infections.cpython-313.pyc",
+      "old_sha256": "463eccb4e6901334a53b3de13f0ef2713d5953f00135555739f47d71ff263677"
+    },
+    {
+      "path": "scripts/__pycache__/generate_final_size_projection.cpython-313.pyc",
+      "old_sha256": "a51da8e184676532270dbedfce8d23d9ef535427f94d3cc0370c3de70ef4942c"
+    },
+    {
+      "path": "scripts/__pycache__/update_from_insp_sitrep.cpython-313.pyc",
+      "old_sha256": "5842342275dcccab1ed57aa01b6dd3af69f173981b7d70e472431fbfcc093fb9"
+    },
+    {
+      "path": "scripts/__pycache__/update_uganda_evd.cpython-313.pyc",
+      "old_sha256": "ade14b18ab3d2fea309804d308006e1574c6d2e23e81aaab23ba7d71594a42d8"
+    }
+  ]
+}
